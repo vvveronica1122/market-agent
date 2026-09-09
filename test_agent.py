@@ -1,0 +1,137 @@
+"""
+Tests for the agent loop, with the model and the tools both stubbed.
+
+The interesting thing to test here isn't any single tool -- it's the loop:
+does the agent actually chain calls, does a broken tool become data rather
+than a crash, and does it stop instead of looping forever.
+
+No network, no API key. Run with:
+
+    python3 test_agent.py
+"""
+
+from __future__ import annotations
+
+import json
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+import agent
+
+
+# --- a fake model -----------------------------------------------------
+class _Text:
+    type = "text"
+
+    def __init__(self, text):
+        self.text = text
+
+
+class _ToolUse:
+    type = "tool_use"
+
+    def __init__(self, name, tool_input, id_="tu_1"):
+        self.name = name
+        self.input = tool_input
+        self.id = id_
+
+
+class _Reply:
+    def __init__(self, content, stop_reason):
+        self.content = content
+        self.stop_reason = stop_reason
+
+
+class ScriptedMessages:
+    """Replays a fixed sequence of model replies and records what it saw."""
+
+    def __init__(self, script):
+        self.script = list(script)
+        self.calls = []
+
+    def create(self, **kwargs):
+        self.calls.append(kwargs)
+        reply = self.script.pop(0) if self.script else _Reply([_Text("done")], "end_turn")
+        return reply
+
+
+class ScriptedClient:
+    def __init__(self, script):
+        self.messages = ScriptedMessages(script)
+
+
+def check(label, condition, detail=""):
+    print(f"  [{'PASS' if condition else 'FAIL'}] {label}" + (f" -- {detail}" if detail and not condition else ""))
+    return condition
+
+
+def main() -> int:
+    failures = 0
+
+    print("\nTool wiring")
+    failures += not check("every schema has a handler behind it",
+                          {t["name"] for t in agent.TOOL_SCHEMAS} == set(agent.HANDLERS))
+    failures += not check("handlers are never sent to the model",
+                          all("handler" not in t for t in agent.TOOL_SCHEMAS))
+    failures += not check("every tool describes itself in more than a few words",
+                          all(len(t["description"]) > 40 for t in agent.TOOL_SCHEMAS),
+                          str([t["name"] for t in agent.TOOL_SCHEMAS if len(t["description"]) <= 40]))
+
+    print("\nChaining across steps")
+    agent.HANDLERS["get_watchlist"] = lambda: ["AAPL", "NVDA"]
+    agent.HANDLERS["get_earnings_schedule"] = lambda ticker: {
+        "ticker": ticker, "next_date": "2026-10-29" if ticker == "AAPL" else "2026-09-12",
+        "days_away": 50 if ticker == "AAPL" else 3,
+    }
+
+    client = ScriptedClient([
+        _Reply([_ToolUse("get_watchlist", {})], "tool_use"),
+        _Reply([_ToolUse("get_earnings_schedule", {"ticker": "AAPL"}, "a"),
+                _ToolUse("get_earnings_schedule", {"ticker": "NVDA"}, "b")], "tool_use"),
+        _Reply([_Text("NVDA reports first, in 3 days.")], "end_turn"),
+    ])
+    answer = agent.ask_agent(client, "which of my stocks reports soonest?", verbose=False)
+    failures += not check("returns the model's final text", answer == "NVDA reports first, in 3 days.", answer)
+    failures += not check("took three turns: ask, look up, answer",
+                          len(client.messages.calls) == 3, str(len(client.messages.calls)))
+
+    sent = client.messages.calls[-1]["messages"]
+    tool_results = [m for m in sent if isinstance(m.get("content"), list)
+                    and any(isinstance(c, dict) and c.get("type") == "tool_result" for c in m["content"])]
+    failures += not check("tool results are fed back into the conversation", len(tool_results) == 2,
+                          str(len(tool_results)))
+    failures += not check("both parallel tool calls in one turn were executed",
+                          len(tool_results[-1]["content"]) == 2)
+    failures += not check("the looked-up data actually reaches the model",
+                          "2026-09-12" in json.dumps(tool_results[-1]["content"]))
+
+    print("\nFailure handling")
+    out = agent.run_tool("no_such_tool", {})
+    failures += not check("an unknown tool name returns an error, not a crash",
+                          json.loads(out).get("error", "").startswith("Unknown tool"))
+
+    agent.HANDLERS["get_stock_price"] = lambda ticker: (_ for _ in ()).throw(ValueError("Yahoo is down"))
+    out = agent.run_tool("get_stock_price", {"ticker": "AAPL"})
+    failures += not check("a raising tool becomes data the model can explain",
+                          "Yahoo is down" in json.loads(out).get("error", ""), out)
+
+    out = agent.run_tool("get_watchlist", {"bogus": 1})
+    failures += not check("bad arguments are caught too", "error" in json.loads(out), out)
+
+    print("\nRunaway protection")
+    forever = ScriptedClient([_Reply([_ToolUse("get_watchlist", {})], "tool_use")] * 50)
+    answer = agent.ask_agent(forever, "loop forever", verbose=False)
+    failures += not check("stops at the step limit instead of looping forever",
+                          len(forever.messages.calls) == agent.MAX_STEPS,
+                          f"{len(forever.messages.calls)} calls")
+    failures += not check("says why it stopped rather than returning nothing",
+                          "limit" in answer.lower(), answer)
+
+    print(f"\n{'All checks passed.' if not failures else str(failures) + ' check(s) FAILED.'}\n")
+    return 1 if failures else 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

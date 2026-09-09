@@ -1,0 +1,187 @@
+"""
+Evaluate the AI writing, not the plumbing.
+
+test_app.py and test_agent.py check deterministic code and cost nothing.
+This is different: it calls the real model, so it costs money and takes
+time, and it is the only thing here that can catch the brief being
+confidently wrong, drifting into giving advice, or missing the one thing
+that mattered.
+
+Usage:
+    python3 evals/run_evals.py                  # every scenario, once
+    python3 evals/run_evals.py --runs 3         # three times each, for variance
+    python3 evals/run_evals.py --scenario quiet_day
+    python3 evals/run_evals.py --dry-run        # exercise the harness, no API calls
+
+On variance: a single run is an anecdote, not a measurement. The same
+prompt can pass on one attempt and fail on the next, so when you change a
+prompt and want to know whether it actually improved, use --runs 3 or more
+and compare pass RATES.
+"""
+
+from __future__ import annotations
+
+import argparse
+import sys
+from pathlib import Path
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(PROJECT_ROOT))
+sys.path.insert(0, str(PROJECT_ROOT / "web"))
+sys.path.insert(0, str(PROJECT_ROOT / "evals"))
+
+import app as server  # noqa: E402
+from checks import (  # noqa: E402
+    check_forbidden,
+    check_format,
+    check_mentions,
+    check_no_invented_tickers,
+    judge,
+)
+from scenarios import SCENARIOS  # noqa: E402
+
+GREEN, RED, DIM, RESET = "\033[32m", "\033[31m", "\033[2m", "\033[0m"
+
+CANNED = (
+    "The watchlist was quiet today, with nothing moving more than a fraction of a percent "
+    "and no headlines worth acting on.\n\n"
+    "Nothing on the list reports this week, so the next scheduled event is some way off."
+)
+
+
+class _Block:
+    type = "text"
+
+    def __init__(self, text):
+        self.text = text
+
+
+class _Reply:
+    def __init__(self, text):
+        self.content = [_Block(text)]
+
+
+class DryRunClient:
+    """Returns canned text so the harness can be exercised for free."""
+
+    class _Messages:
+        def create(self, **kwargs):
+            if "grading" in kwargs.get("system", "").lower() or "RUBRIC" in str(kwargs.get("messages")):
+                return _Reply('{"pass": true, "reason": "dry run -- not actually graded"}')
+            return _Reply(CANNED)
+
+    def __init__(self):
+        self.messages = self._Messages()
+
+
+def run_scenario(name: str, spec: dict, runs: int) -> dict:
+    print(f"\n{'=' * 74}\n{name}  {DIM}{spec['description']}{RESET}\n{'=' * 74}")
+
+    totals: dict[str, list[bool]] = {}
+    for attempt in range(runs):
+        brief = server.build_brief(
+            spec["rows"], spec["market_pct"], spec["indices"], spec["movers"], spec["headlines"]
+        )
+
+        if attempt == 0:
+            print(f"\n{DIM}--- what the model wrote ---{RESET}")
+            for line in brief.split("\n"):
+                print(f"  {line}")
+            print(f"{DIM}--- end ---{RESET}\n")
+
+        results: list[tuple[bool, str]] = []
+        results += check_mentions(brief, spec["must_mention"])
+        results += check_forbidden(brief)
+        results += check_format(brief)
+
+        passed, reason = judge(server.client, server.MODEL, brief, spec["rubric"])
+        results.append((passed, f"judge: {reason}"))
+
+        for ok, label in results:
+            totals.setdefault(label, []).append(ok)
+
+    for label, outcomes in totals.items():
+        rate = sum(outcomes) / len(outcomes)
+        mark = f"{GREEN}PASS{RESET}" if rate == 1 else f"{RED}FAIL{RESET}"
+        suffix = "" if len(outcomes) == 1 else f"  ({sum(outcomes)}/{len(outcomes)} runs)"
+        print(f"  [{mark}] {label}{suffix}")
+
+    failed = sum(1 for outcomes in totals.values() if not all(outcomes))
+    return {"checks": len(totals), "failed": failed}
+
+
+def run_theme_eval() -> dict:
+    """Themes get one specific check: no invented tickers."""
+    print(f"\n{'=' * 74}\nthemes  {DIM}Grouping movers into stories without inventing names{RESET}\n{'=' * 74}")
+
+    movers = [
+        {"ticker": "NVDA", "name": "Nvidia", "change_percent": -6.1, "top_headline": "Chip rules widen"},
+        {"ticker": "AMD", "name": "AMD", "change_percent": -5.4, "top_headline": "AMD falls with peers"},
+        {"ticker": "MU", "name": "Micron", "change_percent": -7.2, "top_headline": "Memory rules tighten"},
+        {"ticker": "LLY", "name": "Eli Lilly", "change_percent": 11.4, "top_headline": "Obesity trial beats"},
+    ]
+    allowed = {m["ticker"] for m in movers}
+    themes = server.extract_themes(movers, [{"title": "Chip export rules widen"}])
+
+    print(f"\n{DIM}--- themes returned ---{RESET}")
+    for theme in themes:
+        print(f"  {theme.get('theme')}  {theme.get('tickers')}")
+        print(f"    {DIM}{theme.get('what')}{RESET}")
+    print(f"{DIM}--- end ---{RESET}\n")
+
+    results = [(bool(themes), "returned at least one theme")]
+    results += check_no_invented_tickers(themes, allowed)
+    chip_theme = any(
+        {"NVDA", "AMD", "MU"}.issubset(set(t.get("tickers", []))) for t in themes
+    )
+    results.append((chip_theme, "groups the three chip names into one theme"))
+
+    for ok, label in results:
+        print(f"  [{GREEN}PASS{RESET}]" if ok else f"  [{RED}FAIL{RESET}]", label)
+
+    return {"checks": len(results), "failed": sum(1 for ok, _ in results if not ok)}
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--runs", type=int, default=1, help="runs per scenario (variance)")
+    parser.add_argument("--scenario", help="run only this scenario")
+    parser.add_argument("--dry-run", action="store_true", help="no API calls; exercise the harness")
+    parser.add_argument("--skip-themes", action="store_true")
+    args = parser.parse_args()
+
+    if args.dry_run:
+        server.client = DryRunClient()
+        print(f"{DIM}Dry run: canned output, no API calls, results are meaningless.{RESET}")
+    elif not server.os.environ.get("ANTHROPIC_API_KEY"):
+        print("Missing ANTHROPIC_API_KEY -- these evals call the real model.")
+        print("Use --dry-run to exercise the harness without it.")
+        return 1
+
+    chosen = {args.scenario: SCENARIOS[args.scenario]} if args.scenario else SCENARIOS
+    if args.scenario and args.scenario not in SCENARIOS:
+        print(f"Unknown scenario. Available: {', '.join(SCENARIOS)}")
+        return 1
+
+    checks = failed = 0
+    for name, spec in chosen.items():
+        outcome = run_scenario(name, spec, args.runs)
+        checks += outcome["checks"]
+        failed += outcome["failed"]
+
+    if not args.scenario and not args.skip_themes:
+        outcome = run_theme_eval()
+        checks += outcome["checks"]
+        failed += outcome["failed"]
+
+    print(f"\n{'=' * 74}")
+    if failed:
+        print(f"{RED}{failed} of {checks} checks failed.{RESET}")
+    else:
+        print(f"{GREEN}All {checks} checks passed.{RESET}")
+    print(f"{'=' * 74}\n")
+    return 1 if failed else 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

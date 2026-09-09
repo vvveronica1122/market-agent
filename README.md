@@ -137,6 +137,38 @@ the reasons are shown as chips on the row. Clicking a row opens a detail
 view with a six-month chart, the AI analysis, headlines and the next
 earnings date. Search resolves any ticker, on your list or not.
 
+### The agent, and how a tool gets connected
+
+`agent.py` is the conversational half — ask it anything and it decides
+which tools to call. It now has ten, including the market scanner, the
+earnings schedule and company financials, so it can answer questions that
+need several lookups chained: *"which of my stocks reports soonest, and how
+did they do last quarter?"* takes the watchlist, then each name's schedule,
+then a comparison.
+
+Connecting a tool has exactly three parts, and the surprising one is the
+second:
+
+1. **A plain Python function.** The code in `tools/` knows nothing about
+   Claude and never has.
+2. **A JSON schema** — name, plain-language description, arguments. This is
+   *the only thing the model ever sees.* It cannot read your source. It
+   decides whether a tool is relevant purely by reading that description,
+   which makes writing descriptions prompt engineering rather than
+   documentation. "Get events" and "Get the next scheduled earnings date,
+   the analyst EPS estimate, and whether the company beat last quarter"
+   produce very different behaviour from the identical function.
+3. **A dispatch table** mapping the schema name back to the real function,
+   so something actually runs when the model asks.
+
+In `agent.py` all three live in one `TOOLS` entry per tool, so adding a
+capability is a single edit rather than three that can silently drift apart.
+
+Two robustness details worth stealing: a tool that raises returns its error
+*as data* the model can explain, rather than crashing the program; and the
+loop has a step cap, because a model that keeps calling tools and never
+answers will otherwise burn tokens until you kill it.
+
 ### The two agent patterns, side by side
 
 Worth comparing `agent.py` and `web/app.py`, because they solve the same
@@ -174,121 +206,71 @@ it. (macOS may ask you to confirm the first time, since it's a script you
 downloaded rather than an app — right-click → Open once, then double-click
 works from then on.)
 
-### Tests
+### Tests, and the two kinds of them
+
+There are two categories here and the distinction matters more than it
+looks.
+
+**Free, offline, instant** — run these constantly:
 
 ```bash
-python3 web/test_app.py
+python3 web/test_app.py        # dashboard: scoring, filtering, routes, degradation
+python3 test_agent.py          # agent loop: chaining, errors, runaway protection
+python3 evals/test_checks.py   # the eval checks themselves
 ```
 
-These stub out the market data entirely, so they're fast, need no API key,
-and never touch the network. That's deliberate: tests that call a live API
-fail when Yahoo rate-limits you, which tells you nothing about your code.
-Stubbing also lets us construct exact scenarios -- "a stock down 6% with
-earnings in three days" -- and assert the ranking responds correctly, which
-you can't arrange with live data.
+None of these touch the network or call a model. They stub everything, so
+they're fast and can't fail because Yahoo rate-limited you — a test that
+fails for reasons unrelated to your code teaches you nothing. Stubbing also
+lets you construct exact scenarios ("a stock down 6% with earnings in three
+days") that you could never arrange with live data.
 
-### Daily brief
+That third suite exists because **a check suite that always passes is worse
+than none** — it hands you confidence you haven't earned. So it feeds
+deliberately bad output through the checks and asserts they FAIL.
 
-The Watchlist view opens with an AI brief written across the *whole* list,
-not per stock: what's driving the day, what connects several names, what's
-coming this week. It's one Claude call for the entire list (the test suite
-asserts this), sent a compacted payload rather than full news bodies, and
-cached 15 minutes -- regenerating it on every page refresh would burn
-tokens to say the same thing. It loads separately from the rows, so a slow
-model call never delays the numbers.
-
-### Discover — market-wide
-
-Answers "what should I be paying attention to that I don't already own?"
-
-It scans the **whole US market**, not a fixed list, using Yahoo's screener
-through `tools/market_scan.py`: day gainers, day losers and unusually
-active names come back ranked in a *single request*, already filtered to
-real companies (market cap over $2B, share price over $5, meaningful
-volume). That filter matters more than it sounds — an unfiltered "biggest
-movers today" list is almost entirely microcap pumps.
-
-The page shows two things. **Themes** come first, because the pattern
-across names usually tells you more than any single row: one Claude call
-clusters the movers and market headlines into 2-4 stories ("three memory
-names down on the same export rule"), each with its tickers, which are
-clickable. Below that are the **individual movers** you don't own, scored
-by the same attention function as your watchlist, plus broad market
-headlines that aren't tied to any one ticker.
-
-Two things it deliberately is not. It is **not a recommendation engine** —
-it can't tell you what to buy, because nothing here predicts returns. It
-reports what happened; deciding what that's worth is yours, and the
-prompts forbid the model from giving buy/sell opinions or price targets.
-And it does not pretend to certainty: if the screener is unavailable it
-falls back to a fixed large-cap list and *says so on the page* rather than
-silently showing less.
-
-The scan is two-stage, which is the pattern worth taking away: stage one
-is one request covering the market; stage two fetches news, earnings and
-history for only the top eight. Reading headlines for every mover would
-take minutes, and the discarded names never needed them.
-
-The daily brief uses the same market-wide data, so it can tell you about
-something happening outside your list — not just summarise what you
-already chose to watch.
-
-### Earnings calendar
-
-An actual month calendar — three months at a glance, today outlined,
-tickers sitting on the day they report. A list sorted by date technically
-contains the same information, but a calendar answers "what does my
-month look like" in one glance, and that's the real question.
-
-Earnings dates are the only genuinely *forward*-looking data in the app.
-Everything else reports what already happened to a price; a scheduled
-report date is something you can prepare for.
-
-**On data sources, and a bug worth remembering.** The schedule tries two
-sources. `earnings_dates` is richer — it carries the EPS estimate and last
-quarter's surprise — but it hits a Yahoo endpoint that is often
-unavailable. `calendar` is plainer but reliable, and is what the rest of
-the app had been using successfully all along. The first version of this
-page used only the rich source, so it rendered completely empty for
-anyone whose network couldn't reach that endpoint. It now falls back to
-the reliable source, and records which one answered in a `source` field —
-because "nothing is scheduled" and "the endpoint is down" look identical
-on screen and need completely different fixes.
-
-The lesson generalises: don't replace a proven data source with an
-untested one, especially when you can't verify the new one yourself.
-
-### Fundamentals
-
-On the stock detail page: company value, price to earnings, profit margin,
-revenue growth, and a quarterly revenue chart.
-
-Every figure is written with what it *means* next to it — "keeps 27.7
-cents of every dollar of sales as profit", not a bare `27.7%` under a
-label. A number a reader can't interpret isn't information, it's
-decoration, and a dashboard full of unexplained ratios is just noise
-wearing a suit.
-
-The revenue chart is quarterly, labelled with full years, in date order,
-and says so. Annual figures would hide the seasonality that is usually the
-first thing worth seeing — a December quarter often looks nothing like a
-March one — and the year-over-year comparison underneath compares to the
-same quarter a year earlier for exactly that reason.
-
-### Checking your data sources
-
-Network access differs by machine and network. Before debugging the app,
-check what actually reaches you:
+**Costs money, calls the real model** — run these when you change a prompt:
 
 ```bash
-python3 tools/check_sources.py
+python3 evals/run_evals.py            # every scenario, once
+python3 evals/run_evals.py --runs 3   # three times each, for variance
+python3 evals/run_evals.py --dry-run  # exercise the harness, no API calls
 ```
 
-It reports, per source, whether quotes, per-ticker news, the earnings
-calendar, the market-wide screener and broad news search work from here —
-so you can tell a connection problem from a code problem.
+### Evals — testing the part that isn't deterministic
 
-### Known limits
+Everything above tests code that either works or doesn't. Evals test the
+writing, which is the only part of this that's actually AI. Without them
+the brief could drift into giving investment advice, or miss the one thing
+that mattered, and nothing would catch it — you'd find out by reading it.
+
+Four scenarios, each built around a specific failure mode: does it
+manufacture drama on a quiet day, does it find the single name that
+matters, does it see a sector selloff as one story rather than three, does
+it look beyond the watchlist when something bigger happened elsewhere.
+
+Checks come in two kinds, and the split is the important idea. **Cheap
+checks** are regex and string work — did it name the ticker, did it avoid
+every phrasing that would make it advice, is it the right shape. Free,
+instant, completely reliable. **Expensive checks** need judgement ("did it
+identify the right thing as most important?"), so a second model call
+grades the output against a written rubric. That judge is slower, costs
+money, and is itself fallible — which is exactly why anything regexable
+gets regexed instead. The judge also fails *closed*: an unparseable or
+errored verdict counts as a failure, never a pass.
+
+The themes eval carries one check worth copying into any project that
+groups things: **no invented tickers**. The model is handed a set of names
+and asked to cluster them, and the tempting failure is to add a plausible
+peer that was never in the input. That's the hallucination shape this
+feature actually has, so that's what gets tested.
+
+**On variance:** a single run is an anecdote, not a measurement. The same
+prompt can pass once and fail the next time. When you change a prompt and
+want to know whether it genuinely improved, use `--runs 3` or more and
+compare pass *rates*, not single outcomes.
+
+### Known limits### Known limits
 
 - Free delayed data via yfinance; no intraday streaming, options flow, or
   dark pool data.

@@ -1,19 +1,32 @@
 """
-Market Agent -- a small tool-using agent built on the Anthropic API.
+Market Agent -- the conversational, tool-using agent.
 
-This is the core "agentic loop", the pattern almost every AI agent is
-built on, no matter how complex:
+HOW CONNECTING A TOOL ACTUALLY WORKS
+------------------------------------
+There are only three moving parts, and the surprising one is the second.
 
-  1. Send the user's request to Claude, along with a list of tools it's
-     allowed to use.
-  2. If Claude's response asks to use a tool, run that tool in plain
-     Python and send the result back.
-  3. Repeat until Claude has enough information to give a final answer.
+1. A plain Python function. Nothing special about it -- the functions in
+   tools/ know nothing about Claude and never did.
 
-Claude never runs the Python functions itself -- it only sees the tool
-*schemas* below and decides, from those descriptions, which tool to call
-and with what arguments. This file is the "brain" that wires that
-decision up to the real functions in tools/market_data.py.
+2. A JSON schema describing that function: its name, a plain-language
+   description, and its arguments. **This is the only thing the model ever
+   sees.** It cannot read your code. It decides whether a tool is relevant
+   entirely by reading that description text, which means writing the
+   description is prompt engineering, not documentation. "Get events" and
+   "Get the next scheduled earnings report date, the analyst EPS estimate
+   for it, and whether the company beat or missed last quarter" produce
+   very different behaviour from the same function.
+
+3. A dispatch table mapping the schema's name back to the real function,
+   so that when the model says "call get_earnings_schedule with
+   ticker=AAPL", something actually runs.
+
+Then the loop: send the question plus the schemas -> the model replies
+either with text (done) or with a request to call tools -> you run them
+and send the results back as a new turn -> repeat until it stops asking.
+
+Below, all three parts live together in TOOLS, one entry per tool, so
+adding a capability is a single edit instead of three that can drift apart.
 """
 
 from __future__ import annotations
@@ -21,162 +34,278 @@ from __future__ import annotations
 import json
 import os
 import sys
+from pathlib import Path
 
 from dotenv import load_dotenv
 from anthropic import Anthropic
 
-from tools.market_data import get_stock_price, get_recent_news, get_upcoming_events
+PROJECT_ROOT = Path(__file__).resolve().parent
+sys.path.insert(0, str(PROJECT_ROOT))
 
-load_dotenv()
+from tools.market_data import (
+    get_stock_price,
+    get_recent_news,
+    get_upcoming_events,
+    get_price_history,
+)
+from tools.market_scan import get_market_movers, filter_quality, get_market_news
+from tools.fundamentals import get_earnings_schedule, get_quarterly_results, get_key_stats
 
-# Check https://docs.claude.com/en/docs/about-claude/models for the latest
-# model names -- this one was current as of this project's creation.
+load_dotenv(PROJECT_ROOT / ".env")
+
 MODEL = "claude-sonnet-4-5"
 
-SYSTEM_PROMPT = """You are a helpful market research assistant. You have tools to
-look up live stock prices, recent news, and upcoming events (like earnings dates)
-for stock tickers. Use them whenever the user asks about a specific company or
-ticker. Always base your answer on what the tools return rather than your own
-memory, since markets change constantly and your training data may be outdated.
-If a tool returns no data or an error, say so plainly instead of guessing.
-Keep answers concise and skimmable."""
+# A runaway tool loop is a real failure mode: the model keeps calling
+# tools and never answers, burning tokens until you kill it. Cap it.
+MAX_STEPS = 12
 
-# --- Tool schemas -----------------------------------------------------
-# This is how we describe each tool to Claude: a name, a plain-language
-# description (Claude decides relevance from this text, so be specific),
-# and a JSON schema for the arguments.
+WATCHLIST_FILE = PROJECT_ROOT / "web" / "watchlist.json"
+
+SYSTEM_PROMPT = """You are a market research assistant with tools for live prices, news,
+earnings schedules, company financials, and a market-wide scanner.
+
+Use the tools rather than your memory -- markets change constantly and your training data
+is old. When a question involves "my stocks" or "my watchlist", call get_watchlist first to
+find out which ones those are.
+
+Chain tools when a question needs it: to answer "which of my stocks reports soonest", get
+the watchlist, then check each one's earnings schedule, then compare. Don't ask permission
+between steps, just do it.
+
+When a tool returns an error or no data, say so plainly instead of guessing or filling the
+gap from memory.
+
+Do not give buy/sell/hold recommendations or price targets. Explain what the data shows and
+let the reader decide. Keep answers concise and skimmable."""
+
+
+def read_watchlist() -> list[str]:
+    """The watchlist the web dashboard maintains -- shared state between
+    the two halves of this project."""
+    if WATCHLIST_FILE.exists():
+        try:
+            return json.loads(WATCHLIST_FILE.read_text())
+        except (json.JSONDecodeError, OSError):
+            pass
+    return ["AAPL", "TSLA", "MSFT", "NVDA"]
+
+
+def scan_market(limit: int = 10) -> list[dict]:
+    """Top market-wide movers, already quality-filtered."""
+    movers = filter_quality(get_market_movers())
+    movers.sort(key=lambda m: abs(m.get("change_percent") or 0), reverse=True)
+    return movers[:limit]
+
+
+TICKER_ARG = {
+    "type": "object",
+    "properties": {
+        "ticker": {"type": "string", "description": "Stock ticker symbol, e.g. AAPL, TSLA"}
+    },
+    "required": ["ticker"],
+}
+
+# Schema and implementation together, so they can't drift apart.
 TOOLS = [
     {
+        "name": "get_watchlist",
+        "description": (
+            "Get the list of ticker symbols the user is currently watching. Call this first "
+            "whenever the question refers to 'my stocks', 'my watchlist', or 'the ones I follow'."
+        ),
+        "input_schema": {"type": "object", "properties": {}},
+        "handler": lambda: read_watchlist(),
+    },
+    {
         "name": "get_stock_price",
-        "description": "Get the latest price, previous close, and day change for a stock ticker.",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "ticker": {"type": "string", "description": "Stock ticker symbol, e.g. AAPL, TSLA"}
-            },
-            "required": ["ticker"],
-        },
+        "description": "Get the latest price, previous close, and today's change for one ticker.",
+        "input_schema": TICKER_ARG,
+        "handler": lambda ticker: get_stock_price(ticker),
     },
     {
         "name": "get_recent_news",
-        "description": "Get recent news headlines related to a stock ticker.",
+        "description": "Get recent news headlines about one specific company.",
         "input_schema": {
             "type": "object",
             "properties": {
-                "ticker": {"type": "string", "description": "Stock ticker symbol, e.g. AAPL, TSLA"},
-                "limit": {"type": "integer", "description": "Max number of headlines to return (default 5)"},
+                "ticker": {"type": "string", "description": "Stock ticker symbol"},
+                "limit": {"type": "integer", "description": "Max headlines to return (default 5)"},
             },
             "required": ["ticker"],
         },
+        "handler": lambda ticker, limit=5: get_recent_news(ticker, limit),
+    },
+    {
+        "name": "get_price_history",
+        "description": (
+            "Get daily closing prices over a period, for judging a trend rather than a single "
+            "day. Period accepts values like 5d, 1mo, 3mo, 6mo, 1y."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "ticker": {"type": "string", "description": "Stock ticker symbol"},
+                "period": {"type": "string", "description": "Time span, e.g. 1mo, 6mo, 1y"},
+            },
+            "required": ["ticker"],
+        },
+        "handler": lambda ticker, period="1mo": get_price_history(ticker, period),
+    },
+    {
+        "name": "get_earnings_schedule",
+        "description": (
+            "Get the next scheduled earnings report date for a company, the analyst EPS estimate "
+            "for it, and whether the company beat or missed expectations last quarter. Use this "
+            "for any question about when a company reports or how its last report went."
+        ),
+        "input_schema": TICKER_ARG,
+        "handler": lambda ticker: get_earnings_schedule(ticker),
+    },
+    {
+        "name": "get_quarterly_results",
+        "description": (
+            "Get recent quarterly revenue, net income and profit margin for a company, oldest "
+            "first. Use this for questions about whether a business is growing or shrinking, or "
+            "about seasonality."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "ticker": {"type": "string", "description": "Stock ticker symbol"},
+                "quarters": {"type": "integer", "description": "How many quarters (default 6)"},
+            },
+            "required": ["ticker"],
+        },
+        "handler": lambda ticker, quarters=6: get_quarterly_results(ticker, quarters),
+    },
+    {
+        "name": "get_key_stats",
+        "description": (
+            "Get company size and valuation figures: market cap, trailing and forward P/E, "
+            "profit margin, revenue growth, and sector."
+        ),
+        "input_schema": TICKER_ARG,
+        "handler": lambda ticker: get_key_stats(ticker),
+    },
+    {
+        "name": "scan_market",
+        "description": (
+            "Scan the whole US market for today's biggest movers and most actively traded "
+            "companies, filtered to real companies above $2B in value. Use this to find names "
+            "the user does NOT already own, or to see what the market as a whole is doing."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "limit": {"type": "integer", "description": "How many names to return (default 10)"}
+            },
+        },
+        "handler": lambda limit=10: scan_market(limit),
+    },
+    {
+        "name": "get_market_news",
+        "description": (
+            "Get broad market headlines not tied to any single company -- macro data, policy, "
+            "sector-wide stories."
+        ),
+        "input_schema": {"type": "object", "properties": {}},
+        "handler": lambda: get_market_news(),
     },
     {
         "name": "get_upcoming_events",
-        "description": "Get upcoming events for a stock ticker, such as the next earnings date.",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "ticker": {"type": "string", "description": "Stock ticker symbol, e.g. AAPL, TSLA"}
-            },
-            "required": ["ticker"],
-        },
+        "description": "Get upcoming dated events for a company, such as an ex-dividend date.",
+        "input_schema": TICKER_ARG,
+        "handler": lambda ticker: get_upcoming_events(ticker),
     },
 ]
 
-# Map each tool name to the real Python function that implements it.
-# Claude only ever sees the schema above, never this dict.
-TOOL_FUNCTIONS = {
-    "get_stock_price": lambda ticker: get_stock_price(ticker),
-    "get_recent_news": lambda ticker, limit=5: get_recent_news(ticker, limit),
-    "get_upcoming_events": lambda ticker: get_upcoming_events(ticker),
-}
+# What the model sees: everything except the handler.
+TOOL_SCHEMAS = [{k: v for k, v in tool.items() if k != "handler"} for tool in TOOLS]
+HANDLERS = {tool["name"]: tool["handler"] for tool in TOOLS}
 
 
 def run_tool(name: str, tool_input: dict) -> str:
-    """Execute a tool by name and return a JSON string of the result (or error)."""
-    func = TOOL_FUNCTIONS.get(name)
-    if func is None:
+    """Execute one tool and return its result as JSON text."""
+    handler = HANDLERS.get(name)
+    if handler is None:
         return json.dumps({"error": f"Unknown tool '{name}'"})
     try:
-        result = func(**tool_input)
-        return json.dumps(result, default=str)
+        return json.dumps(handler(**tool_input), default=str)
     except Exception as exc:
-        # Never let a tool crash the whole agent -- hand the error back to
-        # Claude as data so it can explain the problem instead of the
-        # whole program dying.
-        return json.dumps({"error": str(exc)})
+        # Hand errors back as data. A crashed tool should become something
+        # the model can explain, not something that kills the program.
+        return json.dumps({"error": f"{type(exc).__name__}: {exc}"})
 
 
 def ask_agent(client: Anthropic, user_message: str, verbose: bool = True) -> str:
-    """Run the full agentic loop for one user request and return the final text answer."""
-    messages = [{"role": "user", "content": user_message}]
+    """Run the agentic loop for one request and return the final answer."""
+    messages: list[dict] = [{"role": "user", "content": user_message}]
 
-    while True:
+    for step in range(MAX_STEPS):
         response = client.messages.create(
             model=MODEL,
-            max_tokens=1024,
+            max_tokens=1500,
             system=SYSTEM_PROMPT,
-            tools=TOOLS,
+            tools=TOOL_SCHEMAS,
             messages=messages,
         )
 
         tool_uses = [block for block in response.content if block.type == "tool_use"]
 
         if response.stop_reason != "tool_use" or not tool_uses:
-            # Claude is done calling tools -- pull out and return its text answer.
-            text_blocks = [b.text for b in response.content if b.type == "text"]
-            return "\n".join(text_blocks).strip()
+            return "\n".join(b.text for b in response.content if b.type == "text").strip()
 
-        # Claude wants to use one or more tools. Record its request, run
-        # each tool, and feed the results back as the next turn.
         messages.append({"role": "assistant", "content": response.content})
 
-        tool_results = []
-        for tool_use in tool_uses:
+        results = []
+        for use in tool_uses:
             if verbose:
-                print(f"  -> calling {tool_use.name}({tool_use.input})")
-            result_text = run_tool(tool_use.name, tool_use.input)
-            tool_results.append(
+                args = ", ".join(f"{k}={v!r}" for k, v in use.input.items())
+                print(f"  [{step + 1}] {use.name}({args})")
+            results.append(
                 {
                     "type": "tool_result",
-                    "tool_use_id": tool_use.id,
-                    "content": result_text,
+                    "tool_use_id": use.id,
+                    "content": run_tool(use.name, use.input),
                 }
             )
 
-        messages.append({"role": "user", "content": tool_results})
+        messages.append({"role": "user", "content": results})
+
+    return ("I hit the tool-call limit before finishing. That usually means the question "
+            "needs breaking into smaller parts.")
 
 
 def main() -> None:
-    api_key = os.environ.get("ANTHROPIC_API_KEY")
-    if not api_key:
+    if not os.environ.get("ANTHROPIC_API_KEY"):
         print("Missing ANTHROPIC_API_KEY. Copy .env.example to .env and add your key.")
         sys.exit(1)
 
-    client = Anthropic(api_key=api_key)
+    client = Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
 
     if len(sys.argv) > 1:
-        # CLI mode: `python agent.py AAPL TSLA` -> one quick digest.
-        tickers = " ".join(sys.argv[1:])
-        question = (
-            f"Give me a quick market update on: {tickers}. "
-            "Cover price, notable recent news, and any upcoming events."
-        )
-        print(f"\nAsking about: {tickers}\n")
-        answer = ask_agent(client, question)
-        print("\n" + answer + "\n")
-    else:
-        # Interactive mode: free-form questions.
-        print("Market Agent -- ask about any stock ticker. Type 'quit' to exit.\n")
-        while True:
-            try:
-                question = input("You: ").strip()
-            except (EOFError, KeyboardInterrupt):
-                print()
-                break
-            if not question or question.lower() in {"quit", "exit"}:
-                break
-            answer = ask_agent(client, question)
-            print(f"\nAgent: {answer}\n")
+        question = " ".join(sys.argv[1:])
+        # A bare ticker is a shorthand for "brief me on this".
+        if len(sys.argv) == 2 and sys.argv[1].isupper() and len(sys.argv[1]) <= 5:
+            question = (f"Give me a quick update on {sys.argv[1]}: price, notable news, "
+                        f"and when it next reports.")
+        print(f"\n{question}\n")
+        print(ask_agent(client, question) + "\n")
+        return
+
+    print("Market Agent. Ask anything about your watchlist or the market.")
+    print("Try: 'which of my stocks reports soonest, and how did they do last quarter?'")
+    print("Type 'quit' to exit.\n")
+    while True:
+        try:
+            question = input("You: ").strip()
+        except (EOFError, KeyboardInterrupt):
+            print()
+            break
+        if not question or question.lower() in {"quit", "exit"}:
+            break
+        print()
+        print(f"\nAgent: {ask_agent(client, question)}\n")
 
 
 if __name__ == "__main__":
