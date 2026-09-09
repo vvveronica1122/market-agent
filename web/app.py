@@ -41,6 +41,7 @@ from tools.market_data import (
     get_price_history,
 )
 from tools.market_scan import get_market_movers, filter_quality, get_market_news
+from tools.fundamentals import get_earnings_schedule, get_quarterly_results, get_key_stats
 
 load_dotenv(PROJECT_ROOT / ".env")
 
@@ -317,27 +318,42 @@ def stock_detail(ticker: str):
     ticker = ticker.strip().upper()
 
     def produce():
-        data: dict = {"ticker": ticker}
-        try:
-            data["price"] = get_stock_price(ticker)
-        except Exception as exc:
-            data["price_error"] = str(exc)
-        try:
-            data["history"] = get_price_history(ticker, period="6mo")
-        except Exception as exc:
-            data["history"] = []
-            data["history_error"] = str(exc)
-        try:
-            data["news"] = get_recent_news(ticker, limit=6)
-        except Exception as exc:
-            data["news"] = []
-            data["news_error"] = str(exc)
-        try:
-            data["events"] = get_upcoming_events(ticker)
-        except Exception:
-            data["events"] = {}
+        # Seven independent network calls. Run sequentially this page took
+        # long enough to feel broken; in parallel it's bounded by the
+        # slowest one.
+        jobs = {
+            "price": lambda: get_stock_price(ticker),
+            "history": lambda: get_price_history(ticker, period="6mo"),
+            "news": lambda: get_recent_news(ticker, limit=6),
+            "events": lambda: get_upcoming_events(ticker),
+            "earnings": lambda: get_earnings_schedule(ticker),
+            "quarters": lambda: get_quarterly_results(ticker),
+            "stats": lambda: get_key_stats(ticker),
+            "spy": spy_change_percent,
+        }
 
-        market_pct = spy_change_percent()
+        def run(item):
+            key, fn = item
+            try:
+                return key, fn(), None
+            except Exception as exc:
+                return key, None, str(exc)
+
+        data: dict = {"ticker": ticker}
+        with ThreadPoolExecutor(max_workers=8) as pool:
+            for key, value, error in pool.map(run, jobs.items()):
+                if error:
+                    data[f"{key}_error"] = error
+                else:
+                    data[key] = value
+
+        data.setdefault("history", [])
+        data.setdefault("news", [])
+        data.setdefault("events", {})
+        data.setdefault("quarters", [])
+        data.setdefault("stats", {})
+
+        market_pct = data.pop("spy", None)
         data["market"] = {"ticker": "SPY", "change_percent": market_pct} if market_pct is not None else None
         data["attention"] = compute_attention(
             data.get("price"), data.get("news"), data.get("events"), market_pct
@@ -642,6 +658,67 @@ def build_brief(rows: list[dict], market_pct, indices: list[dict],
         return "".join(b.text for b in response.content if b.type == "text").strip()
     except Exception as exc:
         return f"(Brief unavailable: {exc})"
+
+
+# --- earnings calendar ------------------------------------------------
+# The one genuinely forward-looking thing in the app. Everything else
+# reports what already happened; this is what lets you prepare.
+def _bucket(days_away: int | None) -> str:
+    if days_away is None:
+        return "No date scheduled"
+    if days_away < 0:
+        return "No date scheduled"
+    if days_away <= 7:
+        return "This week"
+    if days_away <= 14:
+        return "Next week"
+    if days_away <= 31:
+        return "Later this month"
+    return "Beyond a month"
+
+
+BUCKET_ORDER = ["This week", "Next week", "Later this month", "Beyond a month", "No date scheduled"]
+
+
+@app.route("/api/earnings")
+def earnings_route():
+    tickers = load_watchlist()
+
+    def produce():
+        def one(ticker):
+            schedule = get_earnings_schedule(ticker)
+            try:
+                quarters = get_quarterly_results(ticker, quarters=4)
+            except Exception:
+                quarters = []
+            price = safe_price(ticker)
+            return {
+                **schedule,
+                "change_percent": (price or {}).get("change_percent"),
+                "price": (price or {}).get("price"),
+                "recent_quarters": quarters,
+            }
+
+        with ThreadPoolExecutor(max_workers=6) as pool:
+            items = list(pool.map(one, tickers))
+
+        # Sort by date, undated last.
+        items.sort(key=lambda i: (i["days_away"] is None, i["days_away"] if i["days_away"] is not None else 0))
+
+        grouped: dict[str, list] = {}
+        for item in items:
+            grouped.setdefault(_bucket(item.get("days_away")), []).append(item)
+
+        return {
+            "groups": [
+                {"label": label, "items": grouped[label]}
+                for label in BUCKET_ORDER
+                if label in grouped
+            ],
+            "count": len(items),
+        }
+
+    return jsonify(cached("earnings:" + ",".join(tickers), 1800, produce))
 
 
 @app.route("/api/brief")

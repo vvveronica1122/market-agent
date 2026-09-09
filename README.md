@@ -233,6 +233,32 @@ The daily brief uses the same market-wide data, so it can tell you about
 something happening outside your list — not just summarise what you
 already chose to watch.
 
+### Earnings
+
+Its own view, because earnings dates are the only genuinely *forward*-
+looking data in the app. Everything else here reports what already
+happened to a price; a scheduled report date is something you can prepare
+for.
+
+Watchlist names are grouped by proximity — this week, next week, later
+this month, beyond — and each row carries the EPS estimate for the coming
+report plus **how the last one went**. That second part matters as much as
+the date: a company that missed last quarter carries different risk into
+the next print than one that beat.
+
+The stock detail page gains a Fundamentals panel: market cap, trailing and
+forward P/E, profit margin, revenue growth, and a quarterly revenue chart.
+Quarterly rather than annual on purpose — annual figures hide the
+seasonality that makes a retailer's December look nothing like its March,
+and that seasonality is usually the first thing you want to see. The
+year-over-year comparison underneath uses the same quarter a year earlier
+for the same reason.
+
+Fetching all this made the detail page seven network calls, so those now
+run in parallel — the page is bounded by the slowest call rather than the
+sum of them, and one failing source degrades its own panel instead of
+taking down the page.
+
 ### Checking your data sources
 
 Network access differs by machine and network. Before debugging the app,

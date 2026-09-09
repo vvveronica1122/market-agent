@@ -12,6 +12,7 @@
 const COLORS = {
   series: "#2a78d6",
   seriesFill: "rgba(42, 120, 214, 0.10)",
+  seriesBar: "#86b6ef",
   up: "#0F7B36",
   down: "#B3261E",
   gridline: "#EEDFD8",
@@ -341,6 +342,93 @@ async function showDetail(ticker) {
   }
   frag.appendChild(chartPanel);
 
+  // Fundamentals: the numbers behind the price.
+  const quarters = data.quarters || [];
+  const stats = data.stats || {};
+  const earnings = data.earnings || {};
+
+  if (quarters.length || Object.keys(stats).length || earnings.next_date) {
+    const fPanel = el("div", "panel");
+    fPanel.appendChild(el("h2", null, "Fundamentals"));
+
+    const statRow = el("div", "stat-line");
+    const statDefs = [
+      ["Market cap", stats.market_cap ? "$" + bigMoney(stats.market_cap) : null, ""],
+      ["P/E (trailing)", stats.trailing_pe ? num(stats.trailing_pe, 1) : null, ""],
+      ["P/E (forward)", stats.forward_pe ? num(stats.forward_pe, 1) : null, ""],
+      ["Profit margin", stats.profit_margin_percent !== null && stats.profit_margin_percent !== undefined
+        ? num(stats.profit_margin_percent, 1) + "%" : null, toneClass(stats.profit_margin_percent)],
+      ["Revenue growth", stats.revenue_growth_percent !== null && stats.revenue_growth_percent !== undefined
+        ? num(stats.revenue_growth_percent, 1) + "%" : null, toneClass(stats.revenue_growth_percent)],
+    ];
+    let shown = 0;
+    statDefs.forEach(([label, value, cls]) => {
+      if (!value) return;
+      shown += 1;
+      const stat = el("div", "stat");
+      stat.appendChild(el("span", "stat-label", label));
+      stat.appendChild(el("span", "stat-value " + cls, value));
+      statRow.appendChild(stat);
+    });
+    if (shown) fPanel.appendChild(statRow);
+
+    if (quarters.length) {
+      const label = el("p", "section-heading", "Quarterly revenue");
+      label.style.margin = "18px 0 4px";
+      fPanel.appendChild(label);
+      const barWrap = el("div", "chart-wrap");
+      const barCanvas = el("canvas", "bar-chart");
+      barCanvas.setAttribute("role", "img");
+      barCanvas.setAttribute("aria-label",
+        `Quarterly revenue for ${data.ticker}: ` +
+        quarters.map((q) => `${periodLabel(q.period)} $${bigMoney(q.revenue)}`).join(", "));
+      barWrap.appendChild(barCanvas);
+      fPanel.appendChild(barWrap);
+
+      const latest = quarters[quarters.length - 1];
+      const yearAgo = quarters.length >= 5 ? quarters[quarters.length - 5] : null;
+      if (yearAgo && yearAgo.revenue) {
+        const yoy = ((latest.revenue - yearAgo.revenue) / yearAgo.revenue) * 100;
+        const note = el("p", "view-sub",
+          `Most recent quarter $${bigMoney(latest.revenue)}, ` +
+          `${yoy >= 0 ? "up" : "down"} ${Math.abs(yoy).toFixed(1)}% from the same quarter a year earlier. ` +
+          `Year-over-year rather than quarter-to-quarter, since many businesses are seasonal.`);
+        note.style.margin = "12px 0 0";
+        fPanel.appendChild(note);
+      }
+    }
+
+    if (earnings.next_date) {
+      const eRow = el("div", "stat-line");
+      eRow.style.marginTop = "16px";
+      const stat = el("div", "stat");
+      stat.appendChild(el("span", "stat-label", "Next earnings"));
+      stat.appendChild(el("span", "stat-value",
+        formatLongDate(earnings.next_date) +
+        (earnings.days_away !== null && earnings.days_away !== undefined ? `  ·  in ${earnings.days_away}d` : "")));
+      eRow.appendChild(stat);
+
+      if (earnings.eps_estimate !== null && earnings.eps_estimate !== undefined) {
+        const est = el("div", "stat");
+        est.appendChild(el("span", "stat-label", "EPS estimate"));
+        est.appendChild(el("span", "stat-value", num(earnings.eps_estimate)));
+        eRow.appendChild(est);
+      }
+
+      const last = earnings.last_report;
+      if (last && last.surprise_percent !== null && last.surprise_percent !== undefined) {
+        const surprise = el("div", "stat");
+        surprise.appendChild(el("span", "stat-label", "Last quarter"));
+        surprise.appendChild(el("span", "stat-value " + toneClass(last.surprise_percent),
+          (last.surprise_percent >= 0 ? "Beat by " : "Missed by ") + Math.abs(last.surprise_percent).toFixed(1) + "%"));
+        eRow.appendChild(surprise);
+      }
+      fPanel.appendChild(eRow);
+    }
+
+    frag.appendChild(fPanel);
+  }
+
   // Analysis + news side by side
   const grid = el("div", "grid-2");
 
@@ -348,13 +436,9 @@ async function showDetail(ticker) {
   analysisPanel.style.marginTop = "0";
   analysisPanel.appendChild(el("h2", null, "What's going on"));
   analysisPanel.appendChild(el("p", "analysis", data.analysis || "No analysis available."));
-  if (data.events && data.events.next_earnings_date) {
-    const stat = el("div", "stat");
-    stat.style.marginTop = "14px";
-    stat.appendChild(el("span", "stat-label", "Next earnings"));
-    stat.appendChild(el("span", "stat-value", formatLongDate(data.events.next_earnings_date)));
-    analysisPanel.appendChild(stat);
-  }
+  // The earnings date lives in the Fundamentals panel above, with the
+  // estimate and last quarter's surprise next to it -- repeating it here
+  // would be the same fact twice with less context.
   grid.appendChild(analysisPanel);
 
   const newsPanel = el("div", "panel");
@@ -382,6 +466,9 @@ async function showDetail(ticker) {
   viewEl.replaceChildren(frag);
 
   if (history.length >= 2) setupChart(canvas, history);
+
+  const barCanvas = viewEl.querySelector("canvas.bar-chart");
+  if (barCanvas && quarters.length) setupBarChart(barCanvas, quarters);
 }
 
 /* ---------------- charts ---------------- */
@@ -614,6 +701,246 @@ function hideTooltip() {
   tooltipEl.hidden = true;
 }
 
+/* ---------------- number formatting ---------------- */
+
+function bigMoney(value) {
+  if (value === null || value === undefined) return "--";
+  const n = Number(value);
+  const abs = Math.abs(n);
+  if (abs >= 1e12) return (n / 1e12).toFixed(2) + "T";
+  if (abs >= 1e9) return (n / 1e9).toFixed(1) + "B";
+  if (abs >= 1e6) return (n / 1e6).toFixed(1) + "M";
+  if (abs >= 1e3) return (n / 1e3).toFixed(0) + "K";
+  return n.toFixed(0);
+}
+
+function periodLabel(iso) {
+  const d = new Date(String(iso).slice(0, 10) + "T00:00:00");
+  if (Number.isNaN(d.getTime())) return String(iso).slice(0, 7);
+  return d.toLocaleDateString(undefined, { month: "short" }) + " '" + String(d.getFullYear()).slice(2);
+}
+
+function num(value, digits) {
+  if (value === null || value === undefined) return "--";
+  return Number(value).toFixed(digits === undefined ? 2 : digits);
+}
+
+/* ---------------- earnings calendar ---------------- */
+
+async function showEarnings() {
+  state.view = "earnings";
+  setActiveNav("earnings");
+  viewEl.replaceChildren(el("p", "loading-text", "Loading earnings dates..."));
+
+  let data;
+  try {
+    const res = await fetch("/api/earnings");
+    data = await res.json();
+  } catch (err) {
+    viewEl.replaceChildren(el("p", "empty", "Could not load earnings: " + err));
+    return;
+  }
+
+  const frag = document.createDocumentFragment();
+  const head = el("div", "view-head");
+  head.appendChild(el("h1", null, "Earnings"));
+  frag.appendChild(head);
+  frag.appendChild(
+    el("p", "view-sub", "When your watchlist reports, and how each one did last quarter.")
+  );
+
+  const groups = data.groups || [];
+  if (!groups.length) {
+    frag.appendChild(el("p", "empty", "No earnings dates found for your watchlist."));
+    viewEl.replaceChildren(frag);
+    return;
+  }
+
+  groups.forEach((group) => {
+    frag.appendChild(el("p", "section-heading", group.label));
+    const list = el("div", "rows");
+    group.items.forEach((item) => list.appendChild(buildEarningsRow(item)));
+    frag.appendChild(list);
+  });
+
+  viewEl.replaceChildren(frag);
+}
+
+function buildEarningsRow(item) {
+  const soon = item.days_away !== null && item.days_away !== undefined && item.days_away <= 7;
+  const row = el("button", "row earnings-row" + (soon ? " level-high" : ""));
+  row.type = "button";
+
+  const left = el("div");
+  left.appendChild(el("div", "ticker", item.ticker));
+  if (item.days_away !== null && item.days_away !== undefined) {
+    left.appendChild(
+      el("span", "attention-tag", item.days_away === 0 ? "Reports today" : `in ${item.days_away} days`)
+    );
+  } else {
+    left.appendChild(el("span", "attention-tag", "Unscheduled"));
+  }
+  row.appendChild(left);
+
+  const middle = el("div");
+  const when = el("div", "headline", item.next_date ? formatLongDate(item.next_date) : "No date announced yet");
+  middle.appendChild(when);
+
+  const chips = el("div", "factors");
+  if (item.eps_estimate !== null && item.eps_estimate !== undefined) {
+    chips.appendChild(el("span", "chip", `EPS est. ${num(item.eps_estimate)}`));
+  }
+  const last = item.last_report;
+  if (last && last.surprise_percent !== null && last.surprise_percent !== undefined) {
+    const beat = last.surprise_percent >= 0;
+    chips.appendChild(
+      el("span", "chip " + (beat ? "up" : "down"),
+         `last quarter ${beat ? "beat" : "missed"} by ${Math.abs(last.surprise_percent).toFixed(1)}%`)
+    );
+  } else if (last && last.date) {
+    chips.appendChild(el("span", "chip", `last reported ${formatLongDate(last.date)}`));
+  }
+  middle.appendChild(chips);
+  row.appendChild(middle);
+
+  const quarters = item.recent_quarters || [];
+  const latest = quarters.length ? quarters[quarters.length - 1] : null;
+
+  const revCell = el("div", "figure-cell");
+  revCell.appendChild(el("span", "figure-value", latest ? "$" + bigMoney(latest.revenue) : "--"));
+  revCell.appendChild(el("span", "figure-label", "last qtr revenue"));
+  row.appendChild(revCell);
+
+  const marginCell = el("div", "figure-cell");
+  marginCell.appendChild(
+    el("span", "figure-value",
+       latest && latest.net_margin !== null && latest.net_margin !== undefined
+         ? num(latest.net_margin, 1) + "%" : "--")
+  );
+  marginCell.appendChild(el("span", "figure-label", "net margin"));
+  row.appendChild(marginCell);
+
+  row.appendChild(el("div"));
+
+  row.addEventListener("click", () => showDetail(item.ticker));
+  return row;
+}
+
+/* ---------------- quarterly revenue chart ---------------- */
+
+const BAR_PAD = { left: 10, right: 10, top: 26, bottom: 30 };
+
+function drawQuarterlyBars(canvas, quarters, hoverIndex) {
+  const dpr = window.devicePixelRatio || 1;
+  const cssW = canvas.clientWidth || 520;
+  const cssH = canvas.clientHeight || 190;
+  canvas.width = cssW * dpr;
+  canvas.height = cssH * dpr;
+  const ctx = canvas.getContext("2d");
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, cssW, cssH);
+  if (!quarters.length) return;
+
+  const values = quarters.map((q) => q.revenue);
+  const max = Math.max(...values) || 1;
+  const plotW = cssW - BAR_PAD.left - BAR_PAD.right;
+  const plotH = cssH - BAR_PAD.top - BAR_PAD.bottom;
+  const baseline = BAR_PAD.top + plotH;
+
+  // 2px gap between bars, per the mark spec -- adjacent fills need a
+  // surface-coloured gutter or they read as one block.
+  const slot = plotW / quarters.length;
+  const barW = Math.max(10, slot - 10);
+
+  ctx.strokeStyle = COLORS.axis;
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(BAR_PAD.left, Math.round(baseline) + 0.5);
+  ctx.lineTo(cssW - BAR_PAD.right, Math.round(baseline) + 0.5);
+  ctx.stroke();
+
+  ctx.font = "11px system-ui, -apple-system, sans-serif";
+  ctx.textAlign = "center";
+
+  quarters.forEach((q, i) => {
+    const x = BAR_PAD.left + slot * i + (slot - barW) / 2;
+    const h = Math.max(2, (q.revenue / max) * plotH);
+    const y = baseline - h;
+
+    ctx.fillStyle = hoverIndex === i ? COLORS.series : COLORS.seriesBar;
+    roundedTopRect(ctx, x, y, barW, h, 4);
+    ctx.fill();
+
+    ctx.fillStyle = COLORS.muted;
+    ctx.textBaseline = "bottom";
+    ctx.fillText("$" + bigMoney(q.revenue), x + barW / 2, y - 6);
+
+    ctx.textBaseline = "top";
+    ctx.fillText(periodLabel(q.period), x + barW / 2, baseline + 8);
+  });
+}
+
+function roundedTopRect(ctx, x, y, w, h, r) {
+  const radius = Math.min(r, w / 2, h);
+  ctx.beginPath();
+  ctx.moveTo(x, y + h);
+  ctx.lineTo(x, y + radius);
+  ctx.quadraticCurveTo(x, y, x + radius, y);
+  ctx.lineTo(x + w - radius, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + radius);
+  ctx.lineTo(x + w, y + h);
+  ctx.closePath();
+}
+
+function setupBarChart(canvas, quarters) {
+  const redraw = (hover) => drawQuarterlyBars(canvas, quarters, hover);
+  redraw(null);
+
+  if (window.ResizeObserver) {
+    new ResizeObserver(() => redraw(null)).observe(canvas);
+  }
+
+  canvas.addEventListener("pointermove", (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const plotW = rect.width - BAR_PAD.left - BAR_PAD.right;
+    const slot = plotW / quarters.length;
+    const idx = Math.floor((e.clientX - rect.left - BAR_PAD.left) / slot);
+    if (idx < 0 || idx >= quarters.length) {
+      redraw(null);
+      hideTooltip();
+      return;
+    }
+    redraw(idx);
+    showQuarterTooltip(quarters[idx], e.clientX, e.clientY);
+  });
+
+  canvas.addEventListener("pointerleave", () => {
+    redraw(null);
+    hideTooltip();
+  });
+}
+
+function showQuarterTooltip(q, clientX, clientY) {
+  tooltipEl.replaceChildren();
+  const value = el("div", "tip-value");
+  value.appendChild(el("span", "tip-key"));
+  value.appendChild(el("span", null, "$" + bigMoney(q.revenue)));
+  tooltipEl.appendChild(value);
+  tooltipEl.appendChild(el("div", "tip-label", "Revenue · " + periodLabel(q.period)));
+  if (q.net_income !== null && q.net_income !== undefined) {
+    tooltipEl.appendChild(
+      el("div", "tip-label", `Net income $${bigMoney(q.net_income)}` +
+         (q.net_margin !== null && q.net_margin !== undefined ? ` (${num(q.net_margin, 1)}% margin)` : ""))
+    );
+  }
+  tooltipEl.hidden = false;
+  const rect = tooltipEl.getBoundingClientRect();
+  let left = clientX + 14;
+  if (left + rect.width > window.innerWidth - 8) left = clientX - rect.width - 14;
+  tooltipEl.style.left = left + "px";
+  tooltipEl.style.top = Math.max(8, clientY - rect.height - 12) + "px";
+}
+
 /* ---------------- daily brief ---------------- */
 
 function buildBriefPanel() {
@@ -839,6 +1166,7 @@ async function removeTicker(ticker) {
 document.querySelectorAll(".nav-item[data-view]").forEach((btn) => {
   btn.addEventListener("click", () => {
     if (btn.dataset.view === "discover") showDiscover();
+    else if (btn.dataset.view === "earnings") showEarnings();
     else showWatchlist(btn.dataset.view === "movers");
   });
 });

@@ -134,6 +134,43 @@ def fake_market_news(*args, **kwargs):
              "link": "https://example.com", "related_tickers": ["MU"]}]
 
 
+def fake_earnings(ticker):
+    from datetime import date, timedelta
+    schedule = {
+        "CRASH": 3,     # this week
+        "QUIET": 12,    # next week
+        "SPY": None,    # no date
+    }
+    days = schedule.get(ticker, 40)
+    if days is None:
+        return {"ticker": ticker, "next_date": None, "days_away": None,
+                "eps_estimate": None, "last_report": None}
+    return {
+        "ticker": ticker,
+        "next_date": (date.today() + timedelta(days=days)).isoformat(),
+        "days_away": days,
+        "eps_estimate": 2.15,
+        "last_report": {"date": "2026-06-11", "eps_estimate": 1.90,
+                        "eps_actual": 2.05, "surprise_percent": 7.9},
+    }
+
+
+def fake_quarters(ticker, quarters=6):
+    if ticker not in KNOWN:
+        return []
+    return [
+        {"period": f"2025-{m:02d}-30", "revenue": 1.0e9 + m * 1e8,
+         "net_income": 2.0e8 + m * 1e7, "net_margin": 20.0 + m}
+        for m in (3, 6, 9, 12)
+    ]
+
+
+def fake_stats(ticker):
+    return {"market_cap": 1.2e12, "trailing_pe": 28.4, "forward_pe": 24.1,
+            "profit_margin_percent": 23.5, "revenue_growth_percent": 8.2,
+            "sector": "Technology", "name": ticker}
+
+
 def install_stubs():
     # app.py did `from tools.market_data import ...`, so the names live in
     # the app module's namespace -- that's what has to be replaced.
@@ -147,6 +184,9 @@ def install_stubs():
     server.client = FakeClient()
     server.get_market_movers = fake_movers
     server.get_market_news = fake_market_news
+    server.get_earnings_schedule = fake_earnings
+    server.get_quarterly_results = fake_quarters
+    server.get_key_stats = fake_stats
     server._cache.clear()
 
 
@@ -274,6 +314,43 @@ def main() -> int:
     failures += not check("the brief still costs exactly one model call",
                           len(server.client.messages.calls) == 1,
                           f"{len(server.client.messages.calls)} calls")
+
+    print("\nEarnings calendar")
+    server._cache.clear()
+    cal = client.get("/api/earnings").get_json()
+    labels = [g["label"] for g in cal["groups"]]
+    failures += not check("groups by proximity, soonest first",
+                          labels[0] == "This week", str(labels))
+    failures += not check("a date 12 days out lands in 'Next week'",
+                          "Next week" in labels, str(labels))
+    first_group = cal["groups"][0]["items"]
+    failures += not check("the imminent name is in the first group",
+                          first_group[0]["ticker"] == "CRASH", str(first_group[0]["ticker"]))
+    failures += not check("last quarter's surprise comes through",
+                          first_group[0]["last_report"]["surprise_percent"] == 7.9)
+    failures += not check("recent quarterly revenue is attached",
+                          len(first_group[0]["recent_quarters"]) == 4)
+    failures += not check("bucketing puts an unscheduled name last",
+                          server._bucket(None) == "No date scheduled")
+    failures += not check("a past date is treated as unscheduled, not 'this week'",
+                          server._bucket(-5) == "No date scheduled")
+
+    print("\nFundamentals on the detail view")
+    server._cache.clear()
+    det = client.get("/api/stock/CRASH").get_json()
+    failures += not check("detail carries quarterly results",
+                          len(det.get("quarters", [])) == 4, str(len(det.get("quarters", []))))
+    failures += not check("detail carries key stats",
+                          det.get("stats", {}).get("trailing_pe") == 28.4)
+    failures += not check("detail carries the earnings schedule",
+                          det.get("earnings", {}).get("days_away") == 3)
+    server._cache.clear()
+    broken = client.get("/api/stock/NOSUCH")
+    body = broken.get_json()
+    failures += not check("one failing sub-fetch doesn't take down the whole page",
+                          broken.status_code == 200 and "price_error" in body
+                          and body.get("quarters") == [] and "analysis" in body,
+                          f"status={broken.status_code} keys={sorted(body)[:8]}")
 
     print(f"\n{'All checks passed.' if not failures else str(failures) + ' check(s) FAILED.'}\n")
     return 1 if failures else 0

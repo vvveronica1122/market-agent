@@ -450,3 +450,21 @@ button { font-family: inherit; }
   cursor: pointer;
 }
 .ticker-tag:hover { background: rgba(123, 75, 99, 0.10); }
+
+
+/* ---------- fundamentals & earnings ---------- */
+.bar-chart { width: 100%; height: 190px; display: block; }
+
+.earnings-row { grid-template-columns: 124px 1fr 128px 104px 28px; }
+.figure-cell { display: flex; flex-direction: column; align-items: flex-end; gap: 1px; }
+.figure-value {
+  font-size: 14.5px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+.figure-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ink-muted);
+}
