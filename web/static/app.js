@@ -509,6 +509,7 @@ async function showDetail(ticker) {
 
   if (setupBuilt) {
     drawReactionChart(setupBuilt.canvas, setupBuilt.reactions);
+    attachReactionHover(setupBuilt.canvas, setupBuilt.reactions);
     if (window.ResizeObserver) {
       new ResizeObserver(() => drawReactionChart(setupBuilt.canvas, setupBuilt.reactions))
         .observe(setupBuilt.canvas);
@@ -957,8 +958,10 @@ function buildSetupPanel(setup, ticker, daysAway) {
 
   const legend = el("p", "metric-note");
   legend.textContent =
-    "Each bar is one past report: how the price moved the following session. " +
-    "Green above the line, red below. This is what happened, not what will.";
+    "Each bar is one past report, comparing the closing price just before the news to the " +
+    "close of the first session that could react to it — the next day when a company " +
+    "reports after the close, the same day when it reports before the open. Hover a bar " +
+    "for the two prices. This is what happened, not what will.";
   legend.style.margin = "10px 0 0";
   panel.appendChild(legend);
 
@@ -988,6 +991,55 @@ function buildSetupPanel(setup, ticker, daysAway) {
 }
 
 const REACT_PAD = { left: 8, right: 8, top: 22, bottom: 30 };
+
+function attachReactionHover(canvas, reactions) {
+  const points = reactions.slice().reverse();
+
+  canvas.addEventListener("pointermove", (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const plotW = rect.width - REACT_PAD.left - REACT_PAD.right;
+    const slot = plotW / points.length;
+    const idx = Math.floor((e.clientX - rect.left - REACT_PAD.left) / slot);
+    if (idx < 0 || idx >= points.length) {
+      hideTooltip();
+      return;
+    }
+    showReactionTooltip(points[idx], e.clientX, e.clientY);
+  });
+
+  canvas.addEventListener("pointerleave", hideTooltip);
+}
+
+function showReactionTooltip(reaction, clientX, clientY) {
+  tooltipEl.replaceChildren();
+
+  const value = el("div", "tip-value " + toneClass(reaction.next_session_move));
+  value.textContent = (reaction.next_session_move >= 0 ? "+" : "") +
+    num(reaction.next_session_move, 2) + "%";
+  tooltipEl.appendChild(value);
+
+  // The comparison spelled out, because a percentage with no stated
+  // endpoints is a number the reader has to take on faith.
+  if (reaction.from_close && reaction.to_close) {
+    tooltipEl.appendChild(el("div", "tip-label",
+      `${money(reaction.from_close)} \u2192 ${money(reaction.to_close)}`));
+  }
+  tooltipEl.appendChild(el("div", "tip-label",
+    `Reported ${formatLongDate(reaction.date)}` +
+    (reaction.timing ? `, ${reaction.timing}` : "")));
+  if (reaction.surprise_percent !== null && reaction.surprise_percent !== undefined) {
+    tooltipEl.appendChild(el("div", "tip-label",
+      `EPS ${reaction.surprise_percent >= 0 ? "beat" : "missed"} by ` +
+      `${Math.abs(reaction.surprise_percent).toFixed(1)}%`));
+  }
+
+  tooltipEl.hidden = false;
+  const rect = tooltipEl.getBoundingClientRect();
+  let left = clientX + 14;
+  if (left + rect.width > window.innerWidth - 8) left = clientX - rect.width - 14;
+  tooltipEl.style.left = left + "px";
+  tooltipEl.style.top = Math.max(8, clientY - rect.height - 12) + "px";
+}
 
 function drawReactionChart(canvas, reactions) {
   const dpr = window.devicePixelRatio || 1;

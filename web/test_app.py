@@ -172,7 +172,8 @@ def fake_setup(ticker, events=8):
     # Deliberately mirrors the real MU pattern found by the probe: beat
     # every time, fell more often than not.
     reactions = [
-        {"date": "2026-06-24", "surprise_percent": 21.4, "next_session_move": 15.74},
+        {"date": "2026-06-24", "surprise_percent": 21.4, "next_session_move": 15.74,
+         "timing": "after close", "from_close": 157.7, "to_close": 182.5},
         {"date": "2026-03-18", "surprise_percent": 33.2, "next_session_move": -3.78},
         {"date": "2025-12-17", "surprise_percent": 20.6, "next_session_move": 10.21},
         {"date": "2025-09-23", "surprise_percent": 5.9, "next_session_move": -2.82},
@@ -586,6 +587,65 @@ def main() -> int:
                               degraded["reactions"] == [])
     finally:
         fundamentals.yf = saved
+
+    print("\nReaction window depends on when the company reports")
+    # A percentage with no stated endpoints is a number taken on faith,
+    # and the window itself was wrong for before-open reporters: the
+    # market reacts the SAME day, so "next day" measured a session with no
+    # news in it.
+    import pandas as pd
+    import tools.fundamentals as fundamentals
+
+    prices = pd.DataFrame(
+        {"Close": [100.0, 100.0, 110.0, 121.0, 121.0]},
+        index=pd.date_range("2026-06-22", periods=5, freq="D"),
+    )
+
+    def make_yf(hour):
+        class _T:
+            def __init__(self, symbol):
+                pass
+
+            @property
+            def earnings_dates(self):
+                stamp = pd.Timestamp("2026-06-24").replace(hour=hour)
+                return pd.DataFrame({"EPS Estimate": [1.0], "Reported EPS": [1.2],
+                                     "Surprise(%)": [20.0]}, index=[stamp])
+
+            def history(self, period="2y"):
+                return prices
+
+            eps_trend = None
+            eps_revisions = None
+
+        class _YF:
+            Ticker = _T
+
+        return _YF()
+
+    saved_yf = fundamentals.yf
+    try:
+        fundamentals.yf = make_yf(hour=7)
+        early = fundamentals.get_earnings_setup("EARLY")["reactions"][0]
+        failures += not check("a before-open report reacts the same day",
+                              early["timing"] == "before open"
+                              and early["from_close"] == 100.0 and early["to_close"] == 110.0,
+                              str(early))
+
+        fundamentals.yf = make_yf(hour=16)
+        late = fundamentals.get_earnings_setup("LATE")["reactions"][0]
+        failures += not check("an after-close report reacts the next day",
+                              late["timing"] == "after close"
+                              and late["from_close"] == 110.0 and late["to_close"] == 121.0,
+                              str(late))
+
+        failures += not check("the same date gives different windows by report time",
+                              early["from_close"] != late["from_close"])
+        failures += not check("every reaction states the two prices compared",
+                              all(r.get("from_close") and r.get("to_close")
+                                  for r in [early, late]))
+    finally:
+        fundamentals.yf = saved_yf
 
     print(f"\n{'All checks passed.' if not failures else str(failures) + ' check(s) FAILED.'}\n")
     return 1 if failures else 0

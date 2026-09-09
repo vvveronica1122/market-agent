@@ -317,6 +317,24 @@ month: expectations set high, softening at the margin.
 None of that predicts the next move. All of it is evidence about the
 setup, which is the honest version of what the question was after.
 
+**What each bar compares**, since a percentage with unstated endpoints is
+a number taken on faith: the closing price just before the news, against
+the close of the first session that could react to it. Hovering a bar
+shows both prices, the date, whether the report landed before the open or
+after the close, and the EPS surprise.
+
+That last detail is not cosmetic. US companies report either before the
+open or after the close, and the reacting session differs — a company
+reporting at 16:00 is first traded on the news the *next* day, one
+reporting at 07:00 is traded on it the *same* day. The first version
+ignored the clock and always took the next day, which for every
+before-open reporter measured a session with no news in it at all. The
+timestamp was there the whole time; it just wasn't being read.
+
+Worth noting how that bug surfaced: someone asked what the number was
+comparing. The answer was fuzzy in the UI *and* in the code, and those two
+turned out to be the same fault.
+
 ### News: summaries, not just headlines
 
 The detail page's "What's going on" panel synthesises the coverage on one

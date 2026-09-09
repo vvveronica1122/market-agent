@@ -257,6 +257,11 @@ def get_earnings_setup(ticker: str, events: int = 8) -> dict[str, Any]:
     this company's past reports, and where are expectations set going into
     the next one.
 
+    Each reaction records exactly what was compared -- `from_close`,
+    `to_close`, and whether the report landed before the open or after the
+    close -- because "the stock moved 15%" is meaningless without knowing
+    between which two prices.
+
     The most useful field is `beat_but_fell`. Markets trade the result
     against what was already priced in, not against the analyst number, so
     a company can beat every quarter and still fall half the time. When
@@ -304,21 +309,45 @@ def get_earnings_setup(ticker: str, events: int = 8) -> dict[str, Any]:
             if len(result["reactions"]) >= events:
                 break
             try:
-                day = stamp.tz_localize(None) if stamp.tzinfo else stamp
-                day = day.normalize()
+                local = stamp
+                hour = local.hour
+                day = (local.tz_localize(None) if local.tzinfo else local).normalize()
             except Exception:
                 continue
 
-            before = history.loc[index <= day]
-            after = history.loc[index > day]
-            if not len(before) or not len(after):
+            # WHICH SESSION ACTUALLY REACTED
+            #
+            # US companies report either before the open or after the
+            # close, and the reacting session differs:
+            #
+            #   after the close (e.g. 16:00) -> the market first responds
+            #     the NEXT day, so compare that day's close to this one.
+            #   before the open (e.g. 07:00) -> the market responds the
+            #     SAME day, so compare that day's close to the PREVIOUS
+            #     one.
+            #
+            # Ignoring the clock and always taking "next day" silently
+            # measures the wrong window for every before-open reporter --
+            # usually a day with no news in it at all.
+            before_open = hour < 12
+
+            if before_open:
+                prior_rows = history.loc[index < day]
+                reaction_rows = history.loc[index == day]
+                if not len(reaction_rows):
+                    reaction_rows = history.loc[index > day]
+            else:
+                prior_rows = history.loc[index <= day]
+                reaction_rows = history.loc[index > day]
+
+            if not len(prior_rows) or not len(reaction_rows):
                 continue
 
-            prior_close = float(before["Close"].iloc[-1])
-            next_close = float(after["Close"].iloc[0])
+            prior_close = float(prior_rows["Close"].iloc[-1])
+            reaction_close = float(reaction_rows["Close"].iloc[0])
             if not prior_close:
                 continue
-            move = (next_close - prior_close) / prior_close * 100
+            move = (reaction_close - prior_close) / prior_close * 100
 
             row = frame.loc[stamp]
             surprise = _clean(_field(row, "Surprise(%)"))
@@ -327,6 +356,9 @@ def get_earnings_setup(ticker: str, events: int = 8) -> dict[str, Any]:
                 "date": day.date().isoformat(),
                 "surprise_percent": round(surprise, 1) if surprise is not None else None,
                 "next_session_move": round(move, 2),
+                "timing": "before open" if before_open else "after close",
+                "from_close": round(prior_close, 2),
+                "to_close": round(reaction_close, 2),
             })
 
     for reaction in result["reactions"]:
