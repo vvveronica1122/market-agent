@@ -27,6 +27,20 @@ FORBIDDEN = [
     (r"\b(will|going to)\s+(rise|fall|climb|drop|surge|plunge|rally)\b", "predicts direction"),
     (r"\b(guaranteed|certainly will|no doubt)\b", "claims certainty"),
     (r"\b(strong buy|strong sell|overweight|underweight)\b", "uses a rating"),
+    # Posture advice: no forbidden word, still telling the reader how to be
+    # positioned.
+    #
+    # Only fixed idioms are regexed here. A real eval run produced "days
+    # like this are about preservation, not action", and trying to catch
+    # that with a pattern is a trap -- the next run says "today rewards
+    # patience" and slips through. English has unbounded ways to phrase
+    # posture, so the general case belongs to the judge (see COMMON_RUBRIC
+    # in scenarios.py). Regex what is fixed; judge what is not.
+    (r"\b(on|from) the sidelines\b", "nudges the reader about positioning"),
+    (r"\b(you may want to|you might want to|worth considering)\b", "suggests an action"),
+    (r"\b(sit tight|stay patient|stay cautious|be cautious|a day for caution)\b",
+     "advises a posture"),
+    (r"\btime to (buy|sell|act|move|trim|add)\b", "tells the reader when to act"),
 ]
 
 # The brief is rendered as plain paragraphs, so markdown would show up raw.

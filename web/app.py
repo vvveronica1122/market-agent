@@ -603,8 +603,24 @@ If it's a quiet day, say so in a line rather than inflating it -- that's useful 
 
 Three or four short paragraphs. No headings, no bullet points, no preamble.
 
-Hard rules: no buy/sell/hold advice, no price targets, no predictions about direction. \
-Write "may be related to", not "because of"."""
+HARD RULES
+
+No trading advice: no buy/sell/hold, no price targets, no predictions about which way a \
+price will go.
+
+No posture advice either. This is the subtler one. Do not tell the reader how to be \
+positioned, even without naming a trade -- not "a day for caution", not "this is about \
+preservation, not action", not "if you've been watching from the sidelines, now it \
+shifted". Describe what happened and what's scheduled; what to do about it is entirely \
+the reader's call.
+
+Never assert a cause you were not given. You get headlines and price moves, which show \
+things happening together, not one causing the other. Write "fell 8%, which may be \
+related to the export rules reported this morning". Never "fell 8% as/after/because the \
+export rules widened" -- those state the link as established fact, and you don't know it.
+
+Stick to the data you were handed. Don't add specifics about the event from your own \
+memory: your training data is old, and an invented detail is worse than a missing one."""
 
 
 def build_brief(rows: list[dict], market_pct, indices: list[dict],

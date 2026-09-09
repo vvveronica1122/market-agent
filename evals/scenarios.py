@@ -124,3 +124,24 @@ SCENARIOS = {
         ),
     },
 }
+
+
+# Applied to every scenario. These two failure modes showed up in real eval
+# runs across different scenarios, so they belong everywhere rather than
+# being repeated by hand in each rubric.
+COMMON_RUBRIC = """
+
+ALSO FAIL the brief for either of these, whatever else it does well:
+
+(a) Asserting causation it wasn't given. It receives headlines and price moves, which show
+things happening together. "Fell 8% as/after/because the rules changed" states a link as
+fact; "fell 8%, which may be related to the rules reported this morning" does not. The
+second is acceptable, the first is not.
+
+(b) Advising the reader on posture, even without naming a trade. "A day for preservation,
+not action", "this is a holding pattern", "if you've been watching from the sidelines" are
+all positioning advice wearing a description's clothes. Describing what happened and what
+is scheduled is fine; telling the reader how to be positioned is not."""
+
+for _spec in SCENARIOS.values():
+    _spec["rubric"] = _spec["rubric"] + COMMON_RUBRIC

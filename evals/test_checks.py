@@ -62,6 +62,13 @@ def main() -> int:
         ("Our price target is $240.", check_forbidden, "price target"),
         ("The stock will rise on the news.", check_forbidden, "direction prediction"),
         ("This is a strong buy at these levels.", check_forbidden, "rating"),
+        # Posture advice -- forbidden words absent, still telling the
+        # reader how to sit. These phrasings came out of real eval runs.
+        ("Investors on the sidelines may reconsider.", check_forbidden, "sidelines framing"),
+        ("If you have been watching from the sidelines, this shifted.", check_forbidden,
+         "sidelines framing, other preposition"),
+        ("You may want to look at the memory names.", check_forbidden, "suggested action"),
+        ("Best to sit tight until the print.", check_forbidden, "posture advice"),
         ("# Market Brief\n\nThings happened.", check_format, "markdown heading"),
         ("Today:\n- NVDA fell\n- AAPL rose", check_format, "bullet list"),
         ("Here is **very important** news.", check_format, "bold markdown"),
@@ -73,6 +80,22 @@ def main() -> int:
 
     missing = check_mentions("The market was quiet.", ["NVDA"])
     failures += not check("catches a missing required ticker", bool(failed_labels(missing)))
+
+    print("\nNo false positives on legitimate description")
+    for text in [
+        "NVDA fell 8.4%, which may be related to the export rules reported this morning.",
+        "Earnings land Wednesday, so that is the week's focal point.",
+        "KO held flat while the growth names sold off.",
+        "MU led the decline at -7.2%, with NVDA and AMD down over 5% each.",
+    ]:
+        clean = not failed_labels(check_forbidden(text))
+        failures += not check(f"allows: {text[:46]}...", clean, str(failed_labels(check_forbidden(text))))
+
+    print("\nPosture is covered by the judge, not just regex")
+    from scenarios import SCENARIOS
+    for name, spec in SCENARIOS.items():
+        covered = "positioning advice wearing a description" in spec["rubric"]
+        failures += not check(f"{name} rubric covers posture advice", covered)
 
     print("\nHallucination check")
     clean = check_no_invented_tickers([{"tickers": ["NVDA", "AMD"]}], {"NVDA", "AMD", "MU"})
