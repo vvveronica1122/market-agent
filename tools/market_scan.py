@@ -42,7 +42,7 @@ def _num(value: Any) -> float | None:
         return None
 
 
-def get_market_movers(screens: tuple[str, ...] = DEFAULT_SCREENS, per_screen: int = 25) -> list[dict]:
+def get_market_movers(screens: tuple[str, ...] = DEFAULT_SCREENS, per_screen: int = 60) -> list[dict]:
     """Scan the market for notable names today.
 
     Returns a de-duplicated list of dicts. A ticker appearing in more than

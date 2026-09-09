@@ -688,8 +688,8 @@ async function showDiscover() {
       "note",
       data.source === "fallback"
         ? `The market scanner didn't respond, so this is a fixed list of ${scanned} large caps instead of a live market scan. Not a recommendation to buy anything.`
-        : `Scanned ${scanned} names across the whole US market (gainers, losers and unusually active, all above $2B and $5 a share). ` +
-          `This reports what happened, not what to buy.`
+        : `Yahoo ranked the whole US market and returned the top ${scanned}: biggest gainers, biggest losers, and unusually active — ` +
+          `all above $2B in value and $5 a share. This reports what happened, not what to buy.`
     )
   );
 
