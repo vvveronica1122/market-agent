@@ -189,25 +189,54 @@ cached 15 minutes -- regenerating it on every page refresh would burn
 tokens to say the same thing. It loads separately from the rows, so a slow
 model call never delays the numbers.
 
-### Discover
+### Discover — market-wide
 
-Surfaces names *not* on your watchlist that moved unusually today, scored
-with the same attention function.
+Answers "what should I be paying attention to that I don't already own?"
 
-Two things it deliberately is not. It is **not a recommendation engine** --
-it doesn't tell you what to buy, and it can't, because nothing here
-predicts returns. It reports what happened: this name moved 8% against a
-flat market with six headlines. Deciding what that's worth is yours. And it
-is **not a full market scan** -- there's no free screener API, so it checks
-a fixed list of ~50 well-known large caps. The UI says so rather than
-implying it swept the whole market.
+It scans the **whole US market**, not a fixed list, using Yahoo's screener
+through `tools/market_scan.py`: day gainers, day losers and unusually
+active names come back ranked in a *single request*, already filtered to
+real companies (market cap over $2B, share price over $5, meaningful
+volume). That filter matters more than it sounds — an unfiltered "biggest
+movers today" list is almost entirely microcap pumps.
 
-It uses a two-stage scan, which is worth understanding as a pattern:
-stage one fetches *price only* for the whole universe in parallel (cheap),
-ranks by move-versus-market, and keeps the top eight; stage two fetches
-news, earnings and history for just those eight. Fetching everything for
-50 tickers would take minutes, and the 42 names that got discarded never
-needed their headlines read.
+The page shows two things. **Themes** come first, because the pattern
+across names usually tells you more than any single row: one Claude call
+clusters the movers and market headlines into 2-4 stories ("three memory
+names down on the same export rule"), each with its tickers, which are
+clickable. Below that are the **individual movers** you don't own, scored
+by the same attention function as your watchlist, plus broad market
+headlines that aren't tied to any one ticker.
+
+Two things it deliberately is not. It is **not a recommendation engine** —
+it can't tell you what to buy, because nothing here predicts returns. It
+reports what happened; deciding what that's worth is yours, and the
+prompts forbid the model from giving buy/sell opinions or price targets.
+And it does not pretend to certainty: if the screener is unavailable it
+falls back to a fixed large-cap list and *says so on the page* rather than
+silently showing less.
+
+The scan is two-stage, which is the pattern worth taking away: stage one
+is one request covering the market; stage two fetches news, earnings and
+history for only the top eight. Reading headlines for every mover would
+take minutes, and the discarded names never needed them.
+
+The daily brief uses the same market-wide data, so it can tell you about
+something happening outside your list — not just summarise what you
+already chose to watch.
+
+### Checking your data sources
+
+Network access differs by machine and network. Before debugging the app,
+check what actually reaches you:
+
+```bash
+python3 tools/check_sources.py
+```
+
+It reports, per source, whether quotes, per-ticker news, the earnings
+calendar, the market-wide screener and broad news search work from here —
+so you can tell a connection problem from a code problem.
 
 ### Known limits
 
@@ -216,7 +245,8 @@ needed their headlines read.
 - Market open/closed doesn't account for holidays.
 - Notes and alerts are not built yet. Real alerts (fire while you're not
   looking) need a background scheduler, not just a web server.
-- Discover scans a fixed ~50-name universe, not the market.
+- Discover depends on Yahoo's screener endpoint; if it's unavailable the
+  page falls back to a fixed large-cap list and labels itself as such.
 - Nothing here is financial advice, and the prompts explicitly forbid the
   model from giving buy/sell/hold opinions or price targets. It describes
   and contextualises; it doesn't recommend.

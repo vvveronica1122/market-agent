@@ -401,3 +401,52 @@ button { font-family: inherit; }
   margin: 0 0 16px;
   line-height: 1.5;
 }
+
+
+/* ---------- discover themes ---------- */
+.section-heading {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--ink-muted);
+  font-weight: 600;
+  margin: 22px 0 10px;
+}
+
+.themes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 12px;
+}
+
+.theme-card {
+  background: var(--accent-ai-wash);
+  border: 1px solid rgba(123, 75, 99, 0.22);
+  border-radius: var(--radius);
+  padding: 16px;
+}
+
+.theme-card h3 {
+  margin: 0 0 6px;
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--accent-ai);
+  letter-spacing: -0.01em;
+}
+
+.theme-what { margin: 0; font-size: 13.5px; line-height: 1.55; color: var(--ink); }
+
+.theme-tickers { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+
+.ticker-tag {
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  padding: 3px 9px;
+  border-radius: 999px;
+  border: 1px solid rgba(123, 75, 99, 0.30);
+  background: var(--surface);
+  color: var(--accent-ai);
+  cursor: pointer;
+}
+.ticker-tag:hover { background: rgba(123, 75, 99, 0.10); }

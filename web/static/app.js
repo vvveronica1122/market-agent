@@ -662,7 +662,7 @@ async function loadBrief(panel, force) {
 async function showDiscover() {
   state.view = "discover";
   setActiveNav("discover");
-  viewEl.replaceChildren(el("p", "loading-text", "Scanning for notable moves..."));
+  viewEl.replaceChildren(el("p", "loading-text", "Scanning the market..."));
 
   let data;
   try {
@@ -678,27 +678,78 @@ async function showDiscover() {
   head.appendChild(el("h1", null, "Discover"));
   frag.appendChild(head);
   frag.appendChild(
-    el("p", "view-sub", "Names you don't own that moved unusually today, ranked the same way as your watchlist.")
+    el("p", "view-sub", "What's moving across the market today that isn't on your list.")
   );
+
+  const scanned = data.scanned || 0;
   frag.appendChild(
     el(
       "p",
       "note",
-      `Scanned ${data.universe_size || 0} well-known large caps — not the whole market, and not a recommendation to buy anything. ` +
-        `These are names where something happened today worth a look.`
+      data.source === "fallback"
+        ? `The market scanner didn't respond, so this is a fixed list of ${scanned} large caps instead of a live market scan. Not a recommendation to buy anything.`
+        : `Scanned ${scanned} names across the whole US market (gainers, losers and unusually active, all above $2B and $5 a share). ` +
+          `This reports what happened, not what to buy.`
     )
   );
 
+  // Themes first: the pattern across names is usually more informative
+  // than any single row.
+  const themes = data.themes || [];
+  if (themes.length) {
+    const wrap = el("div", "themes");
+    themes.forEach((t) => {
+      const card = el("div", "theme-card");
+      card.appendChild(el("h3", null, t.theme));
+      card.appendChild(el("p", "theme-what", t.what));
+      if (t.tickers && t.tickers.length) {
+        const tags = el("div", "theme-tickers");
+        t.tickers.forEach((sym) => {
+          const tag = el("button", "ticker-tag", sym);
+          tag.type = "button";
+          tag.addEventListener("click", () => showDetail(sym));
+          tags.appendChild(tag);
+        });
+        card.appendChild(tags);
+      }
+      wrap.appendChild(card);
+    });
+    frag.appendChild(el("p", "section-heading", "Themes today"));
+    frag.appendChild(wrap);
+  }
+
   const rows = data.rows || [];
   if (!rows.length) {
-    frag.appendChild(el("p", "empty", "Nothing unusual in the scanned names today."));
+    frag.appendChild(el("p", "empty", "Nothing unusual surfaced today."));
     viewEl.replaceChildren(frag);
     return;
   }
 
+  frag.appendChild(el("p", "section-heading", "Biggest moves you don't own"));
   const list = el("div", "rows");
   rows.forEach((row) => list.appendChild(buildRow(row, { discover: true })));
   frag.appendChild(list);
+
+  const headlines = data.market_headlines || [];
+  if (headlines.length) {
+    frag.appendChild(el("p", "section-heading", "Across the market"));
+    const panel = el("div", "panel");
+    panel.style.marginTop = "0";
+    const ul = el("ul", "news-list");
+    headlines.forEach((h) => {
+      const li = el("li");
+      const a = el("a", null, h.title);
+      a.href = h.link || "#";
+      a.target = "_blank";
+      a.rel = "noopener noreferrer";
+      li.appendChild(a);
+      li.appendChild(el("div", "meta", h.publisher || ""));
+      ul.appendChild(li);
+    });
+    panel.appendChild(ul);
+    frag.appendChild(panel);
+  }
+
   viewEl.replaceChildren(frag);
 
   rows.forEach((row) => {

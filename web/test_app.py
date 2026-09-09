@@ -88,17 +88,50 @@ class _Response:
 
 
 class _Messages:
-    def __init__(self):
+    def __init__(self, themes_text=None):
         self.calls = []
+        self.themes_text = themes_text or (
+            '[{"theme": "Memory selloff", "what": "Several memory names fell together on '
+            'the same export rule.", "tickers": ["MU", "WDC"]}]'
+        )
 
     def create(self, **kwargs):
         self.calls.append(kwargs)
+        system = kwargs.get("system", "")
+        if "JSON array" in system:
+            return _Response(self.themes_text)
         return _Response("Stubbed model output.")
 
 
 class FakeClient:
-    def __init__(self):
-        self.messages = _Messages()
+    def __init__(self, themes_text=None):
+        self.messages = _Messages(themes_text)
+
+
+FAKE_MOVERS = [
+    # good candidates, market-wide
+    {"ticker": "SURGE", "name": "Surge Inc", "price": 88.0, "change_percent": 7.1,
+     "market_cap": 40e9, "screens": ["day_gainers"]},
+    {"ticker": "MU", "name": "Micron", "price": 141.0, "change_percent": -8.4,
+     "market_cap": 150e9, "screens": ["day_losers", "most_actives"]},
+    # already on the watchlist -- must not be re-suggested
+    {"ticker": "CRASH", "name": "Crash Co", "price": 100.0, "change_percent": -6.0,
+     "market_cap": 30e9, "screens": ["day_losers"]},
+    # junk that must be filtered out
+    {"ticker": "PENNY", "name": "Penny Co", "price": 1.2, "change_percent": 240.0,
+     "market_cap": 50e9, "screens": ["day_gainers"]},
+    {"ticker": "TINY", "name": "Tiny Co", "price": 40.0, "change_percent": 60.0,
+     "market_cap": 100e6, "screens": ["day_gainers"]},
+]
+
+
+def fake_movers(*args, **kwargs):
+    return [dict(m) for m in FAKE_MOVERS]
+
+
+def fake_market_news(*args, **kwargs):
+    return [{"title": "Chip export rules widen", "publisher": "Reuters",
+             "link": "https://example.com", "related_tickers": ["MU"]}]
 
 
 def install_stubs():
@@ -112,7 +145,8 @@ def install_stubs():
     server.load_watchlist = lambda: ["QUIET", "CRASH"]
     server.save_watchlist = lambda tickers: None
     server.client = FakeClient()
-    server.UNIVERSE = ["CRASH", "QUIET", "SPY", "SURGE", "NOSUCH"]
+    server.get_market_movers = fake_movers
+    server.get_market_news = fake_market_news
     server._cache.clear()
 
 
@@ -188,21 +222,58 @@ def main() -> int:
     failures += not check("the brief prompt forbids giving advice",
                           "no buy/sell/hold" in server.BRIEF_SYSTEM.lower())
 
-    print("\nDiscover")
+    print("\nDiscover -- market-wide scan")
     server._cache.clear()
+    server.client = FakeClient()
     disc = client.get("/api/discover").get_json()
     tickers = [r["ticker"] for r in disc["rows"]]
-    failures += not check("surfaces a notable name that isn't on the watchlist",
-                          "SURGE" in tickers, str(tickers))
+    failures += not check("surfaces market-wide names, not just a fixed list",
+                          "SURGE" in tickers and "MU" in tickers, str(tickers))
     failures += not check("never re-suggests something already on the watchlist",
-                          "QUIET" not in tickers and "CRASH" not in tickers, str(tickers))
-    failures += not check("the big mover outranks the flat one",
-                          tickers.index("SURGE") < tickers.index("SPY")
-                          if "SPY" in tickers else True, str(tickers))
-    failures += not check("silently drops tickers with no data",
-                          "NOSUCH" not in tickers, str(tickers))
-    failures += not check("discover rows carry the same attention scoring",
-                          all("attention" in r for r in disc["rows"]))
+                          "CRASH" not in tickers, str(tickers))
+    failures += not check("filters out sub-$5 stocks however big the move",
+                          "PENNY" not in tickers, str(tickers))
+    failures += not check("filters out sub-$2B companies",
+                          "TINY" not in tickers, str(tickers))
+    failures += not check("reports the scan source and size",
+                          disc.get("source") == "screener" and disc.get("scanned") == 5,
+                          f"{disc.get('source')} / {disc.get('scanned')}")
+
+    print("\nThemes")
+    failures += not check("themes are parsed into structured objects",
+                          disc["themes"] and disc["themes"][0]["theme"] == "Memory selloff",
+                          str(disc.get("themes")))
+    failures += not check("themes carry their tickers",
+                          "MU" in disc["themes"][0]["tickers"], str(disc["themes"][0]))
+    server.client = FakeClient(themes_text="I'm afraid I can't do that.")
+    failures += not check("malformed theme JSON degrades to no themes, not a crash",
+                          server.extract_themes([{"ticker": "MU"}], []) == [])
+    server.client = FakeClient(themes_text='```json\n[{"theme":"Fenced","what":"x","tickers":[]}]\n```')
+    fenced = server.extract_themes([{"ticker": "MU"}], [])
+    failures += not check("code-fenced JSON is still parsed",
+                          fenced and fenced[0]["theme"] == "Fenced", str(fenced))
+
+    print("\nDegradation")
+    server._cache.clear()
+    server.client = FakeClient()
+    server.get_market_movers = lambda *a, **k: []
+    fb = client.get("/api/discover").get_json()
+    failures += not check("falls back to a fixed list when the scanner fails",
+                          fb.get("source") == "fallback", str(fb.get("source")))
+    server.get_market_movers = fake_movers
+
+    print("\nBrief covers beyond the watchlist")
+    server._cache.clear()
+    server.client = FakeClient()
+    client.get("/api/brief")
+    sent_brief = server.client.messages.calls[0]["messages"][0]["content"]
+    failures += not check("market-wide movers reach the brief prompt",
+                          "market_wide_movers_not_owned" in sent_brief and "SURGE" in sent_brief)
+    failures += not check("market headlines reach the brief prompt",
+                          "Chip export rules widen" in sent_brief)
+    failures += not check("the brief still costs exactly one model call",
+                          len(server.client.messages.calls) == 1,
+                          f"{len(server.client.messages.calls)} calls")
 
     print(f"\n{'All checks passed.' if not failures else str(failures) + ' check(s) FAILED.'}\n")
     return 1 if failures else 0
