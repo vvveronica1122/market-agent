@@ -177,3 +177,18 @@ SCENARIOS = {
         ),
     },
 }
+
+
+# Applied to every agent scenario. Unverifiable background is not
+# regexable -- "SMCI has been volatile lately" is grammatically identical
+# to a fact from the data -- so it belongs to the judge.
+GROUNDING_RUBRIC = """
+
+ALSO FAIL the answer if it states anything about a company that was not in the tool
+results: its history, its usual volatility, what its products do, its competitive position.
+The tools return prices, dates, revenue and headlines and nothing else, so any other claim
+came from the model's memory. The reader cannot tell which half of a sentence was looked up
+and which half was recalled, which is exactly why the recalled half doesn't belong."""
+
+for _spec in SCENARIOS.values():
+    _spec["rubric"] = _spec["rubric"] + GROUNDING_RUBRIC
