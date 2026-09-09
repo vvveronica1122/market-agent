@@ -25,3 +25,19 @@ The substance is factual — there genuinely are no scheduled events. What
 made it borderline is the second-person conditional framing, which edges
 from describing the calendar toward describing what the reader should be
 doing about it.
+
+**Resolved: 0/5 on identical text, same reason every run.** The judge is
+not ambiguous here at all — it reliably reads that sentence as telling the
+reader to wait. So the 1-of-2 failure in normal runs was generation
+variance: the brief writes that phrasing sometimes and not others.
+
+Decision: comply rather than argue. The judge is arguably a shade strict,
+but the compliant phrasing ("nothing scheduled this week") states the same
+fact more directly and reads better, so there is no cost to conforming.
+The prompt now says to state calendar facts plainly instead of framing
+them around what the reader might be doing.
+
+Worth separating two things that look alike: tuning the brief to meet a
+standard that is demonstrably consistent is legitimate. Loosening the
+standard so the brief passes is not. The stability run is what tells you
+which situation you are in — and here it said the standard was solid.

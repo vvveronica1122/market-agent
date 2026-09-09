@@ -323,6 +323,15 @@ identical text means the *standard* is ambiguous there, and the honest fix
 is to sharpen the rubric rather than tune the brief until that phrasing
 stops appearing.
 
+**Tuning toward a standard is not the same as loosening one.** The
+stability run is what tells you which you're doing. When the saved
+borderline case came back 0/5 with the same reason every time, the
+standard was demonstrably solid and the brief was intermittently missing
+it — so changing the brief's prompt was legitimate. Had it come back 3/5,
+the standard itself would have been the ambiguous thing, and changing the
+brief would have been training the model to dodge a question nobody had
+answered.
+
 A residual failure rate on genuinely ambiguous sentences is healthy. It
 means the standard still has teeth.
 
