@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import argparse
 import os
+import re
 import sys
 from pathlib import Path
 
@@ -111,8 +112,12 @@ def run_scenario(name: str, spec: dict, runs: int) -> dict:
         results += check_mentions(answer, spec.get("must_mention", []))
         results += check_forbidden(answer)
         results += check_markdown(answer)
-        results += check_no_unknown_tickers(answer, set(WATCHLIST) | {m["ticker"] for m in MOVERS},
-                                            KNOWN_TICKERS)
+        # A ticker the user asked about is fair to repeat back, even when
+        # it has no data -- saying "no data for ZZZZ" is the correct
+        # answer, not an invention.
+        asked_about = {w for w in re.findall(r"\b[A-Z]{2,5}\b", spec["question"])}
+        allowed = set(WATCHLIST) | {m["ticker"] for m in MOVERS} | asked_about
+        results += check_no_unknown_tickers(answer, allowed, KNOWN_TICKERS)
 
         passed, reason = judge(agent._eval_client, agent.MODEL, answer, spec["rubric"])
         results.append((passed, "judge verdict", reason))

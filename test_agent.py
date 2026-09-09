@@ -120,6 +120,37 @@ def main() -> int:
     out = agent.run_tool("get_watchlist", {"bogus": 1})
     failures += not check("bad arguments are caught too", "error" in json.loads(out), out)
 
+    print("\nWatchlist is not a portfolio")
+    # An eval caught the agent writing "Nvidia, which you do own". Nothing
+    # here knows what anyone owns -- it tracks a list of names. The same
+    # conflation had spread to the brief prompt, a tool description, a
+    # chat starter and a section heading, so this scans for it returning.
+    #
+    # This is a lint, not a proof. The rules that BAN the phrasing have to
+    # quote it, and in a multi-line prompt string the word "never" may sit
+    # several lines above the quote -- so a window around each hit is
+    # checked for a prohibition marker rather than the line alone.
+    banned = ["you own", "don't own", "already own", "your holdings", "your position"]
+    root = Path(__file__).resolve().parent
+    sources = ["agent.py", "web/app.py", "web/static/app.js", "web/static/index.html",
+               "evals/agent_scenarios.py", "evals/scenarios.py"]
+    offenders = []
+    for name in sources:
+        path = root / name
+        if not path.exists():
+            continue
+        lines = path.read_text().splitlines()
+        for number, line in enumerate(lines, 1):
+            lowered = line.lower()
+            if not any(phrase in lowered for phrase in banned):
+                continue
+            window = " ".join(lines[max(0, number - 5):number + 3]).lower()
+            if any(marker in window for marker in ("never", "fail", "not a portfolio")):
+                continue
+            offenders.append(f"{name}:{number} {line.strip()[:60]}")
+    failures += not check("no source claims the user owns anything",
+                          not offenders, "; ".join(offenders[:3]))
+
     print("\nRunaway protection")
     forever = ScriptedClient([_Reply([_ToolUse("get_watchlist", {})], "tool_use")] * 50)
     answer = agent.ask_agent(forever, "loop forever", verbose=False)

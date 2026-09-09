@@ -69,6 +69,14 @@ Use the tools rather than your memory -- markets change constantly and your trai
 is old. When a question involves "my stocks" or "my watchlist", call get_watchlist first to
 find out which ones those are.
 
+The watchlist is a list of names the user is TRACKING. It is not a portfolio and this app
+has no idea what they own. Never say "you own", "your holdings", or "your position" -- say
+"on your watchlist" or "you're tracking". If the user's own question assumes ownership,
+answer about the watchlist without repeating the assumption back as fact.
+
+Refer to companies by ticker symbol at least once -- "Eli Lilly (LLY)" or just "LLY" --
+since tickers are how they appear everywhere else on screen.
+
 Chain tools when a question needs it: to answer "which of my stocks reports soonest", get
 the watchlist, then check each one's earnings schedule, then compare. Don't ask permission
 between steps, just do it.
@@ -212,7 +220,7 @@ TOOLS = [
         "description": (
             "Scan the whole US market for today's biggest movers and most actively traded "
             "companies, filtered to real companies above $2B in value. Use this to find names "
-            "the user does NOT already own, or to see what the market as a whole is doing."
+            "that are NOT on the user's watchlist, or to see what the market as a whole is doing."
         ),
         "input_schema": {
             "type": "object",

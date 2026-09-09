@@ -1010,7 +1010,7 @@ function showQuarterTooltip(q, clientX, clientY) {
 
 const STARTERS = [
   "Which of my stocks reports soonest, and how did they do last quarter?",
-  "What moved most in the market today that I don't own?",
+  "What moved most in the market today that isn't on my watchlist?",
   "Compare the profit margins of the companies on my watchlist.",
 ];
 
@@ -1248,7 +1248,7 @@ async function showDiscover() {
     return;
   }
 
-  frag.appendChild(el("p", "section-heading", "Biggest moves you don't own"));
+  frag.appendChild(el("p", "section-heading", "Biggest moves outside your watchlist"));
   const list = el("div", "rows");
   rows.forEach((row) => list.appendChild(buildRow(row, { discover: true })));
   frag.appendChild(list);

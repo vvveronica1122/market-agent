@@ -599,9 +599,13 @@ Cover, in this order:
 1. The most important thing happening across THEIR watchlist today.
 2. Anything connecting several names (a sector moving together, a macro event).
 3. What's beyond their list: from the market-wide movers and headlines you're given, \
-anything genuinely worth their attention that they don't already own -- name the tickers. \
+anything genuinely worth their attention that isn't on their watchlist -- name the tickers. \
 Skip this if nothing out there is notable; don't manufacture a reason to mention something.
 4. What's coming this week they should prepare for.
+
+The watchlist is a list of names the reader is TRACKING. It is not a portfolio and this app
+has no holdings data, so never write "you own", "your holdings" or "your position" -- write
+"on your watchlist" or "you're tracking".
 
 If it's a quiet day, say so in a line rather than inflating it -- that's useful too.
 

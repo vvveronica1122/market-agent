@@ -287,6 +287,27 @@ own, that `get_earnings_schedule` ran at least three times rather than
 checking one name and generalising, and that `calculate` was used instead
 of mental arithmetic.
 
+### A watchlist is not a portfolio
+
+The first agent eval run produced *"Nvidia, which you do own"*. Nothing in
+this app knows what anyone owns — it tracks a list of names. Claiming
+ownership is a factual assertion with no basis, and it would be a
+genuinely bad one to make in a finance tool.
+
+What made it instructive: **my own scenario question caused it.** I had
+written "what moved most that I don't already own", so the agent simply
+adopted the framing back. The conflation had also spread to the brief's
+prompt, a tool description, a chat starter and a section heading — four
+places, all written by me, none noticed until a judge objected to the
+wording.
+
+Both prompts now state the distinction outright, and `test_agent.py`
+scans the source for `you own` / `your holdings` / `your position` so the
+phrasing can't quietly return. That check is a lint rather than a proof:
+the rules that ban the phrasing have to quote it, so a window around each
+hit is searched for a prohibition marker. It's verified in both
+directions — clean tree passes, an injected violation fails.
+
 ### The calculator, and why not eval()
 
 Language models do arithmetic in their heads and are unreliable at it —

@@ -162,15 +162,18 @@ SCENARIOS = {
         ),
     },
     "beyond_watchlist": {
-        "description": "Requires knowing what they own before saying what they don't.",
-        "question": "What moved most in the market today that I don't already own?",
+        "description": "Needs the watchlist before it can say what isn't on it.",
+        "question": "What moved most in the market today that isn't on my watchlist?",
         "must_call": ["scan_market"],
         "must_mention": ["LLY"],
         "rubric": (
             "The watchlist is AAPL, MSFT, NVDA, MU. The market movers are LLY +11.4%, "
             "SMCI -9.2% and NVDA -6.1%.\n\n"
-            "PASS if the answer surfaces LLY as the biggest move not already owned. FAIL if it "
-            "presents NVDA as something they don't own -- NVDA is on their watchlist."
+            "PASS if the answer surfaces LLY as the biggest move not on the watchlist. "
+            "FAIL if it presents NVDA as absent from the watchlist -- it is on it.\n\n"
+            "ALSO FAIL if the answer claims the user OWNS anything. This app tracks a "
+            "watchlist and has no holdings data; 'you own', 'your position', 'your holdings' "
+            "are claims it cannot support. 'On your watchlist' and 'you're tracking' are correct."
         ),
     },
 }
