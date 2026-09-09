@@ -4,26 +4,47 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Market Agent</title>
-  <link rel="icon" href="data:,">
+  <link rel="icon" href="data:," />
   <link rel="stylesheet" href="/static/style.css" />
 </head>
 <body>
-  <header class="topbar">
-    <h1>Market Agent</h1>
-    <form id="add-form" class="add-form">
-      <input id="ticker-input" type="text" placeholder="Add ticker, e.g. NVDA" autocomplete="off" maxlength="10" />
-      <button type="submit">Add</button>
-    </form>
-  </header>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">Market<span>Agent</span></div>
 
-  <main id="cards" class="cards" aria-live="polite">
-    <!-- cards are inserted here by app.js -->
-  </main>
+      <form id="search-form" class="search" role="search">
+        <input id="search-input" type="search" placeholder="Search ticker" autocomplete="off"
+               maxlength="12" aria-label="Search for a ticker" />
+      </form>
 
-  <p id="empty-state" class="empty-state" hidden>
-    Your watchlist is empty. Add a ticker above to get started.
-  </p>
+      <nav class="nav">
+        <button class="nav-item is-active" data-view="watchlist">Watchlist</button>
+        <button class="nav-item" data-view="movers">Today's Movers</button>
+        <button class="nav-item is-disabled" disabled>Notes <span class="soon">soon</span></button>
+        <button class="nav-item is-disabled" disabled>Alerts <span class="soon">soon</span></button>
+      </nav>
 
+      <form id="add-form" class="add-form">
+        <input id="ticker-input" type="text" placeholder="Add to watchlist" autocomplete="off"
+               maxlength="12" aria-label="Add a ticker to your watchlist" />
+        <button type="submit" aria-label="Add">+</button>
+      </form>
+
+      <p class="disclaimer">
+        Delayed free market data, for research only. Nothing here is financial advice.
+      </p>
+    </aside>
+
+    <div class="main">
+      <header class="strip" id="market-strip" aria-label="Market overview">
+        <div class="strip-loading">Loading market data...</div>
+      </header>
+
+      <main id="view" class="view" aria-live="polite"></main>
+    </div>
+  </div>
+
+  <div id="tooltip" class="tooltip" hidden></div>
   <script src="/static/app.js"></script>
 </body>
 </html>

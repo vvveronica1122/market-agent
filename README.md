@@ -125,30 +125,64 @@ decisions based solely on what it tells you.
 
 ## Web dashboard
 
-In addition to the CLI (`agent.py`), there's a small local web dashboard
-at `web/app.py`: a watchlist of stocks, each shown as a card with price,
-a trend sparkline, recent news, upcoming events, and an AI-written summary.
+A local dashboard at `web/app.py`. The organising idea: a watchlist sorted
+**by what needs attention today**, not alphabetically. Most finance sites
+show fifty numbers at equal visual weight and leave you to work out which
+two matter; this one does that ranking for you.
 
-It's a deliberately different pattern from `agent.py`: instead of letting
-Claude decide which tools to call (the full agentic loop), the server
-already knows every card needs price + trend + news + events, so it calls
-those four tool functions directly and only asks Claude once per ticker,
-just to turn the fetched data into a short summary. Worth comparing the
-two files side by side -- `agent.py` vs `web/app.py` -- to see when each
-approach makes sense: use the full tool-calling loop when the model needs
-to *decide* what to look up; call tools directly and use the LLM only for
-language when you already know exactly what data you want.
+Each name is scored in plain Python on four factors -- size of today's
+move, how that move compares to the market (SPY), how close earnings are,
+and how much news there is -- then the list is sorted by that score and
+the reasons are shown as chips on the row. Clicking a row opens a detail
+view with a six-month chart, the AI analysis, headlines and the next
+earnings date. Search resolves any ticker, on your list or not.
 
-**Setup** (after the base setup above -- venv, `.env` -- is already done):
+### The two agent patterns, side by side
+
+Worth comparing `agent.py` and `web/app.py`, because they solve the same
+problem differently:
+
+- `agent.py` runs the **full agentic loop** -- Claude sees the tool
+  schemas and decides what to call. Right when the request is open-ended
+  and you can't know in advance what's needed.
+- `web/app.py` calls the tools **directly, in parallel**, because every
+  row needs the same four things, and computes the ranking in ordinary
+  Python. Claude is used for exactly one job: writing the analysis on the
+  detail page.
+
+The general lesson: LLMs make poor sorting functions -- slow, costly, and
+inconsistent between runs -- and good explainers. Rank with rules;
+interpret with the model.
+
+### Running it
 
 ```bash
 cd ~/Documents/market-agent
 source .venv/bin/activate
-pip install -r requirements.txt   # picks up flask, added for the dashboard
+pip install -r requirements.txt   # flask, added for the dashboard
 python3 web/app.py
 ```
 
-Then open <http://127.0.0.1:5050> in your browser. Add tickers with the
-box in the top right; your watchlist is saved to `web/watchlist.json` (not
-committed to git -- it's per-machine runtime state, not source code) so it
-persists between runs. Press Ctrl+C in the terminal to stop the server.
+Open <http://127.0.0.1:5050>. Your watchlist saves to `web/watchlist.json`
+(gitignored -- it's per-machine state, not source). Ctrl+C stops it.
+
+### Tests
+
+```bash
+python3 web/test_app.py
+```
+
+These stub out the market data entirely, so they're fast, need no API key,
+and never touch the network. That's deliberate: tests that call a live API
+fail when Yahoo rate-limits you, which tells you nothing about your code.
+Stubbing also lets us construct exact scenarios -- "a stock down 6% with
+earnings in three days" -- and assert the ranking responds correctly, which
+you can't arrange with live data.
+
+### Known limits
+
+- Free delayed data via yfinance; no intraday streaming, options flow, or
+  dark pool data.
+- Market open/closed doesn't account for holidays.
+- Notes and alerts are not built yet. Real alerts (fire while you're not
+  looking) need a background scheduler, not just a web server.
