@@ -166,6 +166,14 @@ python3 web/app.py
 Open <http://127.0.0.1:5050>. Your watchlist saves to `web/watchlist.json`
 (gitignored -- it's per-machine state, not source). Ctrl+C stops it.
 
+### Starting it without the terminal
+
+Double-click `start.command` in Finder. It activates the virtualenv,
+starts the server and opens the browser for you. Closing the window stops
+it. (macOS may ask you to confirm the first time, since it's a script you
+downloaded rather than an app — right-click → Open once, then double-click
+works from then on.)
+
 ### Tests
 
 ```bash
