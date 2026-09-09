@@ -304,6 +304,25 @@ brief will settle it.
 python3 evals/run_evals.py --judge-stability 5 --scenario quiet_day
 ```
 
+There's a catch worth knowing: that command generates a *fresh* brief, so
+you get whatever the model wrote this time — rarely the borderline one you
+actually wanted to examine. The first real use of it came back 5/5 on a
+perfectly clean brief, which proved the judge was consistent but said
+nothing about the ambiguous sentence that prompted the question.
+
+So genuinely borderline output gets saved to `evals/borderline/` and
+judged as fixed text:
+
+```bash
+python3 evals/run_evals.py --judge-stability 5 --scenario quiet_day \
+    --text evals/borderline/quiet_day_catalysts.txt
+```
+
+Now the input is constant and only the judge varies. A split verdict on
+identical text means the *standard* is ambiguous there, and the honest fix
+is to sharpen the rubric rather than tune the brief until that phrasing
+stops appearing.
+
 A residual failure rate on genuinely ambiguous sentences is healthy. It
 means the standard still has teeth.
 

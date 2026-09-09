@@ -148,7 +148,7 @@ def run_theme_eval() -> dict:
     return {"checks": len(results), "failed": sum(1 for ok, _, _ in results if not ok)}
 
 
-def judge_stability(name: str, times: int) -> int:
+def judge_stability(name: str, times: int, text_path: str | None = None) -> int:
     """Judge ONE fixed brief repeatedly.
 
     Once results stop being 0/N or N/N and start coming back mixed, you
@@ -160,9 +160,18 @@ def judge_stability(name: str, times: int) -> int:
     spec = SCENARIOS[name]
     print(f"\n{'=' * 74}\njudge stability -- {name}, one brief judged {times} times\n{'=' * 74}")
 
-    brief = server.build_brief(spec["rows"], spec["market_pct"], spec["indices"],
-                               spec["movers"], spec["headlines"])
-    print(f"\n{DIM}--- the brief being judged (identical every time) ---{RESET}")
+    if text_path:
+        brief = Path(text_path).read_text().strip()
+        source = f"saved text: {text_path}"
+    else:
+        # Note the limitation this exists to fix: a freshly generated brief
+        # is whatever the model happened to write this time, which is
+        # rarely the borderline one you wanted to examine.
+        brief = server.build_brief(spec["rows"], spec["market_pct"], spec["indices"],
+                                   spec["movers"], spec["headlines"])
+        source = "freshly generated"
+
+    print(f"\n{DIM}--- the brief being judged ({source}, identical every run) ---{RESET}")
     for line in brief.split("\n"):
         print(f"  {line}")
     print(f"{DIM}--- end ---{RESET}\n")
@@ -192,6 +201,9 @@ def main() -> int:
     parser.add_argument("--scenario", help="run only this scenario")
     parser.add_argument("--dry-run", action="store_true", help="no API calls; exercise the harness")
     parser.add_argument("--skip-themes", action="store_true")
+    parser.add_argument("--text", metavar="PATH",
+                        help="with --judge-stability: judge this saved text instead of a "
+                             "freshly generated one, so a specific borderline case can be pinned down")
     parser.add_argument("--judge-stability", type=int, metavar="N",
                         help="generate ONE brief, then judge it N times, to measure how much "
                              "of a mixed result is the judge's own noise rather than the brief")
@@ -208,7 +220,7 @@ def main() -> int:
         return 1
 
     if args.judge_stability:
-        return judge_stability(args.scenario or "quiet_day", args.judge_stability)
+        return judge_stability(args.scenario or "quiet_day", args.judge_stability, args.text)
 
     chosen = {args.scenario: SCENARIOS[args.scenario]} if args.scenario else SCENARIOS
     if args.scenario and args.scenario not in SCENARIOS:
