@@ -55,8 +55,13 @@ def main() -> int:
             print(f"         next {sched['next_date']} (in {sched['days_away']}d) "
                   f"via {sched['source']}")
             if sched["source"] == "calendar":
-                print("         note: the richer earnings_dates endpoint gave nothing,")
-                print("         so EPS estimates and last-quarter surprise may be missing.")
+                print("         note: fell back to the plain calendar.")
+                reason = sched.get("unavailable_reason")
+                if reason:
+                    print(f"         reason: {reason}")
+                    if "missing dependency" in reason:
+                        print("         FIX: pip install -r requirements.txt")
+                        print("         (this is a missing package, NOT a dead endpoint)")
         else:
             print("         NO DATE FOUND -- the Earnings page will be empty for this ticker.")
 

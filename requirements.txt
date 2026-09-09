@@ -2,3 +2,7 @@ anthropic>=0.40.0
 yfinance>=0.2.40
 python-dotenv>=1.0.1
 flask>=3.0.0
+# yfinance parses some tables with pandas.read_html, which needs lxml.
+# Without it, earnings_dates fails with ImportError and the richer
+# earnings data silently disappears behind the calendar fallback.
+lxml>=5.0.0

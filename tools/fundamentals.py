@@ -77,6 +77,7 @@ def get_earnings_schedule(ticker: str) -> dict[str, Any]:
         "eps_estimate": None,
         "last_report": None,
         "source": None,
+        "unavailable_reason": None,
     }
 
     _from_earnings_dates(ticker, result)
@@ -97,7 +98,14 @@ def _from_earnings_dates(ticker: str, result: dict) -> None:
     """Rich source: estimate plus last quarter's surprise."""
     try:
         frame = yf.Ticker(ticker).earnings_dates
-    except Exception:
+    except ImportError as exc:
+        # Distinct on purpose. "The endpoint is down" and "you are missing
+        # a package" produce the same empty page but need opposite fixes,
+        # and this project has already lost time to that confusion once.
+        result["unavailable_reason"] = f"missing dependency: {exc}"
+        return
+    except Exception as exc:
+        result["unavailable_reason"] = f"{type(exc).__name__}: {str(exc)[:120]}"
         return
     if frame is None or getattr(frame, "empty", True):
         return
