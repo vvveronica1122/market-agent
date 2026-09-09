@@ -247,3 +247,145 @@ def get_key_stats(ticker: str) -> dict[str, Any]:
         "sector": info.get("sector"),
         "name": info.get("shortName") or info.get("longName"),
     }
+
+
+def get_earnings_setup(ticker: str, events: int = 8) -> dict[str, Any]:
+    """What the evidence says about how this stock handles earnings.
+
+    Nothing here predicts the next move -- that isn't knowable. It answers
+    the answerable question instead: what has actually happened around
+    this company's past reports, and where are expectations set going into
+    the next one.
+
+    The most useful field is `beat_but_fell`. Markets trade the result
+    against what was already priced in, not against the analyst number, so
+    a company can beat every quarter and still fall half the time. When
+    that is true of a stock, "will it rise if they beat?" has a documented
+    answer for that name, and it is "not reliably".
+    """
+    result: dict[str, Any] = {
+        "ticker": ticker.upper(),
+        "reactions": [],
+        "median_abs_move": None,
+        "moves_over_5pct": None,
+        "up_count": 0,
+        "down_count": 0,
+        "beat_count": 0,
+        "miss_count": 0,
+        "beat_but_fell": 0,
+        "estimate_trend": None,
+        "unavailable_reason": None,
+    }
+
+    try:
+        stock = yf.Ticker(ticker)
+        frame = stock.earnings_dates
+    except ImportError as exc:
+        result["unavailable_reason"] = f"missing dependency: {exc}"
+        return result
+    except Exception as exc:
+        result["unavailable_reason"] = f"{type(exc).__name__}: {str(exc)[:120]}"
+        return result
+
+    if frame is None or getattr(frame, "empty", True):
+        result["unavailable_reason"] = "no earnings history returned"
+        return result
+
+    try:
+        history = stock.history(period="2y")
+    except Exception as exc:
+        result["unavailable_reason"] = f"no price history: {type(exc).__name__}"
+        history = None
+
+    if history is not None and len(history):
+        index = history.index.tz_localize(None) if history.index.tz is not None else history.index
+
+        for stamp in frame.index:
+            if len(result["reactions"]) >= events:
+                break
+            try:
+                day = stamp.tz_localize(None) if stamp.tzinfo else stamp
+                day = day.normalize()
+            except Exception:
+                continue
+
+            before = history.loc[index <= day]
+            after = history.loc[index > day]
+            if not len(before) or not len(after):
+                continue
+
+            prior_close = float(before["Close"].iloc[-1])
+            next_close = float(after["Close"].iloc[0])
+            if not prior_close:
+                continue
+            move = (next_close - prior_close) / prior_close * 100
+
+            row = frame.loc[stamp]
+            surprise = _clean(_field(row, "Surprise(%)"))
+
+            result["reactions"].append({
+                "date": day.date().isoformat(),
+                "surprise_percent": round(surprise, 1) if surprise is not None else None,
+                "next_session_move": round(move, 2),
+            })
+
+    for reaction in result["reactions"]:
+        move = reaction["next_session_move"]
+        surprise = reaction["surprise_percent"]
+        if move >= 0:
+            result["up_count"] += 1
+        else:
+            result["down_count"] += 1
+        if surprise is None:
+            continue
+        if surprise >= 0:
+            result["beat_count"] += 1
+            if move < 0:
+                result["beat_but_fell"] += 1
+        else:
+            result["miss_count"] += 1
+
+    moves = [abs(r["next_session_move"]) for r in result["reactions"]]
+    if moves:
+        ordered = sorted(moves)
+        middle = len(ordered) // 2
+        median = (ordered[middle] if len(ordered) % 2
+                  else (ordered[middle - 1] + ordered[middle]) / 2)
+        result["median_abs_move"] = round(median, 1)
+        result["moves_over_5pct"] = sum(1 for m in moves if m >= 5)
+
+    result["estimate_trend"] = _estimate_trend(stock)
+    return result
+
+
+def _estimate_trend(stock) -> dict[str, Any] | None:
+    """Where the analyst estimate for the coming quarter has been heading.
+
+    Two different signals, and they can disagree: the 90-day trajectory
+    shows the direction of travel, while last month's revision counts show
+    what is happening at the margin. A number revised sharply up over the
+    quarter but trimmed in the last few weeks is a different setup from
+    one still climbing.
+    """
+    trend: dict[str, Any] = {}
+
+    try:
+        table = stock.eps_trend
+        if table is not None and not table.empty and "0q" in table.index:
+            row = table.loc["0q"]
+            trend["current"] = _clean(row.get("current"))
+            trend["days_30"] = _clean(row.get("30daysAgo"))
+            trend["days_90"] = _clean(row.get("90daysAgo"))
+    except Exception:
+        pass
+
+    try:
+        table = stock.eps_revisions
+        if table is not None and not table.empty and "0q" in table.index:
+            row = table.loc["0q"]
+            trend["up_last_30_days"] = _clean(row.get("upLast30days"))
+            trend["down_last_30_days"] = _clean(row.get("downLast30days"))
+    except Exception:
+        pass
+
+    return trend or None

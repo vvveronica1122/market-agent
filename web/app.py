@@ -41,7 +41,12 @@ from tools.market_data import (
     get_price_history,
 )
 from tools.market_scan import get_market_movers, filter_quality, get_market_news
-from tools.fundamentals import get_earnings_schedule, get_quarterly_results, get_key_stats
+from tools.fundamentals import (
+    get_earnings_schedule,
+    get_quarterly_results,
+    get_key_stats,
+    get_earnings_setup,
+)
 
 # The conversational agent, reused as-is. The dashboard and the chat panel
 # are now two front doors onto one implementation rather than two codebases.
@@ -226,6 +231,11 @@ up that's worth watching.
 Some items are videos rather than articles; their summaries are still fine to use, but \
 don't describe a video as something the reader can read.
 
+If earnings_setup is present and a report is close, say what the evidence shows about how \
+this stock handles earnings -- the typical size of the move, and whether beating estimates \
+has actually meant the stock rose. Never say which way it will go this time; that isn't \
+knowable and stating it would be invention in a confident voice.
+
 Stick to what you were given. Don't add background about the company from your own memory \
 -- not its history, not its usual volatility, not what its products do. Your training data \
 is old and the reader can't tell which half of a sentence was looked up and which half you \
@@ -247,6 +257,7 @@ def analyze(ticker: str, data: dict) -> str:
         "market_comparison": data.get("market"),
         "news": data.get("news"),
         "events": data.get("events"),
+        "earnings_setup": data.get("setup"),
     }
     try:
         response = client.messages.create(
@@ -347,6 +358,7 @@ def stock_detail(ticker: str):
             "earnings": lambda: get_earnings_schedule(ticker),
             "quarters": lambda: get_quarterly_results(ticker),
             "stats": lambda: get_key_stats(ticker),
+            "setup": lambda: get_earnings_setup(ticker),
             "spy": spy_change_percent,
         }
 
@@ -370,6 +382,7 @@ def stock_detail(ticker: str):
         data.setdefault("events", {})
         data.setdefault("quarters", [])
         data.setdefault("stats", {})
+        data.setdefault("setup", {})
 
         market_pct = data.pop("spy", None)
         data["market"] = {"ticker": "SPY", "change_percent": market_pct} if market_pct is not None else None

@@ -49,7 +49,12 @@ from tools.market_data import (
     get_price_history,
 )
 from tools.market_scan import get_market_movers, filter_quality, get_market_news
-from tools.fundamentals import get_earnings_schedule, get_quarterly_results, get_key_stats
+from tools.fundamentals import (
+    get_earnings_schedule,
+    get_quarterly_results,
+    get_key_stats,
+    get_earnings_setup,
+)
 from tools.calc import calculate
 
 load_dotenv(PROJECT_ROOT / ".env")
@@ -95,10 +100,12 @@ easy. You are unreliable at mental arithmetic and reliably confident about the r
 which is the worst combination. Fetch the numbers with a data tool, then compute with
 calculate.
 
-Sanity-check what tools return before repeating it. If a figure looks implausible for the
-company in question -- a mid-cap suddenly showing mega-cap revenue, a margin far outside
-its industry's norm -- say the number looks wrong rather than reporting it with confidence.
-Bad data quoted confidently is worse than no answer.
+When a figure looks surprising, describe how it compares to the company's own recent
+history -- "revenue of 50.8B, roughly 4.5 times the 11.3B a year earlier" -- rather than
+declaring it wrong. Your sense of what is normal for a company comes from training data
+that is months out of date, so a number that contradicts your expectation may simply be
+newer than you are. Give the reader the comparison and let them judge; asserting that
+real data is an error is its own kind of confident mistake.
 
 Stick to what the tools returned. Don't add background about a company from your own
 memory -- not its history, not its usual volatility, not what a product is used for. Your
@@ -110,7 +117,14 @@ When a tool returns an error or no data, say so plainly instead of guessing or f
 gap from memory.
 
 Do not give buy/sell/hold recommendations or price targets. Explain what the data shows and
-let the reader decide. Keep answers concise."""
+let the reader decide. Keep answers concise.
+
+If asked whether a stock will rise or fall -- around earnings or otherwise -- say plainly
+that direction isn't knowable, then answer the useful question instead: call
+get_earnings_setup and describe what the evidence shows. How large the move usually is,
+whether beating estimates has historically meant the stock rose, where expectations sit
+now. That is analysis. Naming a direction would be invention with a confident tone, and
+the reader cannot tell the two apart."""
 
 
 def read_watchlist() -> list[str]:
@@ -244,6 +258,19 @@ TOOLS = [
         ),
         "input_schema": {"type": "object", "properties": {}},
         "handler": lambda: get_market_news(),
+    },
+    {
+        "name": "get_earnings_setup",
+        "description": (
+            "Get the evidence on how a stock has behaved around its past earnings: the actual "
+            "next-session price move after each of the last several reports, whether it beat or "
+            "missed each time, the typical size of the move, how often it beat and STILL fell, "
+            "and which way analyst estimates have been revised. Use this for any question about "
+            "what to expect from an upcoming earnings report. It describes the setup; it does "
+            "not predict the outcome, and neither should you."
+        ),
+        "input_schema": TICKER_ARG,
+        "handler": lambda ticker: get_earnings_setup(ticker),
     },
     {
         "name": "calculate",

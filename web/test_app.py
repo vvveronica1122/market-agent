@@ -168,6 +168,28 @@ def fake_quarters(ticker, quarters=6):
     ]
 
 
+def fake_setup(ticker, events=8):
+    # Deliberately mirrors the real MU pattern found by the probe: beat
+    # every time, fell more often than not.
+    reactions = [
+        {"date": "2026-06-24", "surprise_percent": 21.4, "next_session_move": 15.74},
+        {"date": "2026-03-18", "surprise_percent": 33.2, "next_session_move": -3.78},
+        {"date": "2025-12-17", "surprise_percent": 20.6, "next_session_move": 10.21},
+        {"date": "2025-09-23", "surprise_percent": 5.9, "next_session_move": -2.82},
+        {"date": "2025-06-25", "surprise_percent": 19.8, "next_session_move": -0.98},
+        {"date": "2025-03-20", "surprise_percent": 9.5, "next_session_move": -8.04},
+    ]
+    return {
+        "ticker": ticker.upper(), "reactions": reactions,
+        "median_abs_move": 5.9, "moves_over_5pct": 3,
+        "up_count": 2, "down_count": 4,
+        "beat_count": 6, "miss_count": 0, "beat_but_fell": 4,
+        "estimate_trend": {"current": 31.3, "days_30": 31.3, "days_90": 22.7,
+                           "up_last_30_days": 0, "down_last_30_days": 2},
+        "unavailable_reason": None,
+    }
+
+
 def fake_stats(ticker):
     return {"market_cap": 1.2e12, "trailing_pe": 28.4, "forward_pe": 24.1,
             "profit_margin_percent": 23.5, "revenue_growth_percent": 8.2,
@@ -190,6 +212,7 @@ def install_stubs():
     server.get_earnings_schedule = fake_earnings
     server.get_quarterly_results = fake_quarters
     server.get_key_stats = fake_stats
+    server.get_earnings_setup = fake_setup
     server._cache.clear()
 
 
@@ -512,6 +535,57 @@ def main() -> int:
                           _plain_text("Caf&eacute; &amp; more") == "Café & more")
     failures += not check("missing summary text degrades to empty, not None",
                           _plain_text(None) == "")
+
+    print("\nEarnings setup")
+    server._cache.clear()
+    detail = client.get("/api/stock/CRASH").get_json()
+    setup = detail.get("setup") or {}
+    failures += not check("detail carries the earnings setup",
+                          len(setup.get("reactions", [])) == 6, str(len(setup.get("reactions", []))))
+    failures += not check("counts how often a beat was followed by a fall",
+                          setup.get("beat_but_fell") == 4, str(setup.get("beat_but_fell")))
+
+    captured = {}
+
+    def capture(ticker, data):
+        captured["payload"] = data
+        return "stub"
+
+    real_analyze = server.analyze
+    server.analyze = capture
+    try:
+        server._cache.clear()
+        client.get("/api/stock/CRASH")
+        failures += not check("the setup reaches the analysis prompt",
+                              "setup" in (captured.get("payload") or {}))
+    finally:
+        server.analyze = real_analyze
+
+    from tools.fundamentals import get_earnings_setup as real_setup
+    import tools.fundamentals as fundamentals
+
+    class _NoLxml:
+        def __init__(self, symbol):
+            pass
+
+        @property
+        def earnings_dates(self):
+            raise ImportError("Missing optional dependency 'lxml'.")
+
+    class _FakeYF2:
+        Ticker = _NoLxml
+
+    saved = fundamentals.yf
+    try:
+        fundamentals.yf = _FakeYF2()
+        degraded = real_setup("TEST")
+        failures += not check("a missing package is reported as such, not as no data",
+                              "missing dependency" in (degraded.get("unavailable_reason") or ""),
+                              str(degraded.get("unavailable_reason")))
+        failures += not check("degrades to empty reactions rather than raising",
+                              degraded["reactions"] == [])
+    finally:
+        fundamentals.yf = saved
 
     print(f"\n{'All checks passed.' if not failures else str(failures) + ' check(s) FAILED.'}\n")
     return 1 if failures else 0

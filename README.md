@@ -287,6 +287,36 @@ own, that `get_earnings_schedule` ran at least three times rather than
 checking one name and generalising, and that `calculate` was used instead
 of mental arithmetic.
 
+### "Will it go up after earnings?"
+
+It won't answer that, and the reason isn't policy. Short-term direction
+around a print isn't knowable, so an answer would be invention delivered
+in a confident voice — the exact failure this project spends its evals
+defending against.
+
+The question underneath it *is* answerable, though, and the app was doing
+a poor job of it. So the detail page has a **Going into earnings** panel
+built entirely from things that already happened:
+
+- The actual next-session move after each of the last eight reports,
+  drawn as a diverging bar chart, with the typical size stated as a
+  single figure.
+- How often the company beat, and — the useful part — **how often it beat
+  and the stock fell anyway**.
+- Where the analyst estimate has moved over ninety days, and whether it's
+  being revised up or down in the last month.
+
+That third pairing is what makes it more than a data dump. For MU the
+evidence reads: beat the estimate in **8 of 8** reports, and still fell
+the next session **5 times**. Anyone asking "will it rise if they beat?"
+has a documented answer for that name — *not reliably* — because the
+market prices the expectation, not the analyst number. Meanwhile the
+estimate is up 38% over ninety days while being trimmed twice in the last
+month: expectations set high, softening at the margin.
+
+None of that predicts the next move. All of it is evidence about the
+setup, which is the honest version of what the question was after.
+
 ### News: summaries, not just headlines
 
 The detail page's "What's going on" panel synthesises the coverage on one
@@ -312,7 +342,26 @@ only watch is a small lie, so videos are tagged as such in the list.
 
 The general habit: **check what the data actually contains before
 designing around what you assume it contains.** One probe script turned a
-speculative feature discussion into a ten-line change.
+speculative feature discussion into a ten-line change — and a second one,
+for earnings data, found that the "unavailable endpoint" behind the empty
+Earnings page had been a missing `lxml` package the whole time.
+
+### When your own sense of "plausible" is out of date
+
+Reviewing an early agent answer, I said MU revenue of $41.5B "looks wrong
+— Micron's quarterly revenue is around $10B." The probe later showed 33
+analysts expecting $50.8B, against $11.3B a year earlier, and an EPS
+series climbing 0.62 → 1.18 → 4.78 → 12.20 → 25.11.
+
+The data was real. My sense of normal came from training data months out
+of date, which is precisely the mistake the prompts warn the model about.
+
+So the agent's instruction changed. It used to say a figure that looks
+implausible should be called out as probably wrong. It now says to state
+the comparison — "revenue of $50.8B, roughly 4.5x the $11.3B a year
+earlier" — and let the reader judge. **Asserting that real data is an
+error is its own kind of confident mistake**, and a model's priors are
+staler than the data it just fetched.
 
 ### A watchlist is not a portfolio
 

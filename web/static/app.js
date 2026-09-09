@@ -451,6 +451,10 @@ async function showDetail(ticker) {
     frag.appendChild(fPanel);
   }
 
+  const setupBuilt = buildSetupPanel(data.setup, data.ticker,
+                                     (data.earnings || {}).days_away);
+  if (setupBuilt) frag.appendChild(setupBuilt.panel);
+
   // Analysis + news side by side
   const grid = el("div", "grid-2");
 
@@ -502,6 +506,14 @@ async function showDetail(ticker) {
 
   const barCanvas = viewEl.querySelector("canvas.bar-chart");
   if (barCanvas && quarters.length) setupBarChart(barCanvas, quarters);
+
+  if (setupBuilt) {
+    drawReactionChart(setupBuilt.canvas, setupBuilt.reactions);
+    if (window.ResizeObserver) {
+      new ResizeObserver(() => drawReactionChart(setupBuilt.canvas, setupBuilt.reactions))
+        .observe(setupBuilt.canvas);
+    }
+  }
 }
 
 /* ---------------- charts ---------------- */
@@ -900,6 +912,147 @@ function buildMonth(year, monthIndex, byDate, todayIso) {
 
   cal.appendChild(grid);
   return cal;
+}
+
+/* ---------------- earnings setup ---------------- */
+
+function buildSetupPanel(setup, ticker, daysAway) {
+  if (!setup || !setup.reactions || setup.reactions.length < 3) return null;
+
+  const panel = el("div", "panel");
+  panel.appendChild(el("h2", null, "Going into earnings"));
+
+  const lead = el("p", "setup-lead");
+  lead.appendChild(el("span", "setup-figure", "\u00b1" + num(setup.median_abs_move, 1) + "%"));
+  lead.appendChild(el("span", null,
+    ` typical move the session after ${ticker} reports, across its last ` +
+    `${setup.reactions.length} reports.`));
+  panel.appendChild(lead);
+
+  // The finding worth leading with, when it applies: beating estimates
+  // has not meant the stock rose. Markets price the expectation, not the
+  // analyst number.
+  if (setup.beat_count >= 3 && setup.beat_but_fell > 0) {
+    const share = setup.beat_but_fell / setup.beat_count;
+    const note = el("p", "setup-note" + (share >= 0.4 ? " is-striking" : ""));
+    note.textContent =
+      `Beat the estimate in ${setup.beat_count} of those reports — and still fell the next ` +
+      `session ${setup.beat_but_fell} time${setup.beat_but_fell === 1 ? "" : "s"}. ` +
+      (share >= 0.4
+        ? "For this stock, beating has not reliably meant rising: what matters is the result "
+          + "against what was already priced in, not against the analyst figure."
+        : "");
+    panel.appendChild(note);
+  }
+
+  const wrap = el("div", "chart-wrap");
+  const canvas = el("canvas", "reaction-chart");
+  canvas.setAttribute("role", "img");
+  canvas.setAttribute("aria-label",
+    "Price move the session after each past earnings report: " +
+    setup.reactions.map((r) => `${r.date} ${r.next_session_move > 0 ? "up" : "down"} ` +
+      `${Math.abs(r.next_session_move)} percent`).join(", "));
+  wrap.appendChild(canvas);
+  panel.appendChild(wrap);
+
+  const legend = el("p", "metric-note");
+  legend.textContent =
+    "Each bar is one past report: how the price moved the following session. " +
+    "Green above the line, red below. This is what happened, not what will.";
+  legend.style.margin = "10px 0 0";
+  panel.appendChild(legend);
+
+  const trend = setup.estimate_trend;
+  if (trend && (trend.current || trend.days_90)) {
+    const stats = el("div", "stat-line");
+    stats.style.marginTop = "16px";
+    if (trend.current && trend.days_90) {
+      const shift = ((trend.current - trend.days_90) / Math.abs(trend.days_90)) * 100;
+      const stat = el("div", "stat");
+      stat.appendChild(el("span", "stat-label", "Estimate vs 90 days ago"));
+      stat.appendChild(el("span", "stat-value " + toneClass(shift),
+        (shift >= 0 ? "+" : "") + num(shift, 0) + "%"));
+      stats.appendChild(stat);
+    }
+    if (trend.up_last_30_days !== null && trend.up_last_30_days !== undefined) {
+      const stat = el("div", "stat");
+      stat.appendChild(el("span", "stat-label", "Revisions last 30 days"));
+      stat.appendChild(el("span", "stat-value",
+        `${num(trend.up_last_30_days, 0)} up / ${num(trend.down_last_30_days, 0)} down`));
+      stats.appendChild(stat);
+    }
+    panel.appendChild(stats);
+  }
+
+  return { panel, canvas, reactions: setup.reactions };
+}
+
+const REACT_PAD = { left: 8, right: 8, top: 22, bottom: 30 };
+
+function drawReactionChart(canvas, reactions) {
+  const dpr = window.devicePixelRatio || 1;
+  const cssW = canvas.clientWidth || 520;
+  const cssH = canvas.clientHeight || 170;
+  canvas.width = cssW * dpr;
+  canvas.height = cssH * dpr;
+  const ctx = canvas.getContext("2d");
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, cssW, cssH);
+  if (!reactions.length) return;
+
+  // Oldest on the left, so it reads like time.
+  const points = reactions.slice().reverse();
+  const values = points.map((r) => r.next_session_move);
+  const extent = Math.max(...values.map(Math.abs)) || 1;
+
+  const plotW = cssW - REACT_PAD.left - REACT_PAD.right;
+  const plotH = cssH - REACT_PAD.top - REACT_PAD.bottom;
+  const zeroY = REACT_PAD.top + plotH / 2;
+
+  ctx.strokeStyle = COLORS.axis;
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(REACT_PAD.left, Math.round(zeroY) + 0.5);
+  ctx.lineTo(cssW - REACT_PAD.right, Math.round(zeroY) + 0.5);
+  ctx.stroke();
+
+  const slot = plotW / points.length;
+  const barW = Math.max(12, Math.min(46, slot - 12));
+
+  ctx.font = "10.5px system-ui, -apple-system, sans-serif";
+  ctx.textAlign = "center";
+
+  points.forEach((r, i) => {
+    const value = r.next_session_move;
+    const x = REACT_PAD.left + slot * i + (slot - barW) / 2;
+    const h = Math.max(2, (Math.abs(value) / extent) * (plotH / 2 - 4));
+    const up = value >= 0;
+    const y = up ? zeroY - h : zeroY;
+
+    ctx.fillStyle = up ? COLORS.up : COLORS.down;
+    roundedTopRect(ctx, x, up ? y : zeroY, barW, h, 3);
+    if (!up) {
+      // Mirror the rounding so the data-end is the one away from zero.
+      ctx.save();
+      ctx.translate(0, zeroY * 2 + h);
+      ctx.scale(1, -1);
+      ctx.beginPath();
+      roundedTopRect(ctx, x, zeroY, barW, h, 3);
+      ctx.fill();
+      ctx.restore();
+    } else {
+      ctx.fill();
+    }
+
+    ctx.fillStyle = up ? COLORS.up : COLORS.down;
+    ctx.textBaseline = up ? "bottom" : "top";
+    ctx.fillText((value >= 0 ? "+" : "") + value.toFixed(1) + "%",
+                 x + barW / 2, up ? y - 4 : zeroY + h + 4);
+
+    ctx.fillStyle = COLORS.muted;
+    ctx.textBaseline = "top";
+    ctx.fillText(String(r.date).slice(0, 7), x + barW / 2, cssH - REACT_PAD.bottom + 14);
+  });
 }
 
 /* ---------------- quarterly revenue chart ---------------- */
