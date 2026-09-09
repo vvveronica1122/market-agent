@@ -33,6 +33,9 @@ def fake_price(ticker):
                   "previous_close": 106.4, "change": -6.4, "change_percent": -6.0},
         "QUIET": {"ticker": "QUIET", "price": 50.0, "currency": "USD",
                   "previous_close": 49.95, "change": 0.05, "change_percent": 0.1},
+        # not on the watchlist -- this is what Discover should surface
+        "SURGE": {"ticker": "SURGE", "price": 88.0, "currency": "USD",
+                  "previous_close": 82.2, "change": 5.8, "change_percent": 7.1},
         "SPY": {"ticker": "SPY", "price": 500.0, "currency": "USD",
                 "previous_close": 499.0, "change": 1.0, "change_percent": 0.2},
     }
@@ -41,7 +44,7 @@ def fake_price(ticker):
     return table[ticker]
 
 
-KNOWN = {"CRASH", "QUIET", "SPY"}
+KNOWN = {"CRASH", "QUIET", "SPY", "SURGE"}
 
 
 def fake_history(ticker, period="1mo"):
@@ -68,6 +71,36 @@ def fake_events(ticker):
     return {"ticker": ticker, "next_earnings_date": None, "ex_dividend_date": None}
 
 
+# --- a fake Anthropic client -----------------------------------------
+# Stubbing the client rather than the functions that call it means the
+# prompt-assembly code still runs and gets tested -- and we can count how
+# many model calls a page costs, which is a design claim worth asserting.
+class _Block:
+    type = "text"
+
+    def __init__(self, text):
+        self.text = text
+
+
+class _Response:
+    def __init__(self, text):
+        self.content = [_Block(text)]
+
+
+class _Messages:
+    def __init__(self):
+        self.calls = []
+
+    def create(self, **kwargs):
+        self.calls.append(kwargs)
+        return _Response("Stubbed model output.")
+
+
+class FakeClient:
+    def __init__(self):
+        self.messages = _Messages()
+
+
 def install_stubs():
     # app.py did `from tools.market_data import ...`, so the names live in
     # the app module's namespace -- that's what has to be replaced.
@@ -78,6 +111,8 @@ def install_stubs():
     server.analyze = lambda ticker, data: "Stubbed analysis."
     server.load_watchlist = lambda: ["QUIET", "CRASH"]
     server.save_watchlist = lambda tickers: None
+    server.client = FakeClient()
+    server.UNIVERSE = ["CRASH", "QUIET", "SPY", "SURGE", "NOSUCH"]
     server._cache.clear()
 
 
@@ -136,6 +171,38 @@ def main() -> int:
     missing = client.get("/api/search?q=NOSUCH").get_json()
     failures += not check("search reports no results cleanly",
                           missing["results"] == [] and "message" in missing)
+
+
+    print("\nDaily brief")
+    server._cache.clear()
+    server.client = FakeClient()
+    brief = client.get("/api/brief").get_json()
+    failures += not check("brief returns text and a timestamp",
+                          brief.get("brief") and brief.get("generated_at"))
+    failures += not check("the whole list costs exactly ONE model call",
+                          len(server.client.messages.calls) == 1,
+                          f"{len(server.client.messages.calls)} calls")
+    sent = server.client.messages.calls[0]["messages"][0]["content"]
+    failures += not check("both watchlist names reach the prompt",
+                          "CRASH" in sent and "QUIET" in sent)
+    failures += not check("the brief prompt forbids giving advice",
+                          "no buy/sell/hold" in server.BRIEF_SYSTEM.lower())
+
+    print("\nDiscover")
+    server._cache.clear()
+    disc = client.get("/api/discover").get_json()
+    tickers = [r["ticker"] for r in disc["rows"]]
+    failures += not check("surfaces a notable name that isn't on the watchlist",
+                          "SURGE" in tickers, str(tickers))
+    failures += not check("never re-suggests something already on the watchlist",
+                          "QUIET" not in tickers and "CRASH" not in tickers, str(tickers))
+    failures += not check("the big mover outranks the flat one",
+                          tickers.index("SURGE") < tickers.index("SPY")
+                          if "SPY" in tickers else True, str(tickers))
+    failures += not check("silently drops tickers with no data",
+                          "NOSUCH" not in tickers, str(tickers))
+    failures += not check("discover rows carry the same attention scoring",
+                          all("attention" in r for r in disc["rows"]))
 
     print(f"\n{'All checks passed.' if not failures else str(failures) + ' check(s) FAILED.'}\n")
     return 1 if failures else 0

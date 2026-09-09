@@ -179,6 +179,36 @@ Stubbing also lets us construct exact scenarios -- "a stock down 6% with
 earnings in three days" -- and assert the ranking responds correctly, which
 you can't arrange with live data.
 
+### Daily brief
+
+The Watchlist view opens with an AI brief written across the *whole* list,
+not per stock: what's driving the day, what connects several names, what's
+coming this week. It's one Claude call for the entire list (the test suite
+asserts this), sent a compacted payload rather than full news bodies, and
+cached 15 minutes -- regenerating it on every page refresh would burn
+tokens to say the same thing. It loads separately from the rows, so a slow
+model call never delays the numbers.
+
+### Discover
+
+Surfaces names *not* on your watchlist that moved unusually today, scored
+with the same attention function.
+
+Two things it deliberately is not. It is **not a recommendation engine** --
+it doesn't tell you what to buy, and it can't, because nothing here
+predicts returns. It reports what happened: this name moved 8% against a
+flat market with six headlines. Deciding what that's worth is yours. And it
+is **not a full market scan** -- there's no free screener API, so it checks
+a fixed list of ~50 well-known large caps. The UI says so rather than
+implying it swept the whole market.
+
+It uses a two-stage scan, which is worth understanding as a pattern:
+stage one fetches *price only* for the whole universe in parallel (cheap),
+ranks by move-versus-market, and keeps the top eight; stage two fetches
+news, earnings and history for just those eight. Fetching everything for
+50 tickers would take minutes, and the 42 names that got discarded never
+needed their headlines read.
+
 ### Known limits
 
 - Free delayed data via yfinance; no intraday streaming, options flow, or
@@ -186,3 +216,7 @@ you can't arrange with live data.
 - Market open/closed doesn't account for holidays.
 - Notes and alerts are not built yet. Real alerts (fire while you're not
   looking) need a background scheduler, not just a web server.
+- Discover scans a fixed ~50-name universe, not the market.
+- Nothing here is financial advice, and the prompts explicitly forbid the
+  model from giving buy/sell/hold opinions or price targets. It describes
+  and contextualises; it doesn't recommend.

@@ -377,6 +377,173 @@ def search():
         )
 
 
+# --- discovery --------------------------------------------------------
+# A fixed universe, NOT the whole market. There is no free screener API,
+# so "notable today" honestly means "notable among these names". Saying so
+# is better than implying we scanned all 4,000 listed companies.
+UNIVERSE = [
+    "AAPL", "MSFT", "GOOGL", "AMZN", "META", "NVDA", "TSLA", "AVGO", "AMD", "INTC",
+    "CRM", "ORCL", "ADBE", "NFLX", "QCOM", "TXN", "MU", "PLTR", "UBER", "SHOP",
+    "JPM", "BAC", "GS", "MS", "V", "MA", "BRK-B", "WFC", "AXP", "COIN",
+    "JNJ", "UNH", "LLY", "PFE", "MRK", "ABBV", "TMO",
+    "XOM", "CVX", "COP", "CAT", "BA", "GE", "HON",
+    "WMT", "COST", "HD", "MCD", "NKE", "SBUX", "DIS", "PG", "KO",
+]
+
+BRIEF_SYSTEM = """You write a short daily brief over someone's stock watchlist. They \
+can see the ranked list and every number right below what you write, so don't recite \
+data back at them -- tell them what it adds up to.
+
+Lead with the single most important thing happening across the list today. Then note \
+anything that connects several names (a sector moving together, a macro event), and \
+anything coming up this week worth preparing for. If it's a genuinely quiet day, say \
+that in one line rather than manufacturing significance -- that's useful information too.
+
+Two or three short paragraphs. No headings, no bullet points, no preamble like "Here's \
+your brief".
+
+Hard rules: no buy/sell/hold advice, no price targets, no predictions about direction. \
+Don't assert causation you can't support -- "may be related to", not "because of"."""
+
+
+def build_brief(rows: list[dict], market_pct, indices: list[dict]) -> str:
+    """One Claude call over the whole list. Deliberately compact input:
+    sending full news bodies for ten tickers would be slow and expensive
+    for no gain."""
+    if not rows:
+        return "Your watchlist is empty, so there's nothing to brief on yet."
+
+    compact = []
+    for row in rows:
+        compact.append(
+            {
+                "ticker": row["ticker"],
+                "change_percent": (row.get("price") or {}).get("change_percent"),
+                "attention": (row.get("attention") or {}).get("level"),
+                "reasons": [f["label"] for f in (row.get("attention") or {}).get("factors", [])],
+                "top_headline": row.get("top_headline"),
+            }
+        )
+
+    payload = {
+        "market": {
+            "spy_change_percent": market_pct,
+            "indices": [
+                {"label": i.get("label"), "change_percent": i.get("change_percent")}
+                for i in indices
+                if not i.get("error")
+            ],
+            "session": market_status(),
+        },
+        "watchlist": compact,
+    }
+
+    try:
+        response = client.messages.create(
+            model=MODEL,
+            max_tokens=500,
+            system=BRIEF_SYSTEM,
+            messages=[{"role": "user", "content": json.dumps(payload, indent=2, default=str)}],
+        )
+        return "".join(b.text for b in response.content if b.type == "text").strip()
+    except Exception as exc:
+        return f"(Brief unavailable: {exc})"
+
+
+@app.route("/api/brief")
+def brief_route():
+    tickers = load_watchlist()
+
+    def produce():
+        market_pct = spy_change_percent()
+        with ThreadPoolExecutor(max_workers=6) as pool:
+            rows = list(pool.map(lambda t: fetch_row(t, market_pct), tickers))
+        rows.sort(key=lambda r: r["attention"]["score"], reverse=True)
+
+        with ThreadPoolExecutor(max_workers=4) as pool:
+            indices = list(pool.map(lambda pair: index_quote(*pair), INDICES))
+
+        return {
+            "brief": build_brief(rows, market_pct, indices),
+            "generated_at": datetime.now(ZoneInfo("America/New_York")).strftime("%I:%M %p ET").lstrip("0"),
+        }
+
+    # 15 minutes: a brief that regenerates on every refresh burns tokens
+    # and says the same thing anyway.
+    return jsonify(cached("brief:" + ",".join(tickers), 900, produce))
+
+
+def safe_price(ticker: str):
+    try:
+        return get_stock_price(ticker)
+    except Exception:
+        return None
+
+
+def discover_rows() -> list[dict]:
+    """Two-stage scan.
+
+    Stage 1 is cheap -- price only, for the whole universe, in parallel.
+    Stage 2 fetches news and earnings for just the top handful. Fetching
+    everything for 50 tickers would take minutes; this takes seconds and
+    the discarded names never needed their headlines read.
+    """
+    watching = set(load_watchlist())
+    candidates = [t for t in UNIVERSE if t not in watching]
+    market_pct = spy_change_percent() or 0.0
+
+    with ThreadPoolExecutor(max_workers=12) as pool:
+        quotes = [q for q in pool.map(safe_price, candidates) if q]
+
+    quotes = [q for q in quotes if q.get("change_percent") is not None]
+    quotes.sort(key=lambda q: abs(q["change_percent"] - market_pct), reverse=True)
+    shortlist = quotes[:8]
+
+    def enrich(quote):
+        ticker = quote["ticker"]
+        try:
+            news = get_recent_news(ticker, limit=4)
+        except Exception:
+            news = []
+        try:
+            events = get_upcoming_events(ticker)
+        except Exception:
+            events = {}
+        try:
+            history = get_price_history(ticker, period="1mo")
+        except Exception:
+            history = []
+        return {
+            "ticker": ticker,
+            "price": quote,
+            "history": history,
+            "news_count": len(news),
+            "top_headline": news[0]["title"] if news else None,
+            "events": events,
+            "attention": compute_attention(quote, news, events, market_pct),
+        }
+
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        rows = list(pool.map(enrich, shortlist))
+
+    rows.sort(key=lambda r: r["attention"]["score"], reverse=True)
+    return rows
+
+
+@app.route("/api/discover")
+def discover_route():
+    watching = load_watchlist()
+
+    def produce():
+        return {
+            "rows": discover_rows(),
+            "universe_size": len(UNIVERSE),
+            "market_change_percent": spy_change_percent(),
+        }
+
+    return jsonify(cached("discover:" + ",".join(watching), 600, produce))
+
+
 if __name__ == "__main__":
     print("\nMarket Agent -- open http://127.0.0.1:5050 in your browser\n")
     app.run(debug=True, port=5050)

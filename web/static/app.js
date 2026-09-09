@@ -10,14 +10,14 @@
       has no external dependency and works offline. */
 
 const COLORS = {
-  series: "#3987e5",
-  seriesFill: "rgba(57, 135, 229, 0.12)",
-  up: "#0ca30c",
-  down: "#d03b3b",
-  gridline: "#2c2c2a",
-  axis: "#383835",
-  muted: "#898781",
-  surface: "#1a1a19",
+  series: "#2a78d6",
+  seriesFill: "rgba(42, 120, 214, 0.10)",
+  up: "#0F7B36",
+  down: "#B3261E",
+  gridline: "#EEDFD8",
+  axis: "#D6C3BC",
+  muted: "#8A7278",
+  surface: "#FFFBF9",
 };
 
 const state = { view: "watchlist", rows: [], chart: null };
@@ -154,10 +154,20 @@ async function showWatchlist(filterMovers) {
     return;
   }
 
+  // The brief loads separately so a slow Claude call never delays the
+  // list -- the numbers are the urgent part.
+  let briefPanel = null;
+  if (!filterMovers) {
+    briefPanel = buildBriefPanel();
+    frag.appendChild(briefPanel);
+  }
+
   const list = el("div", "rows");
   rows.forEach((row) => list.appendChild(buildRow(row)));
   frag.appendChild(list);
   viewEl.replaceChildren(frag);
+
+  if (briefPanel) loadBrief(briefPanel, false);
 
   // Sparklines must be drawn after the canvases are in the document,
   // otherwise clientWidth is 0 and nothing renders.
@@ -171,14 +181,17 @@ function cssEscape(value) {
   return String(value).replace(/["\\]/g, "\\$&");
 }
 
-function buildRow(row) {
+function buildRow(row, opts) {
+  const discover = !!(opts && opts.discover);
   const level = row.attention ? row.attention.level : "quiet";
-  const button = el("button", `row level-${level}`);
+  const button = el("button", `row level-${level}` + (discover ? " is-discover" : ""));
   button.type = "button";
 
   const left = el("div");
   left.appendChild(el("div", "ticker", row.ticker));
-  const tagText = level === "high" ? "Needs attention" : level === "medium" ? "Worth a look" : "Quiet";
+  const tagText = discover
+    ? "Not on your list"
+    : level === "high" ? "Needs attention" : level === "medium" ? "Worth a look" : "Quiet";
   left.appendChild(el("span", "attention-tag", tagText));
   button.appendChild(left);
 
@@ -213,14 +226,25 @@ function buildRow(row) {
   sparkCell.appendChild(el("span", "spark-label", "1 month"));
   button.appendChild(sparkCell);
 
-  const remove = el("button", "remove", "×");
-  remove.type = "button";
-  remove.title = `Remove ${row.ticker}`;
-  remove.addEventListener("click", (e) => {
-    e.stopPropagation();
-    removeTicker(row.ticker);
-  });
-  button.appendChild(remove);
+  if (discover) {
+    const add = el("button", "add", "+");
+    add.type = "button";
+    add.title = `Add ${row.ticker} to watchlist`;
+    add.addEventListener("click", (e) => {
+      e.stopPropagation();
+      addTicker(row.ticker);
+    });
+    button.appendChild(add);
+  } else {
+    const remove = el("button", "remove", "×");
+    remove.type = "button";
+    remove.title = `Remove ${row.ticker}`;
+    remove.addEventListener("click", (e) => {
+      e.stopPropagation();
+      removeTicker(row.ticker);
+    });
+    button.appendChild(remove);
+  }
 
   button.addEventListener("click", () => showDetail(row.ticker));
   return button;
@@ -590,6 +614,99 @@ function hideTooltip() {
   tooltipEl.hidden = true;
 }
 
+/* ---------------- daily brief ---------------- */
+
+function buildBriefPanel() {
+  const panel = el("div", "brief");
+
+  const head = el("div", "brief-head");
+  head.appendChild(el("h2", null, "AI brief"));
+  const refresh = el("button", "brief-refresh", "Refresh");
+  refresh.type = "button";
+  refresh.addEventListener("click", () => loadBrief(panel, true));
+  head.appendChild(refresh);
+  panel.appendChild(head);
+
+  panel.appendChild(el("div", "brief-body", "Reading your watchlist..."));
+  return panel;
+}
+
+async function loadBrief(panel, force) {
+  const body = panel.querySelector(".brief-body");
+  body.replaceChildren(el("p", null, force ? "Rewriting..." : "Reading your watchlist..."));
+
+  let data;
+  try {
+    const res = await fetch("/api/brief" + (force ? "?t=" + Date.now() : ""));
+    data = await res.json();
+  } catch (err) {
+    body.replaceChildren(el("p", null, "Brief unavailable: " + err));
+    return;
+  }
+
+  body.replaceChildren();
+  String(data.brief || "")
+    .split(/\n\s*\n/)
+    .filter((para) => para.trim())
+    .forEach((para) => body.appendChild(el("p", null, para.trim())));
+
+  const old = panel.querySelector(".brief-meta");
+  if (old) old.remove();
+  if (data.generated_at) {
+    panel.appendChild(el("p", "brief-meta", `Written ${data.generated_at} from the data below. Not financial advice.`));
+  }
+}
+
+/* ---------------- discover ---------------- */
+
+async function showDiscover() {
+  state.view = "discover";
+  setActiveNav("discover");
+  viewEl.replaceChildren(el("p", "loading-text", "Scanning for notable moves..."));
+
+  let data;
+  try {
+    const res = await fetch("/api/discover");
+    data = await res.json();
+  } catch (err) {
+    viewEl.replaceChildren(el("p", "empty", "Discover failed: " + err));
+    return;
+  }
+
+  const frag = document.createDocumentFragment();
+  const head = el("div", "view-head");
+  head.appendChild(el("h1", null, "Discover"));
+  frag.appendChild(head);
+  frag.appendChild(
+    el("p", "view-sub", "Names you don't own that moved unusually today, ranked the same way as your watchlist.")
+  );
+  frag.appendChild(
+    el(
+      "p",
+      "note",
+      `Scanned ${data.universe_size || 0} well-known large caps — not the whole market, and not a recommendation to buy anything. ` +
+        `These are names where something happened today worth a look.`
+    )
+  );
+
+  const rows = data.rows || [];
+  if (!rows.length) {
+    frag.appendChild(el("p", "empty", "Nothing unusual in the scanned names today."));
+    viewEl.replaceChildren(frag);
+    return;
+  }
+
+  const list = el("div", "rows");
+  rows.forEach((row) => list.appendChild(buildRow(row, { discover: true })));
+  frag.appendChild(list);
+  viewEl.replaceChildren(frag);
+
+  rows.forEach((row) => {
+    const canvas = list.querySelector(`canvas[data-ticker="${cssEscape(row.ticker)}"]`);
+    if (canvas) drawSparkline(canvas, row.history || []);
+  });
+}
+
 /* ---------------- search ---------------- */
 
 async function showSearch(query) {
@@ -669,7 +786,10 @@ async function removeTicker(ticker) {
 /* ---------------- wiring ---------------- */
 
 document.querySelectorAll(".nav-item[data-view]").forEach((btn) => {
-  btn.addEventListener("click", () => showWatchlist(btn.dataset.view === "movers"));
+  btn.addEventListener("click", () => {
+    if (btn.dataset.view === "discover") showDiscover();
+    else showWatchlist(btn.dataset.view === "movers");
+  });
 });
 
 document.getElementById("add-form").addEventListener("submit", (e) => {

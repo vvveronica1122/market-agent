@@ -4,24 +4,31 @@
    double as decorative accents, and every one is paired with a sign or a
    text label so meaning never rests on color alone. */
 :root {
-  color-scheme: dark;
+  color-scheme: light;
 
-  --plane: #0d0d0d;
-  --surface: #1a1a19;
-  --surface-hover: #222221;
-  --border: rgba(255, 255, 255, 0.10);
+  --plane: #F7EBE5;          /* warm cream page ground */
+  --surface: #FFFBF9;        /* near-white card */
+  --surface-hover: #FFF3EE;
+  --border: rgba(93, 62, 72, 0.16);
 
-  --ink: #ffffff;
-  --ink-secondary: #c3c2b7;
-  --ink-muted: #898781;
+  --ink: #2B2124;            /* 14.8:1 on card */
+  --ink-secondary: #5C4B50;
+  --ink-muted: #8A7278;
 
-  --gridline: #2c2c2a;
-  --axis: #383835;
+  --gridline: #EEDFD8;
+  --axis: #D6C3BC;
 
-  --series-1: #3987e5;
-  --up: #0ca30c;
-  --down: #d03b3b;
-  --attention: #fab219;
+  --series-1: #2a78d6;       /* chart line -- a hue no status color uses */
+  --up: #0F7B36;             /* 5.1:1 on the warm ground */
+  --down: #B3261E;           /* 6.2:1 */
+  --attention: #A15C00;
+
+  /* One accent for everything AI-generated -- brief and discovery share a
+     signature so the reader always knows what a model wrote. Plum sits in
+     the Dusty Mauve family, 6.7:1 on card, and never carries data values,
+     so it can't be confused with the up/down reds and greens. */
+  --accent-ai: #7B4B63;
+  --accent-ai-wash: #F6EBEF;
 
   --radius: 12px;
 }
@@ -259,7 +266,7 @@ button { font-family: inherit; }
   border: none; background: none; color: var(--ink-muted);
   cursor: pointer; font-size: 16px; line-height: 1; padding: 4px; border-radius: 6px;
 }
-.row .remove:hover { color: var(--down); background: rgba(208, 59, 59, 0.12); }
+.row .remove:hover { color: var(--down); background: rgba(179, 38, 30, 0.10); }
 
 .row-error { color: var(--down); font-size: 12.5px; }
 
@@ -323,7 +330,7 @@ button { font-family: inherit; }
   border-radius: 8px;
   padding: 8px 10px;
   pointer-events: none;
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 6px 24px rgba(93, 62, 72, 0.18);
   min-width: 108px;
 }
 .tooltip .tip-value {
@@ -332,3 +339,65 @@ button { font-family: inherit; }
 }
 .tooltip .tip-key { width: 12px; height: 2px; background: var(--series-1); border-radius: 1px; flex: none; }
 .tooltip .tip-label { font-size: 11.5px; color: var(--ink-muted); margin-top: 2px; }
+
+
+/* ---------- AI brief ---------- */
+.brief {
+  background: var(--accent-ai-wash);
+  border: 1px solid rgba(123, 75, 99, 0.22);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  margin-bottom: 18px;
+}
+
+.brief-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.brief-head h2 {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--accent-ai);
+  margin: 0;
+  font-weight: 700;
+}
+
+.brief-refresh {
+  margin-left: auto;
+  border: none;
+  background: none;
+  color: var(--accent-ai);
+  font-size: 12px;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 6px;
+}
+.brief-refresh:hover { background: rgba(123, 75, 99, 0.10); }
+
+.brief-body { font-size: 14px; line-height: 1.65; color: var(--ink); margin: 0; }
+.brief-body p { margin: 0 0 10px; }
+.brief-body p:last-child { margin-bottom: 0; }
+.brief-meta { font-size: 11.5px; color: var(--ink-muted); margin: 10px 0 0; }
+
+/* ---------- discover ---------- */
+.row.is-discover { border-left-color: var(--accent-ai); }
+.row .add {
+  border: none; background: none; color: var(--accent-ai);
+  cursor: pointer; font-size: 18px; line-height: 1; padding: 4px; border-radius: 6px;
+}
+.row .add:hover { background: rgba(123, 75, 99, 0.12); }
+
+.note {
+  font-size: 12.5px;
+  color: var(--ink-muted);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin: 0 0 16px;
+  line-height: 1.5;
+}
