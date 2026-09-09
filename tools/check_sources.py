@@ -47,6 +47,24 @@ def main() -> int:
 
     timed("earnings calendar (AAPL)", lambda: get_upcoming_events("AAPL"))
 
+    from tools.fundamentals import get_earnings_schedule, get_quarterly_results
+
+    sched = timed("earnings schedule (AAPL)", lambda: get_earnings_schedule("AAPL"))
+    if sched:
+        if sched.get("next_date"):
+            print(f"         next {sched['next_date']} (in {sched['days_away']}d) "
+                  f"via {sched['source']}")
+            if sched["source"] == "calendar":
+                print("         note: the richer earnings_dates endpoint gave nothing,")
+                print("         so EPS estimates and last-quarter surprise may be missing.")
+        else:
+            print("         NO DATE FOUND -- the Earnings page will be empty for this ticker.")
+
+    quarters = timed("quarterly financials (AAPL)", lambda: get_quarterly_results("AAPL"))
+    if quarters:
+        print(f"         {len(quarters)} quarters, latest {quarters[-1]['period']} "
+              f"revenue {quarters[-1]['revenue']:,.0f}")
+
     movers = timed("market-wide screener", get_market_movers)
     if movers:
         clean = filter_quality(movers)

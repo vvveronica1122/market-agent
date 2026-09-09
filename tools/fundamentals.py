@@ -60,9 +60,15 @@ def _row(frame, *candidates: str):
 def get_earnings_schedule(ticker: str) -> dict[str, Any]:
     """Next earnings date, the estimate for it, and how the last one went.
 
-    "How the last one went" matters as much as the date: a company that
-    missed last quarter carries different risk into the next print than
-    one that beat.
+    Two sources, deliberately. `earnings_dates` is richer -- it carries the
+    EPS estimate and the last quarter's surprise -- but it hits a Yahoo
+    endpoint that is frequently unavailable. `calendar` is plainer but far
+    more reliable.
+
+    So: try the rich one, and if it yields no future date, fall back to the
+    reliable one. The `source` field records which answered, because "the
+    date is missing" and "the rich endpoint is down" need different fixes
+    and you can't tell them apart otherwise.
     """
     result: dict[str, Any] = {
         "ticker": ticker.upper(),
@@ -70,34 +76,48 @@ def get_earnings_schedule(ticker: str) -> dict[str, Any]:
         "days_away": None,
         "eps_estimate": None,
         "last_report": None,
+        "source": None,
     }
 
+    _from_earnings_dates(ticker, result)
+    if result["next_date"] is None:
+        _from_calendar(ticker, result)
+
+    if result["next_date"]:
+        try:
+            when = datetime.fromisoformat(result["next_date"]).date()
+            result["days_away"] = (when - datetime.now(timezone.utc).date()).days
+        except ValueError:
+            result["days_away"] = None
+
+    return result
+
+
+def _from_earnings_dates(ticker: str, result: dict) -> None:
+    """Rich source: estimate plus last quarter's surprise."""
     try:
         frame = yf.Ticker(ticker).earnings_dates
     except Exception:
-        frame = None
-
+        return
     if frame is None or getattr(frame, "empty", True):
-        return result
+        return
 
     now = datetime.now(timezone.utc)
+    upcoming, past = [], []
     try:
-        index = frame.index
-        upcoming, past = [], []
-        for stamp in index:
+        for stamp in frame.index:
             when = stamp.to_pydatetime() if hasattr(stamp, "to_pydatetime") else stamp
             if when.tzinfo is None:
                 when = when.replace(tzinfo=timezone.utc)
             (upcoming if when > now else past).append((when, stamp))
     except Exception:
-        return result
+        return
 
     if upcoming:
         when, key = min(upcoming, key=lambda pair: pair[0])
-        row = frame.loc[key]
         result["next_date"] = when.date().isoformat()
-        result["days_away"] = (when.date() - now.date()).days
-        result["eps_estimate"] = _clean(_field(row, "EPS Estimate"))
+        result["eps_estimate"] = _clean(_field(frame.loc[key], "EPS Estimate"))
+        result["source"] = "earnings_dates"
 
     if past:
         when, key = max(past, key=lambda pair: pair[0])
@@ -114,7 +134,35 @@ def get_earnings_schedule(ticker: str) -> dict[str, Any]:
             "surprise_percent": round(surprise, 1) if surprise is not None else None,
         }
 
-    return result
+
+def _from_calendar(ticker: str, result: dict) -> None:
+    """Reliable fallback: the plain calendar, which is what the rest of the
+    app has been using successfully all along."""
+    try:
+        calendar = yf.Ticker(ticker).calendar
+    except Exception:
+        return
+    if not isinstance(calendar, dict):
+        return
+
+    value = calendar.get("Earnings Date")
+    if isinstance(value, list):
+        value = value[0] if value else None
+    if value is None:
+        return
+
+    text = str(value)[:10]
+    try:
+        datetime.fromisoformat(text)
+    except ValueError:
+        return
+
+    result["next_date"] = text
+    result["source"] = "calendar"
+
+    estimate = calendar.get("Earnings Average")
+    if result["eps_estimate"] is None and estimate is not None:
+        result["eps_estimate"] = _clean(estimate)
 
 
 def _field(row, name):

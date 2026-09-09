@@ -351,31 +351,53 @@ async function showDetail(ticker) {
     const fPanel = el("div", "panel");
     fPanel.appendChild(el("h2", null, "Fundamentals"));
 
-    const statRow = el("div", "stat-line");
-    const statDefs = [
-      ["Market cap", stats.market_cap ? "$" + bigMoney(stats.market_cap) : null, ""],
-      ["P/E (trailing)", stats.trailing_pe ? num(stats.trailing_pe, 1) : null, ""],
-      ["P/E (forward)", stats.forward_pe ? num(stats.forward_pe, 1) : null, ""],
-      ["Profit margin", stats.profit_margin_percent !== null && stats.profit_margin_percent !== undefined
-        ? num(stats.profit_margin_percent, 1) + "%" : null, toneClass(stats.profit_margin_percent)],
-      ["Revenue growth", stats.revenue_growth_percent !== null && stats.revenue_growth_percent !== undefined
-        ? num(stats.revenue_growth_percent, 1) + "%" : null, toneClass(stats.revenue_growth_percent)],
-    ];
-    let shown = 0;
-    statDefs.forEach(([label, value, cls]) => {
-      if (!value) return;
-      shown += 1;
-      const stat = el("div", "stat");
-      stat.appendChild(el("span", "stat-label", label));
-      stat.appendChild(el("span", "stat-value " + cls, value));
-      statRow.appendChild(stat);
+    // Every figure says what it means. A number a reader can't interpret
+    // isn't information, it's decoration.
+    const metrics = el("div", "metrics");
+    const defs = [];
+
+    if (stats.market_cap) {
+      defs.push(["$" + bigMoney(stats.market_cap), "Company value",
+                 "What the whole company is worth at today's share price.", ""]);
+    }
+    if (stats.trailing_pe) {
+      defs.push([num(stats.trailing_pe, 1), "Price to earnings",
+                 `You pay $${num(stats.trailing_pe, 2)} for every $1 the company earned over the past year. ` +
+                 `Higher means the market expects more growth — or that it's expensive.`, ""]);
+    }
+    if (stats.profit_margin_percent !== null && stats.profit_margin_percent !== undefined) {
+      defs.push([num(stats.profit_margin_percent, 1) + "%", "Profit margin",
+                 `Keeps ${num(stats.profit_margin_percent, 1)} cents of every dollar of sales as profit, after all costs.`,
+                 toneClass(stats.profit_margin_percent)]);
+    }
+    if (stats.revenue_growth_percent !== null && stats.revenue_growth_percent !== undefined) {
+      const g = stats.revenue_growth_percent;
+      defs.push([num(g, 1) + "%", "Revenue growth",
+                 `Sales are ${g >= 0 ? "higher" : "lower"} than the same period a year ago.`,
+                 toneClass(g)]);
+    }
+
+    defs.forEach(([value, name, note, cls]) => {
+      const metric = el("div", "metric");
+      metric.appendChild(el("div", "metric-value " + cls, value));
+      const text = el("div");
+      text.appendChild(el("div", "metric-name", name));
+      text.appendChild(el("div", "metric-note", note));
+      metric.appendChild(text);
+      metrics.appendChild(metric);
     });
-    if (shown) fPanel.appendChild(statRow);
+    if (defs.length) fPanel.appendChild(metrics);
 
     if (quarters.length) {
-      const label = el("p", "section-heading", "Quarterly revenue");
-      label.style.margin = "18px 0 4px";
+      const label = el("p", "section-heading", "Quarterly revenue — oldest to newest");
+      label.style.margin = "22px 0 4px";
       fPanel.appendChild(label);
+      const explain = el("p", "metric-note",
+        "Each bar is one three-month reporting period, in date order. Quarterly rather than " +
+        "yearly because most businesses are seasonal — a December quarter often looks nothing " +
+        "like a March one.");
+      explain.style.margin = "0 0 10px";
+      fPanel.appendChild(explain);
       const barWrap = el("div", "chart-wrap");
       const barCanvas = el("canvas", "bar-chart");
       barCanvas.setAttribute("role", "img");
@@ -717,7 +739,7 @@ function bigMoney(value) {
 function periodLabel(iso) {
   const d = new Date(String(iso).slice(0, 10) + "T00:00:00");
   if (Number.isNaN(d.getTime())) return String(iso).slice(0, 7);
-  return d.toLocaleDateString(undefined, { month: "short" }) + " '" + String(d.getFullYear()).slice(2);
+  return d.toLocaleDateString(undefined, { month: "short", year: "numeric" });
 }
 
 function num(value, digits) {
@@ -743,87 +765,130 @@ async function showEarnings() {
 
   const frag = document.createDocumentFragment();
   const head = el("div", "view-head");
-  head.appendChild(el("h1", null, "Earnings"));
+  head.appendChild(el("h1", null, "Earnings calendar"));
   frag.appendChild(head);
-  frag.appendChild(
-    el("p", "view-sub", "When your watchlist reports, and how each one did last quarter.")
-  );
 
-  const groups = data.groups || [];
-  if (!groups.length) {
-    frag.appendChild(el("p", "empty", "No earnings dates found for your watchlist."));
+  const items = data.items || [];
+  const unscheduled = data.unscheduled || [];
+
+  if (!items.length) {
+    frag.appendChild(
+      el("p", "view-sub", "No earnings dates came back for your watchlist.")
+    );
+    frag.appendChild(
+      el("p", "note",
+         "This usually means the data source didn't answer rather than that nothing is scheduled. " +
+         "Run `python3 tools/check_sources.py` in a terminal to see which sources are reachable.")
+    );
+    if (unscheduled.length) {
+      frag.appendChild(el("p", "section-heading", "No date announced"));
+      frag.appendChild(buildTickerRow(unscheduled));
+    }
     viewEl.replaceChildren(frag);
     return;
   }
 
-  groups.forEach((group) => {
-    frag.appendChild(el("p", "section-heading", group.label));
-    const list = el("div", "rows");
-    group.items.forEach((item) => list.appendChild(buildEarningsRow(item)));
-    frag.appendChild(list);
+  const next = items[0];
+  frag.appendChild(
+    el("p", "view-sub",
+       `Next up: ${next.ticker} on ${formatLongDate(next.next_date)}` +
+       (next.days_away !== null && next.days_away !== undefined
+         ? ` — ${next.days_away === 0 ? "today" : "in " + next.days_away + " days"}.` : "."))
+  );
+
+  // Index dates -> the names reporting that day.
+  const byDate = new Map();
+  items.forEach((item) => {
+    if (!byDate.has(item.next_date)) byDate.set(item.next_date, []);
+    byDate.get(item.next_date).push(item);
   });
+
+  const today = data.today ? new Date(data.today + "T00:00:00") : new Date();
+  const months = el("div", "calendars");
+  for (let offset = 0; offset < 3; offset++) {
+    months.appendChild(
+      buildMonth(today.getFullYear(), today.getMonth() + offset, byDate, data.today)
+    );
+  }
+  frag.appendChild(months);
+
+  // Anything past the three rendered months still needs somewhere to live.
+  const lastRendered = new Date(today.getFullYear(), today.getMonth() + 3, 0);
+  const beyond = items.filter((i) => new Date(i.next_date + "T00:00:00") > lastRendered);
+  if (beyond.length) {
+    frag.appendChild(el("p", "section-heading", "Further out"));
+    const list = el("ul", "plain-list");
+    beyond.forEach((item) => {
+      const li = el("li");
+      const btn = el("button", "link-button", `${item.ticker} — ${formatLongDate(item.next_date)}`);
+      btn.type = "button";
+      btn.addEventListener("click", () => showDetail(item.ticker));
+      li.appendChild(btn);
+      list.appendChild(li);
+    });
+    frag.appendChild(list);
+  }
+
+  if (unscheduled.length) {
+    frag.appendChild(el("p", "section-heading", "No date announced yet"));
+    frag.appendChild(buildTickerRow(unscheduled));
+  }
 
   viewEl.replaceChildren(frag);
 }
 
-function buildEarningsRow(item) {
-  const soon = item.days_away !== null && item.days_away !== undefined && item.days_away <= 7;
-  const row = el("button", "row earnings-row" + (soon ? " level-high" : ""));
-  row.type = "button";
+function buildTickerRow(tickers) {
+  const wrap = el("div", "theme-tickers");
+  tickers.forEach((t) => {
+    const tag = el("button", "ticker-tag", t);
+    tag.type = "button";
+    tag.addEventListener("click", () => showDetail(t));
+    wrap.appendChild(tag);
+  });
+  return wrap;
+}
 
-  const left = el("div");
-  left.appendChild(el("div", "ticker", item.ticker));
-  if (item.days_away !== null && item.days_away !== undefined) {
-    left.appendChild(
-      el("span", "attention-tag", item.days_away === 0 ? "Reports today" : `in ${item.days_away} days`)
-    );
-  } else {
-    left.appendChild(el("span", "attention-tag", "Unscheduled"));
+const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+function buildMonth(year, monthIndex, byDate, todayIso) {
+  const first = new Date(year, monthIndex, 1);
+  const monthName = first.toLocaleDateString(undefined, { month: "long", year: "numeric" });
+
+  const cal = el("div", "calendar");
+  cal.appendChild(el("h3", "calendar-title", monthName));
+
+  const grid = el("div", "calendar-grid");
+  WEEKDAYS.forEach((d) => grid.appendChild(el("div", "weekday", d)));
+
+  // Blank cells so the 1st lands on the right weekday.
+  for (let i = 0; i < first.getDay(); i++) grid.appendChild(el("div", "day is-blank"));
+
+  const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
+  for (let day = 1; day <= daysInMonth; day++) {
+    const date = new Date(year, monthIndex, day);
+    const iso = `${year}-${String(monthIndex + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+    const cell = el("div", "day");
+    if (date.getDay() === 0 || date.getDay() === 6) cell.classList.add("is-weekend");
+    if (iso === todayIso) cell.classList.add("is-today");
+
+    cell.appendChild(el("span", "day-number", String(day)));
+
+    const reporting = byDate.get(iso);
+    if (reporting) {
+      cell.classList.add("has-events");
+      reporting.forEach((item) => {
+        const tag = el("button", "day-ticker", item.ticker);
+        tag.type = "button";
+        tag.title = `${item.ticker} reports ${formatLongDate(item.next_date)}`;
+        tag.addEventListener("click", () => showDetail(item.ticker));
+        cell.appendChild(tag);
+      });
+    }
+    grid.appendChild(cell);
   }
-  row.appendChild(left);
 
-  const middle = el("div");
-  const when = el("div", "headline", item.next_date ? formatLongDate(item.next_date) : "No date announced yet");
-  middle.appendChild(when);
-
-  const chips = el("div", "factors");
-  if (item.eps_estimate !== null && item.eps_estimate !== undefined) {
-    chips.appendChild(el("span", "chip", `EPS est. ${num(item.eps_estimate)}`));
-  }
-  const last = item.last_report;
-  if (last && last.surprise_percent !== null && last.surprise_percent !== undefined) {
-    const beat = last.surprise_percent >= 0;
-    chips.appendChild(
-      el("span", "chip " + (beat ? "up" : "down"),
-         `last quarter ${beat ? "beat" : "missed"} by ${Math.abs(last.surprise_percent).toFixed(1)}%`)
-    );
-  } else if (last && last.date) {
-    chips.appendChild(el("span", "chip", `last reported ${formatLongDate(last.date)}`));
-  }
-  middle.appendChild(chips);
-  row.appendChild(middle);
-
-  const quarters = item.recent_quarters || [];
-  const latest = quarters.length ? quarters[quarters.length - 1] : null;
-
-  const revCell = el("div", "figure-cell");
-  revCell.appendChild(el("span", "figure-value", latest ? "$" + bigMoney(latest.revenue) : "--"));
-  revCell.appendChild(el("span", "figure-label", "last qtr revenue"));
-  row.appendChild(revCell);
-
-  const marginCell = el("div", "figure-cell");
-  marginCell.appendChild(
-    el("span", "figure-value",
-       latest && latest.net_margin !== null && latest.net_margin !== undefined
-         ? num(latest.net_margin, 1) + "%" : "--")
-  );
-  marginCell.appendChild(el("span", "figure-label", "net margin"));
-  row.appendChild(marginCell);
-
-  row.appendChild(el("div"));
-
-  row.addEventListener("click", () => showDetail(item.ticker));
-  return row;
+  cal.appendChild(grid);
+  return cal;
 }
 
 /* ---------------- quarterly revenue chart ---------------- */

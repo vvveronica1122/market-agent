@@ -233,31 +233,47 @@ The daily brief uses the same market-wide data, so it can tell you about
 something happening outside your list — not just summarise what you
 already chose to watch.
 
-### Earnings
+### Earnings calendar
 
-Its own view, because earnings dates are the only genuinely *forward*-
-looking data in the app. Everything else here reports what already
-happened to a price; a scheduled report date is something you can prepare
-for.
+An actual month calendar — three months at a glance, today outlined,
+tickers sitting on the day they report. A list sorted by date technically
+contains the same information, but a calendar answers "what does my
+month look like" in one glance, and that's the real question.
 
-Watchlist names are grouped by proximity — this week, next week, later
-this month, beyond — and each row carries the EPS estimate for the coming
-report plus **how the last one went**. That second part matters as much as
-the date: a company that missed last quarter carries different risk into
-the next print than one that beat.
+Earnings dates are the only genuinely *forward*-looking data in the app.
+Everything else reports what already happened to a price; a scheduled
+report date is something you can prepare for.
 
-The stock detail page gains a Fundamentals panel: market cap, trailing and
-forward P/E, profit margin, revenue growth, and a quarterly revenue chart.
-Quarterly rather than annual on purpose — annual figures hide the
-seasonality that makes a retailer's December look nothing like its March,
-and that seasonality is usually the first thing you want to see. The
-year-over-year comparison underneath uses the same quarter a year earlier
-for the same reason.
+**On data sources, and a bug worth remembering.** The schedule tries two
+sources. `earnings_dates` is richer — it carries the EPS estimate and last
+quarter's surprise — but it hits a Yahoo endpoint that is often
+unavailable. `calendar` is plainer but reliable, and is what the rest of
+the app had been using successfully all along. The first version of this
+page used only the rich source, so it rendered completely empty for
+anyone whose network couldn't reach that endpoint. It now falls back to
+the reliable source, and records which one answered in a `source` field —
+because "nothing is scheduled" and "the endpoint is down" look identical
+on screen and need completely different fixes.
 
-Fetching all this made the detail page seven network calls, so those now
-run in parallel — the page is bounded by the slowest call rather than the
-sum of them, and one failing source degrades its own panel instead of
-taking down the page.
+The lesson generalises: don't replace a proven data source with an
+untested one, especially when you can't verify the new one yourself.
+
+### Fundamentals
+
+On the stock detail page: company value, price to earnings, profit margin,
+revenue growth, and a quarterly revenue chart.
+
+Every figure is written with what it *means* next to it — "keeps 27.7
+cents of every dollar of sales as profit", not a bare `27.7%` under a
+label. A number a reader can't interpret isn't information, it's
+decoration, and a dashboard full of unexplained ratios is just noise
+wearing a suit.
+
+The revenue chart is quarterly, labelled with full years, in date order,
+and says so. Annual figures would hide the seasonality that is usually the
+first thing worth seeing — a December quarter often looks nothing like a
+March one — and the year-over-year comparison underneath compares to the
+same quarter a year earlier for exactly that reason.
 
 ### Checking your data sources
 

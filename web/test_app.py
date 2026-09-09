@@ -318,22 +318,73 @@ def main() -> int:
     print("\nEarnings calendar")
     server._cache.clear()
     cal = client.get("/api/earnings").get_json()
-    labels = [g["label"] for g in cal["groups"]]
-    failures += not check("groups by proximity, soonest first",
-                          labels[0] == "This week", str(labels))
-    failures += not check("a date 12 days out lands in 'Next week'",
-                          "Next week" in labels, str(labels))
-    first_group = cal["groups"][0]["items"]
-    failures += not check("the imminent name is in the first group",
-                          first_group[0]["ticker"] == "CRASH", str(first_group[0]["ticker"]))
-    failures += not check("last quarter's surprise comes through",
-                          first_group[0]["last_report"]["surprise_percent"] == 7.9)
-    failures += not check("recent quarterly revenue is attached",
-                          len(first_group[0]["recent_quarters"]) == 4)
-    failures += not check("bucketing puts an unscheduled name last",
-                          server._bucket(None) == "No date scheduled")
-    failures += not check("a past date is treated as unscheduled, not 'this week'",
-                          server._bucket(-5) == "No date scheduled")
+    tickers_in_order = [i["ticker"] for i in cal["items"]]
+    failures += not check("scheduled names come back in date order",
+                          tickers_in_order == ["CRASH", "QUIET"], str(tickers_in_order))
+    failures += not check("names with no date are listed separately, not dropped",
+                          cal["unscheduled"] == [], str(cal["unscheduled"]))
+    failures += not check("every watchlist name is accounted for",
+                          cal["count"] == 2, str(cal["count"]))
+    failures += not check("last quarter's surprise survives to the client",
+                          cal["items"][0]["last_report"]["surprise_percent"] == 7.9)
+    failures += not check("today's date is sent so the calendar can mark it",
+                          bool(cal.get("today")))
+
+    print("\nEarnings source fallback (the bug that shipped)")
+    import tools.fundamentals as fundamentals
+    from datetime import date, timedelta
+
+    soon = (date.today() + timedelta(days=20)).isoformat()
+
+    class _DeadTicker:
+        """The rich endpoint fails; the plain calendar still answers."""
+        def __init__(self, symbol):
+            self.symbol = symbol
+
+        @property
+        def earnings_dates(self):
+            raise RuntimeError("endpoint unavailable")
+
+        @property
+        def calendar(self):
+            return {"Earnings Date": [soon], "Earnings Average": 2.4}
+
+    class _EmptyTicker:
+        """Both sources silent -- must not invent a date."""
+        def __init__(self, symbol):
+            self.symbol = symbol
+
+        @property
+        def earnings_dates(self):
+            return None
+
+        @property
+        def calendar(self):
+            return {}
+
+    class _FakeYF:
+        def __init__(self, ticker_cls):
+            self.Ticker = ticker_cls
+
+    real_yf = fundamentals.yf
+    try:
+        fundamentals.yf = _FakeYF(_DeadTicker)
+        got = fundamentals.get_earnings_schedule("TEST")
+        failures += not check("falls back to the plain calendar when the rich endpoint dies",
+                              got["next_date"] == soon, str(got))
+        failures += not check("records which source answered, so an empty page is diagnosable",
+                              got["source"] == "calendar", str(got.get("source")))
+        failures += not check("days_away is computed from the fallback date",
+                              got["days_away"] == 20, str(got.get("days_away")))
+        failures += not check("picks up the estimate the calendar carries",
+                              got["eps_estimate"] == 2.4, str(got.get("eps_estimate")))
+
+        fundamentals.yf = _FakeYF(_EmptyTicker)
+        empty = fundamentals.get_earnings_schedule("TEST")
+        failures += not check("no date is reported as no date, never invented",
+                              empty["next_date"] is None and empty["source"] is None, str(empty))
+    finally:
+        fundamentals.yf = real_yf
 
     print("\nFundamentals on the detail view")
     server._cache.clear()

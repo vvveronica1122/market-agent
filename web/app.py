@@ -663,59 +663,28 @@ def build_brief(rows: list[dict], market_pct, indices: list[dict],
 # --- earnings calendar ------------------------------------------------
 # The one genuinely forward-looking thing in the app. Everything else
 # reports what already happened; this is what lets you prepare.
-def _bucket(days_away: int | None) -> str:
-    if days_away is None:
-        return "No date scheduled"
-    if days_away < 0:
-        return "No date scheduled"
-    if days_away <= 7:
-        return "This week"
-    if days_away <= 14:
-        return "Next week"
-    if days_away <= 31:
-        return "Later this month"
-    return "Beyond a month"
-
-
-BUCKET_ORDER = ["This week", "Next week", "Later this month", "Beyond a month", "No date scheduled"]
-
-
 @app.route("/api/earnings")
 def earnings_route():
     tickers = load_watchlist()
 
     def produce():
-        def one(ticker):
-            schedule = get_earnings_schedule(ticker)
-            try:
-                quarters = get_quarterly_results(ticker, quarters=4)
-            except Exception:
-                quarters = []
-            price = safe_price(ticker)
-            return {
-                **schedule,
-                "change_percent": (price or {}).get("change_percent"),
-                "price": (price or {}).get("price"),
-                "recent_quarters": quarters,
-            }
-
         with ThreadPoolExecutor(max_workers=6) as pool:
-            items = list(pool.map(one, tickers))
+            items = list(pool.map(get_earnings_schedule, tickers))
 
-        # Sort by date, undated last.
-        items.sort(key=lambda i: (i["days_away"] is None, i["days_away"] if i["days_away"] is not None else 0))
+        scheduled = [i for i in items if i.get("next_date")]
+        scheduled.sort(key=lambda i: i["next_date"])
+        unscheduled = [i["ticker"] for i in items if not i.get("next_date")]
 
-        grouped: dict[str, list] = {}
-        for item in items:
-            grouped.setdefault(_bucket(item.get("days_away")), []).append(item)
+        # Surface which source answered, so an empty calendar can be
+        # diagnosed from the page instead of guessed at.
+        sources = sorted({i.get("source") for i in scheduled if i.get("source")})
 
         return {
-            "groups": [
-                {"label": label, "items": grouped[label]}
-                for label in BUCKET_ORDER
-                if label in grouped
-            ],
+            "items": scheduled,
+            "unscheduled": unscheduled,
             "count": len(items),
+            "sources": sources,
+            "today": datetime.now(ZoneInfo("America/New_York")).date().isoformat(),
         }
 
     return jsonify(cached("earnings:" + ",".join(tickers), 1800, produce))
