@@ -10,10 +10,17 @@ output through the checks and assert they FAIL. Free, offline, instant.
 
 from __future__ import annotations
 
+import os
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
+HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE))
+sys.path.insert(0, str(HERE.parent))
+sys.path.insert(0, str(HERE.parent / "web"))
+
+# The client is constructed at import time; these tests never call it.
+os.environ.setdefault("ANTHROPIC_API_KEY", "not-used-by-these-tests")
 
 from checks import (
     check_forbidden,
@@ -73,6 +80,51 @@ def main() -> int:
     dirty = check_no_invented_tickers([{"tickers": ["NVDA", "INTC"]}], {"NVDA", "AMD", "MU"})
     failures += not check("catches a ticker the model invented", bool(failed_labels(dirty)),
                           str(failed_labels(dirty)))
+
+    print("\nEvery scenario actually feeds through the real code")
+    # This is the check that would have caught the fixture-shape bug: it
+    # runs the genuine build_brief against every scenario with a stubbed
+    # model, so a fixture that doesn't match production shape fails here,
+    # instantly and for free, instead of mid-way through a paid eval run.
+    import app as server
+    from scenarios import SCENARIOS
+
+    class _StubMessages:
+        def create(self, **kwargs):
+            return _R("stub brief")
+
+    class _StubClient:
+        def __init__(self):
+            self.messages = _StubMessages()
+
+    class _B2:
+        type = "text"
+        def __init__(self, t): self.text = t
+
+    class _R:
+        def __init__(self, t): self.content = [_B2(t)]
+
+    real_client = server.client
+    server.client = _StubClient()
+    try:
+        for name, spec in SCENARIOS.items():
+            try:
+                out = server.build_brief(spec["rows"], spec["market_pct"], spec["indices"],
+                                         spec["movers"], spec["headlines"])
+                ok, detail = isinstance(out, str) and bool(out), ""
+            except Exception as exc:
+                ok, detail = False, f"{type(exc).__name__}: {exc}"
+            failures += not check(f"scenario '{name}' matches what build_brief expects", ok, detail)
+
+        for name, spec in SCENARIOS.items():
+            shapes_ok = (
+                all(isinstance(h, dict) and "title" in h for h in spec["headlines"])
+                and all(isinstance(m, dict) and "ticker" in m for m in spec["movers"])
+                and all(isinstance(r, dict) and "ticker" in r for r in spec["rows"])
+            )
+            failures += not check(f"scenario '{name}' fixtures are the right shape", shapes_ok)
+    finally:
+        server.client = real_client
 
     print("\nJudge robustness")
 

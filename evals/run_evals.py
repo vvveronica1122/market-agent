@@ -152,7 +152,9 @@ def main() -> int:
 
     if args.dry_run:
         server.client = DryRunClient()
-        print(f"{DIM}Dry run: canned output, no API calls, results are meaningless.{RESET}")
+        print(f"\n{DIM}{'-' * 74}\nDRY RUN -- no API calls. Every scenario gets the same canned\n"
+              f"'quiet day' text, so content checks WILL fail and that is correct.\n"
+              f"This only proves the harness runs end to end.\n{'-' * 74}{RESET}")
     elif not server.os.environ.get("ANTHROPIC_API_KEY"):
         print("Missing ANTHROPIC_API_KEY -- these evals call the real model.")
         print("Use --dry-run to exercise the harness without it.")
@@ -175,6 +177,12 @@ def main() -> int:
         failed += outcome["failed"]
 
     print(f"\n{'=' * 74}")
+    if args.dry_run:
+        print(f"{DIM}Dry run complete: {checks} checks executed, {failed} failed.\n"
+              f"Failures here are expected -- the canned text can't satisfy every scenario.\n"
+              f"What matters is that all {len(chosen)} scenarios ran without crashing.{RESET}")
+        print(f"{'=' * 74}\n")
+        return 0
     if failed:
         print(f"{RED}{failed} of {checks} checks failed.{RESET}")
     else:

@@ -30,6 +30,13 @@ def _index(label, pct):
     return {"label": label, "change_percent": pct}
 
 
+def _headline(title, publisher="Test Wire"):
+    """Same shape get_market_news() returns. A fixture that doesn't match
+    production shape tests a system that doesn't exist."""
+    return {"title": title, "publisher": publisher, "link": "https://example.com",
+            "related_tickers": []}
+
+
 SCENARIOS = {
     "quiet_day": {
         "description": "Nothing is happening. The brief should say so, briefly.",
@@ -61,7 +68,7 @@ SCENARIOS = {
             _row("KO", 0.1, "quiet", [], None),
         ],
         "movers": [],
-        "headlines": ["Chip export rules widen to cover high-bandwidth memory"],
+        "headlines": [_headline("Chip export rules widen to cover high-bandwidth memory")],
         "must_mention": ["NVDA"],
         "rubric": (
             "NVDA fell 8.4% on a flat market with earnings three days away. A good brief leads "
@@ -85,7 +92,8 @@ SCENARIOS = {
             _row("KO", 0.2, "quiet", [], None),
         ],
         "movers": [],
-        "headlines": ["Chip export rules widen", "Semiconductor index posts worst day since March"],
+        "headlines": [_headline("Chip export rules widen"),
+                      _headline("Semiconductor index posts worst day since March")],
         "must_mention": ["NVDA", "AMD", "MU"],
         "rubric": (
             "Three semiconductor names fell together on the same regulatory news. A good brief "
@@ -106,7 +114,7 @@ SCENARIOS = {
             {"ticker": "LLY", "name": "Eli Lilly", "change_percent": 11.4, "screens": ["day_gainers"]},
             {"ticker": "NVO", "name": "Novo Nordisk", "change_percent": -7.8, "screens": ["day_losers"]},
         ],
-        "headlines": ["Late-stage obesity trial readout beats expectations"],
+        "headlines": [_headline("Late-stage obesity trial readout beats expectations")],
         "must_mention": ["LLY"],
         "rubric": (
             "The user's own holdings did nothing, but LLY rose 11% and its competitor NVO fell 8% "
