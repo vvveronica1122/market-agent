@@ -475,7 +475,18 @@ async function showDetail(ticker) {
       link.target = "_blank";
       link.rel = "noopener noreferrer";
       li.appendChild(link);
-      li.appendChild(el("div", "meta", item.publisher || ""));
+
+      // The summary is the point: it's what saves opening six tabs.
+      if (item.summary) {
+        li.appendChild(el("div", "news-summary", item.summary));
+      }
+
+      const meta = el("div", "meta");
+      if (item.is_video) {
+        meta.appendChild(el("span", "kind-tag", "Video"));
+      }
+      meta.appendChild(el("span", null, item.publisher || ""));
+      li.appendChild(meta);
       list.appendChild(li);
     });
     newsPanel.appendChild(list);

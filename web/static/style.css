@@ -690,3 +690,26 @@ button { font-family: inherit; }
   cursor: pointer;
 }
 .chat-send:hover { opacity: 0.9; }
+
+
+/* ---------- news summaries ---------- */
+.news-summary {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--ink-secondary);
+  margin-top: 5px;
+}
+
+.news-list .meta { display: flex; align-items: center; gap: 7px; }
+
+.kind-tag {
+  font-size: 9.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 700;
+  color: var(--accent-ai);
+  border: 1px solid rgba(123, 75, 99, 0.32);
+  border-radius: 4px;
+  padding: 0 5px;
+  line-height: 15px;
+}

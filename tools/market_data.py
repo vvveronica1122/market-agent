@@ -13,7 +13,23 @@ API key.
 
 from __future__ import annotations
 
+import html
+import re
 from typing import Any
+
+
+def _plain_text(value: str | None) -> str:
+    """Strip markup and decode entities.
+
+    Yahoo's `description` is HTML while `summary` is plain, but the fields
+    are inconsistent across items, so anything used as text goes through
+    here rather than trusting which one arrived.
+    """
+    if not value:
+        return ""
+    text = re.sub(r"<[^>]+>", " ", value)
+    text = html.unescape(text)
+    return re.sub(r"\s+", " ", text).strip()
 
 import yfinance as yf
 
@@ -55,7 +71,19 @@ def get_stock_price(ticker: str) -> dict[str, Any]:
 def get_recent_news(ticker: str, limit: int = 5) -> list[dict[str, Any]]:
     """Get recent news headlines related to a ticker.
 
-    Returns a list of dicts with title, publisher, link, and published time.
+    Returns title, publisher, link, published time, a short summary, and
+    the content type.
+
+    The summary matters more than it looks. Without it, anything built on
+    top of this is summarising HEADLINES -- which cannot distinguish two
+    articles that share a headline but disagree on the reason. Yahoo
+    supplies a couple of hundred characters of real summary text per item
+    and the first version of this function discarded it.
+
+    content_type is carried because a meaningful share of these are VIDEO,
+    and telling someone "here's a summary" of something they can only
+    watch is a small lie worth avoiding.
+
     Returns an empty list (not an error) if no news is found -- the agent
     should treat that as "nothing notable right now", not a failure.
     """
@@ -85,12 +113,18 @@ def get_recent_news(ticker: str, limit: int = 5) -> list[dict[str, Any]]:
         if not title:
             continue
 
+        summary = _plain_text(content.get("summary")) or _plain_text(content.get("description"))
+        content_type = (content.get("contentType") or "").upper()
+
         items.append(
             {
                 "title": title,
                 "publisher": publisher or "Unknown",
                 "link": link,
                 "published": published,
+                "summary": summary,
+                "content_type": content_type or "STORY",
+                "is_video": content_type == "VIDEO",
             }
         )
 

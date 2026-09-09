@@ -287,6 +287,33 @@ own, that `get_earnings_schedule` ran at least three times rather than
 checking one name and generalising, and that `calculate` was used instead
 of mental arithmetic.
 
+### News: summaries, not just headlines
+
+The detail page's "What's going on" panel synthesises the coverage on one
+stock. For a while it was doing that from **headlines alone**, because
+`get_recent_news` captured title, publisher, link and time and threw the
+rest away.
+
+That's a real limitation, not a cosmetic one: two articles under near
+identical headlines routinely give different reasons, and a headline-only
+summary cannot tell them apart — which is exactly the distinction someone
+who doesn't want to open six tabs is looking for.
+
+`tools/probe_news.py` settled it by dumping the actual payload rather than
+guessing: every item carries a `summary` of a couple of hundred plain-text
+characters, plus an HTML `description`. Both were being discarded. They're
+captured now, the analysis prompt is told to use them and to say when the
+pieces disagree, and each headline in the UI shows its summary underneath
+so the list is skimmable without clicking.
+
+The probe also turned up something worth surfacing: a good share of items
+are `contentType: VIDEO`. Offering a "summary" of something the reader can
+only watch is a small lie, so videos are tagged as such in the list.
+
+The general habit: **check what the data actually contains before
+designing around what you assume it contains.** One probe script turned a
+speculative feature discussion into a ten-line change.
+
 ### A watchlist is not a portfolio
 
 The first agent eval run produced *"Nvidia, which you do own"*. Nothing in

@@ -59,7 +59,10 @@ def fake_news(ticker, limit=5):
     if ticker == "QUIET":
         return []
     return [{"title": f"{ticker} headline {i}", "publisher": "Test Wire",
-             "link": "https://example.com", "published": None} for i in range(4)]
+             "link": "https://example.com", "published": None,
+             "summary": f"A short summary of {ticker} item {i}.",
+             "content_type": "VIDEO" if i == 0 else "STORY",
+             "is_video": i == 0} for i in range(4)]
 
 
 def fake_events(ticker):
@@ -476,6 +479,39 @@ def main() -> int:
                               and "model unavailable" in broke.get_json()["error"])
     finally:
         server.conversational_agent = real_agent
+
+    print("\nNews summaries reach the analysis")
+    # The whole reason for capturing summaries is that the analysis reads
+    # them. If they were dropped between the tool and the prompt, the
+    # feature would look present and be useless.
+    server._cache.clear()
+    captured = {}
+
+    def capture_analyze(ticker, data):
+        captured["news"] = data.get("news")
+        return "stub"
+
+    real_analyze = server.analyze
+    server.analyze = capture_analyze
+    try:
+        client.get("/api/stock/CRASH")
+        news = captured.get("news") or []
+        failures += not check("news items carry a summary through to analysis",
+                              bool(news) and all(n.get("summary") for n in news),
+                              str(news[:1]))
+        failures += not check("video items are flagged, not passed off as articles",
+                              any(n.get("is_video") for n in news))
+    finally:
+        server.analyze = real_analyze
+
+    from tools.market_data import _plain_text
+    failures += not check("html is stripped from summary text",
+                          _plain_text("<p>Apple (<a href='x'>AAPL</a>) rose.</p>") == "Apple ( AAPL ) rose.",
+                          _plain_text("<p>Apple (<a href='x'>AAPL</a>) rose.</p>"))
+    failures += not check("html entities are decoded",
+                          _plain_text("Caf&eacute; &amp; more") == "Café & more")
+    failures += not check("missing summary text degrades to empty, not None",
+                          _plain_text(None) == "")
 
     print(f"\n{'All checks passed.' if not failures else str(failures) + ' check(s) FAILED.'}\n")
     return 1 if failures else 0
