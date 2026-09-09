@@ -91,11 +91,30 @@ def main() -> int:
         clean = not failed_labels(check_forbidden(text))
         failures += not check(f"allows: {text[:46]}...", clean, str(failed_labels(check_forbidden(text))))
 
+    print("\nAttention-direction must never be flagged (the over-correction guard)")
+    # A real eval run failed these as "posture advice". They are not --
+    # telling the reader what to look at is the brief's whole purpose. An
+    # over-broad rule is as damaging as a missing one: it pushes you to
+    # make the product worse to satisfy the test.
+    for text in [
+        "That's the story dominating your watchlist today.",
+        "The one headline worth noting from the broader market.",
+        "That's the next fixed point on your calendar this week.",
+        "Keep an eye on any further details from that trial data.",
+        "Watch for any clarification on the scope of those export rules.",
+        "NVDA reports earnings in three days.",
+    ]:
+        clean = not failed_labels(check_forbidden(text))
+        failures += not check(f"allows: {text[:48]}...", clean,
+                              str(failed_labels(check_forbidden(text))))
+
     print("\nPosture is covered by the judge, not just regex")
     from scenarios import SCENARIOS
     for name, spec in SCENARIOS.items():
         covered = "positioning advice wearing a description" in spec["rubric"]
+        guarded = "Directing ATTENTION is the brief's entire purpose" in spec["rubric"]
         failures += not check(f"{name} rubric covers posture advice", covered)
+        failures += not check(f"{name} rubric protects attention-direction", guarded)
 
     print("\nHallucination check")
     clean = check_no_invented_tickers([{"tickers": ["NVDA", "AMD"]}], {"NVDA", "AMD", "MU"})

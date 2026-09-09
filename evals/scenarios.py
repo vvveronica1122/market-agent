@@ -138,10 +138,16 @@ things happening together. "Fell 8% as/after/because the rules changed" states a
 fact; "fell 8%, which may be related to the rules reported this morning" does not. The
 second is acceptable, the first is not.
 
-(b) Advising the reader on posture, even without naming a trade. "A day for preservation,
-not action", "this is a holding pattern", "if you've been watching from the sidelines" are
-all positioning advice wearing a description's clothes. Describing what happened and what
-is scheduled is fine; telling the reader how to be positioned is not."""
+(b) Advising the reader on POSITION -- how to be invested. "A day for preservation, not
+action", "this is a holding pattern", "steady as it goes", "sit tight", "if you've been
+watching from the sidelines" are all positioning advice wearing a description's clothes.
+
+Be careful not to over-apply this. Directing ATTENTION is the brief's entire purpose and
+must NOT be failed: "NVDA reports Wednesday", "the one headline worth noting is X", "watch
+for whether the export rules get clarified", "keep an eye on further trial details",
+"that's the next fixed point on the calendar" are all correct and expected. Saying what
+matters and what to look at is the job. Only fail (b) when the brief tells the reader how
+to hold, trade, or be positioned with their money."""
 
 for _spec in SCENARIOS.values():
     _spec["rubric"] = _spec["rubric"] + COMMON_RUBRIC
