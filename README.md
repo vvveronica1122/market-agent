@@ -237,8 +237,9 @@ looks.
 **Free, offline, instant** — run these constantly:
 
 ```bash
-python3 web/test_app.py        # dashboard: scoring, filtering, routes, degradation
+python3 web/test_app.py        # dashboard: scoring, filtering, routes, chat, degradation
 python3 test_agent.py          # agent loop: chaining, errors, runaway protection
+python3 tools/test_calc.py     # the calculator, mostly what it refuses
 python3 evals/test_checks.py   # the eval checks themselves
 ```
 
@@ -255,10 +256,54 @@ deliberately bad output through the checks and asserts they FAIL.
 **Costs money, calls the real model** — run these when you change a prompt:
 
 ```bash
-python3 evals/run_evals.py            # every scenario, once
-python3 evals/run_evals.py --runs 3   # three times each, for variance
-python3 evals/run_evals.py --dry-run  # exercise the harness, no API calls
+python3 evals/run_evals.py             # the brief's writing
+python3 evals/run_agent_evals.py       # the agent's tool choices
+python3 evals/run_evals.py --runs 3    # three times each, for variance
+python3 evals/run_evals.py --dry-run   # exercise the harness, no API calls
 ```
+
+### Agent evals: real model, fake data
+
+`test_agent.py` and `run_agent_evals.py` look similar and test opposite
+things:
+
+| | model | data | question answered |
+|---|---|---|---|
+| `test_agent.py` | fake | fake | does the **loop** work? |
+| `run_agent_evals.py` | **real** | fake | does the **model choose** well? |
+
+The distinction matters. A stub model replays a script someone wrote, so
+asserting that it "chose the right tool" is marking your own homework —
+tool selection is a decision the real model makes by reading tool
+descriptions, and only the real model can be tested on it. The data stays
+stubbed so assertions can be exact: "NVDA reports soonest" is checkable
+only if we control the dates. Swap the data, keep the brain.
+
+These evals assert on the **trace as much as the text**, because a right
+answer reached by guessing and a right answer reached by looking things up
+read identically — only the tool calls tell them apart. So a scenario can
+require that `get_watchlist` was called before claiming to know what you
+own, that `get_earnings_schedule` ran at least three times rather than
+checking one name and generalising, and that `calculate` was used instead
+of mental arithmetic.
+
+### The calculator, and why not eval()
+
+Language models do arithmetic in their heads and are unreliable at it —
+confidently so, which is the dangerous half. The first real terminal run
+reported MU revenue and margins far outside anything plausible for the
+company, stated as fact. `tools/calc.py` moves the arithmetic to Python,
+and the agent's prompt tells it to use the tool for every computation.
+
+The obvious implementation is `eval(expression)`. Don't: eval runs
+arbitrary Python, so any string reaching it — from a model, a user, a
+request — can import modules, read files, open sockets. It doesn't matter
+that this runs locally; the habit is the problem. Instead the expression
+is parsed to a syntax tree and walked, permitting only the node types
+arithmetic needs. `__import__("os").system(...)`, `(1).__class__`,
+attribute access, lambdas and comprehensions are structurally absent
+rather than merely discouraged, and `tools/test_calc.py` spends most of
+its assertions proving each one is refused.
 
 ### Evals — testing the part that isn't deterministic
 

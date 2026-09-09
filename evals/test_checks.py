@@ -23,6 +23,9 @@ sys.path.insert(0, str(HERE.parent / "web"))
 os.environ.setdefault("ANTHROPIC_API_KEY", "not-used-by-these-tests")
 
 from checks import (
+    check_call_counts,
+    check_no_unknown_tickers,
+    check_tools_called,
     check_forbidden,
     check_format,
     check_mentions,
@@ -122,6 +125,40 @@ def main() -> int:
     dirty = check_no_invented_tickers([{"tickers": ["NVDA", "INTC"]}], {"NVDA", "AMD", "MU"})
     failures += not check("catches a ticker the model invented", bool(failed_labels(dirty)),
                           str(failed_labels(dirty)))
+
+    print("\nTrajectory checks (what the agent actually did)")
+    trace = [
+        {"step": 1, "tool": "get_watchlist", "input": {}},
+        {"step": 2, "tool": "get_earnings_schedule", "input": {"ticker": "NVDA"}},
+        {"step": 2, "tool": "get_earnings_schedule", "input": {"ticker": "MU"}},
+        {"step": 2, "tool": "get_earnings_schedule", "input": {"ticker": "AAPL"}},
+    ]
+    failures += not check("passes when the required tools were called",
+                          not failed_labels(check_tools_called(trace, ["get_watchlist"])))
+    failures += not check("catches a tool that was never called",
+                          bool(failed_labels(check_tools_called(trace, ["calculate"]))),
+                          "a missing calculate call must fail")
+    failures += not check("catches an empty trace",
+                          bool(failed_labels(check_tools_called([], ["get_watchlist"]))))
+    failures += not check("passes a satisfied call-count minimum",
+                          not failed_labels(check_call_counts(trace, {"get_earnings_schedule": 3})))
+    failures += not check("catches too few calls -- checked one name, not all",
+                          bool(failed_labels(check_call_counts(trace, {"get_earnings_schedule": 4}))),
+                          "3 calls should not satisfy a minimum of 4")
+
+    print("\nInvented-ticker check")
+    universe = {"AAPL", "NVDA", "MU", "LLY", "SMCI"}
+    owned = {"AAPL", "NVDA", "MU"}
+    failures += not check("allows tickers that are in the data",
+                          not failed_labels(check_no_unknown_tickers(
+                              "NVDA reports soonest, then MU.", owned, universe)))
+    failures += not check("catches a ticker pulled from thin air",
+                          bool(failed_labels(check_no_unknown_tickers(
+                              "You should also look at SMCI.", owned, universe))))
+    failures += not check("ignores ordinary capitalised words",
+                          not failed_labels(check_no_unknown_tickers(
+                              "The US CPI print lands Friday.", owned, universe)),
+                          "US and CPI are not tickers in the universe")
 
     print("\nLabels are stable so runs can aggregate")
     # The bug this guards: labels that embed a changing value (char count,

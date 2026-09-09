@@ -134,3 +134,40 @@ def check_no_invented_tickers(themes: list[dict], allowed: set[str]) -> list[tup
     if not results:
         results.append((True, "theme tickers all came from the input", "none to verify"))
     return results
+
+
+# --- trajectory checks (agent only) -----------------------------------
+# These assert on the tool calls an agent made, not on its prose. A right
+# answer reached by luck and a right answer reached by looking things up
+# read identically; only the trace tells them apart.
+
+def check_tools_called(trace: list[dict], required: list[str]) -> list[tuple[bool, str, str]]:
+    called = [call.get("tool") for call in trace]
+    results = []
+    for tool in required:
+        results.append((tool in called, f"calls {tool}",
+                        "" if tool in called else f"only called {sorted(set(called)) or 'nothing'}"))
+    return results
+
+
+def check_call_counts(trace: list[dict], minimums: dict) -> list[tuple[bool, str, str]]:
+    called = [call.get("tool") for call in trace]
+    results = []
+    for tool, least in (minimums or {}).items():
+        count = called.count(tool)
+        results.append((count >= least, f"calls {tool} at least {least} times",
+                        f"called it {count} time(s)"))
+    return results
+
+
+def check_no_unknown_tickers(text: str, allowed: set[str], universe: set[str]) -> list[tuple[bool, str, str]]:
+    """Catch tickers that appear in the answer but were never in the data.
+
+    Only symbols the fixtures know about are considered, so ordinary
+    capitalised words don't produce noise.
+    """
+    import re as _re
+    mentioned = {m for m in _re.findall(r"\b[A-Z]{2,5}\b", text) if m in universe}
+    invented = mentioned - allowed
+    return [(not invented, "mentions no ticker outside the data",
+             f"mentioned {sorted(invented)}" if invented else "")]

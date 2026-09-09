@@ -50,6 +50,7 @@ from tools.market_data import (
 )
 from tools.market_scan import get_market_movers, filter_quality, get_market_news
 from tools.fundamentals import get_earnings_schedule, get_quarterly_results, get_key_stats
+from tools.calc import calculate
 
 load_dotenv(PROJECT_ROOT / ".env")
 
@@ -79,6 +80,12 @@ parts explicitly.
 
 Plain prose only. No markdown: no ** bold **, no bullet lists, no headings. This is read in
 a terminal and in a plain chat panel, where that syntax shows up as literal characters.
+
+Never do arithmetic in your head. Use the calculate tool for every computation --
+percentages, differences, ratios, averages, totals, growth rates -- even ones that look
+easy. You are unreliable at mental arithmetic and reliably confident about the result,
+which is the worst combination. Fetch the numbers with a data tool, then compute with
+calculate.
 
 Sanity-check what tools return before repeating it. If a figure looks implausible for the
 company in question -- a mid-cap suddenly showing mega-cap revenue, a margin far outside
@@ -223,6 +230,28 @@ TOOLS = [
         ),
         "input_schema": {"type": "object", "properties": {}},
         "handler": lambda: get_market_news(),
+    },
+    {
+        "name": "calculate",
+        "description": (
+            "Evaluate an arithmetic expression and return the exact result. Use this for ALL "
+            "computation -- percentage change, differences, ratios, averages, sums, growth "
+            "rates -- rather than working it out yourself. Accepts ordinary arithmetic plus "
+            "abs, round, min, max, sum, len, sorted, sqrt, floor, ceil. "
+            "Examples: '(312.14 - 316.34) / 316.34 * 100' for a percent change, "
+            "'sum([182.4, 312.1, 511.0]) / 3' for an average."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "expression": {
+                    "type": "string",
+                    "description": "An arithmetic expression, e.g. '(44.1 - 26.9) / 26.9 * 100'",
+                }
+            },
+            "required": ["expression"],
+        },
+        "handler": lambda expression: calculate(expression),
     },
     {
         "name": "get_upcoming_events",
