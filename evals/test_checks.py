@@ -39,7 +39,7 @@ GOOD = (
 
 
 def failed_labels(results):
-    return [label for ok, label in results if not ok]
+    return [label for ok, label, _ in results if not ok]
 
 
 def check(label, condition, detail=""):
@@ -103,6 +103,38 @@ def main() -> int:
     dirty = check_no_invented_tickers([{"tickers": ["NVDA", "INTC"]}], {"NVDA", "AMD", "MU"})
     failures += not check("catches a ticker the model invented", bool(failed_labels(dirty)),
                           str(failed_labels(dirty)))
+
+    print("\nLabels are stable so runs can aggregate")
+    # The bug this guards: labels that embed a changing value (char count,
+    # judge reason) become a different dict key each run, so --runs stops
+    # aggregating and reports N separate lines instead of a pass rate --
+    # breaking the one feature --runs exists for.
+    # The invariant is that a label never varies with the text it
+    # describes. Checking "labels contain no digits" was tempting but
+    # wrong -- "between 1 and 4 paragraphs" carries the rule's own
+    # constants, which is fine. Compare labels across very different
+    # inputs instead: that tests the property directly rather than a
+    # proxy for it.
+    samples = [
+        "One short paragraph, long enough to clear the minimum length.",
+        "A" * 900,
+        "First paragraph here.\n\nSecond one.\n\nThird one.\n\nFourth.\n\nFifth is too many.",
+        "tiny",
+    ]
+    label_sets = [tuple(l for _, l, _ in check_format(text)) for text in samples]
+    failures += not check("format labels are identical for every input",
+                          len(set(label_sets)) == 1,
+                          str(set(label_sets)))
+
+    mention_labels = [tuple(l for _, l, _ in check_mentions(t, ["NVDA"]))
+                      for t in ["NVDA fell", "nothing here"]]
+    failures += not check("mention labels don't change on pass vs fail",
+                          len(set(mention_labels)) == 1, str(set(mention_labels)))
+
+    forbidden_labels = [tuple(l for _, l, _ in check_forbidden(t))
+                        for t in ["a clean sentence", "you should buy this now"]]
+    failures += not check("forbidden labels don't change on pass vs fail",
+                          len(set(forbidden_labels)) == 1, str(set(forbidden_labels)))
 
     print("\nEvery scenario actually feeds through the real code")
     # This is the check that would have caught the fixture-shape bug: it

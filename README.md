@@ -270,6 +270,42 @@ prompt can pass once and fail the next time. When you change a prompt and
 want to know whether it genuinely improved, use `--runs 3` or more and
 compare pass *rates*, not single outcomes.
 
+For that to work, **check labels must be stable across runs** — the label
+is the aggregation key. An early version put the measured value into the
+label (`reasonable length (got 823 chars)`, and the judge's reason), so
+every run produced a different key and `--runs 3` printed three separate
+lines instead of one pass rate. The check that most needed variance
+reporting was precisely the one where it silently didn't work. Labels are
+now fixed strings and the varying part is printed separately as detail.
+
+### What the first real eval run found
+
+Worth recording, because it's what evals are for.
+
+The judge caught one failure: the brief wrote "NVDA took an 8.4% hit **as**
+the U.S. expanded chip export restrictions", asserting causation the data
+doesn't establish. The same run hedged correctly in a different scenario
+("moves that **appear related to** a trial readout") — so the model wasn't
+incapable, it was inconsistent, which no single run could have revealed.
+
+Reading the output caught two more the checks missed. **Posture advice**
+using no forbidden word — "days like this are about preservation, not
+action", "if you've been watching from the sidelines" — and **invented
+detail** not present in the input ("precisely what Nvidia uses in its AI
+accelerators"). The prompt now bans all three explicitly, with a worked
+example of hedged versus asserted causation.
+
+Then a lesson about the checks themselves: the first attempt to catch
+posture advice with regex caught *neither* real sentence — one used "from
+the sidelines" where the pattern said "on", and the other was not an idiom
+at all. Chasing it with patterns overfits to one run; the next says "today
+rewards patience" and walks through. So fixed idioms stay in regex and the
+general case moved to the judge. **Regex what is fixed, judge what is
+not** — and verify new patterns against the actual failing sentences,
+plus legitimate ones, so you can see the false-positive rate.
+
+After the prompt fix, `--runs 3` on that scenario passed 3/3.
+
 ### Known limits### Known limits
 
 - Free delayed data via yfinance; no intraday streaming, options flow, or

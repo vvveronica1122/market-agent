@@ -52,31 +52,32 @@ FORMAT_RULES = [
 ]
 
 
-def check_mentions(text: str, tickers: list[str]) -> list[tuple[bool, str]]:
+def check_mentions(text: str, tickers: list[str]) -> list[tuple[bool, str, str]]:
     results = []
     for ticker in tickers:
         found = re.search(rf"\b{re.escape(ticker)}\b", text, re.IGNORECASE) is not None
-        results.append((found, f"mentions {ticker}"))
+        results.append((found, f"mentions {ticker}", "" if found else "not named"))
     return results
 
 
-def check_forbidden(text: str) -> list[tuple[bool, str]]:
+def check_forbidden(text: str) -> list[tuple[bool, str, str]]:
     results = []
     for pattern, label in FORBIDDEN:
         hit = re.search(pattern, text, re.IGNORECASE)
-        results.append((hit is None, f"never {label}"))
+        results.append((hit is None, f"never {label}", "" if hit is None else f"found {hit.group(0)!r}"))
     return results
 
 
-def check_format(text: str) -> list[tuple[bool, str]]:
+def check_format(text: str) -> list[tuple[bool, str, str]]:
     results = []
     for pattern, label in FORMAT_RULES:
         hit = re.search(pattern, text, re.MULTILINE)
-        results.append((hit is None, label))
+        results.append((hit is None, label, "" if hit is None else f"found {hit.group(0)!r}"))
 
     paragraphs = [p for p in re.split(r"\n\s*\n", text.strip()) if p.strip()]
-    results.append((1 <= len(paragraphs) <= 4, f"between 1 and 4 paragraphs (got {len(paragraphs)})"))
-    results.append((40 <= len(text) <= 2000, f"reasonable length (got {len(text)} chars)"))
+    results.append((1 <= len(paragraphs) <= 4, "between 1 and 4 paragraphs",
+                    f"{len(paragraphs)} paragraphs"))
+    results.append((40 <= len(text) <= 2000, "reasonable length", f"{len(text)} chars"))
     return results
 
 
@@ -117,7 +118,7 @@ def judge(client, model: str, output: str, rubric: str) -> tuple[bool, str]:
     return bool(verdict.get("pass")), str(verdict.get("reason", ""))[:300]
 
 
-def check_no_invented_tickers(themes: list[dict], allowed: set[str]) -> list[tuple[bool, str]]:
+def check_no_invented_tickers(themes: list[dict], allowed: set[str]) -> list[tuple[bool, str, str]]:
     """Themes must only reference tickers that were actually in the input.
 
     This is the hallucination check: the model is grouping names, and the
@@ -127,8 +128,9 @@ def check_no_invented_tickers(themes: list[dict], allowed: set[str]) -> list[tup
     results = []
     for theme in themes:
         for ticker in theme.get("tickers", []):
-            results.append((ticker in allowed,
-                            f"theme ticker {ticker} was in the input data"))
+            ok = ticker in allowed
+            results.append((ok, "theme tickers all came from the input",
+                            "" if ok else f"invented {ticker!r}"))
     if not results:
-        results.append((True, "no theme tickers to verify"))
+        results.append((True, "theme tickers all came from the input", "none to verify"))
     return results

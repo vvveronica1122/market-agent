@@ -89,24 +89,28 @@ def run_scenario(name: str, spec: dict, runs: int) -> dict:
                 print(f"  {line}")
             print(f"{DIM}--- end ---{RESET}\n")
 
-        results: list[tuple[bool, str]] = []
+        results: list[tuple[bool, str, str]] = []
         results += check_mentions(brief, spec["must_mention"])
         results += check_forbidden(brief)
         results += check_format(brief)
 
         passed, reason = judge(server.client, server.MODEL, brief, spec["rubric"])
-        results.append((passed, f"judge: {reason}"))
+        results.append((passed, "judge verdict", reason))
 
-        for ok, label in results:
-            totals.setdefault(label, []).append(ok)
+        for ok, label, detail in results:
+            totals.setdefault(label, []).append((ok, detail))
 
     for label, outcomes in totals.items():
-        rate = sum(outcomes) / len(outcomes)
-        mark = f"{GREEN}PASS{RESET}" if rate == 1 else f"{RED}FAIL{RESET}"
-        suffix = "" if len(outcomes) == 1 else f"  ({sum(outcomes)}/{len(outcomes)} runs)"
+        oks = [ok for ok, _ in outcomes]
+        mark = f"{GREEN}PASS{RESET}" if all(oks) else f"{RED}FAIL{RESET}"
+        suffix = "" if len(oks) == 1 else f"  ({sum(oks)}/{len(oks)} runs)"
         print(f"  [{mark}] {label}{suffix}")
+        # Show why: a failing run if there is one, otherwise the last detail.
+        detail = next((d for ok, d in outcomes if not ok), outcomes[-1][1])
+        if detail:
+            print(f"        {DIM}{detail}{RESET}")
 
-    failed = sum(1 for outcomes in totals.values() if not all(outcomes))
+    failed = sum(1 for outcomes in totals.values() if not all(ok for ok, _ in outcomes))
     return {"checks": len(totals), "failed": failed}
 
 
@@ -129,17 +133,19 @@ def run_theme_eval() -> dict:
         print(f"    {DIM}{theme.get('what')}{RESET}")
     print(f"{DIM}--- end ---{RESET}\n")
 
-    results = [(bool(themes), "returned at least one theme")]
+    results = [(bool(themes), "returned at least one theme", "")]
     results += check_no_invented_tickers(themes, allowed)
     chip_theme = any(
         {"NVDA", "AMD", "MU"}.issubset(set(t.get("tickers", []))) for t in themes
     )
-    results.append((chip_theme, "groups the three chip names into one theme"))
+    results.append((chip_theme, "groups the three chip names into one theme", ""))
 
-    for ok, label in results:
+    for ok, label, detail in results:
         print(f"  [{GREEN}PASS{RESET}]" if ok else f"  [{RED}FAIL{RESET}]", label)
+        if detail and not ok:
+            print(f"        {DIM}{detail}{RESET}")
 
-    return {"checks": len(results), "failed": sum(1 for ok, _ in results if not ok)}
+    return {"checks": len(results), "failed": sum(1 for ok, _, _ in results if not ok)}
 
 
 def main() -> int:
