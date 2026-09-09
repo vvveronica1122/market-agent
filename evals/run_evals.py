@@ -148,12 +148,53 @@ def run_theme_eval() -> dict:
     return {"checks": len(results), "failed": sum(1 for ok, _, _ in results if not ok)}
 
 
+def judge_stability(name: str, times: int) -> int:
+    """Judge ONE fixed brief repeatedly.
+
+    Once results stop being 0/N or N/N and start coming back mixed, you
+    need to know whether the brief varied or the judge did. Holding the
+    brief constant and re-judging separates the two: if verdicts differ on
+    identical text, the disagreement belongs to the judge, and no amount
+    of tuning the brief's prompt will settle it.
+    """
+    spec = SCENARIOS[name]
+    print(f"\n{'=' * 74}\njudge stability -- {name}, one brief judged {times} times\n{'=' * 74}")
+
+    brief = server.build_brief(spec["rows"], spec["market_pct"], spec["indices"],
+                               spec["movers"], spec["headlines"])
+    print(f"\n{DIM}--- the brief being judged (identical every time) ---{RESET}")
+    for line in brief.split("\n"):
+        print(f"  {line}")
+    print(f"{DIM}--- end ---{RESET}\n")
+
+    verdicts = []
+    for i in range(times):
+        passed, reason = judge(server.client, server.MODEL, brief, spec["rubric"])
+        verdicts.append(passed)
+        mark = f"{GREEN}PASS{RESET}" if passed else f"{RED}FAIL{RESET}"
+        print(f"  [{mark}] run {i + 1}: {DIM}{reason[:110]}{RESET}")
+
+    agreed = sum(verdicts)
+    print(f"\n  verdict: {agreed}/{times} pass on identical text")
+    if agreed in (0, times):
+        print(f"  {DIM}The judge is consistent here. A mixed result in a normal run would")
+        print(f"  mean the brief varied, not the judge.{RESET}")
+    else:
+        print(f"  {DIM}The judge disagrees with itself on the same text. Treat borderline")
+        print(f"  failures in this scenario as noise, not something to tune away.{RESET}")
+    print()
+    return 0
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--runs", type=int, default=1, help="runs per scenario (variance)")
     parser.add_argument("--scenario", help="run only this scenario")
     parser.add_argument("--dry-run", action="store_true", help="no API calls; exercise the harness")
     parser.add_argument("--skip-themes", action="store_true")
+    parser.add_argument("--judge-stability", type=int, metavar="N",
+                        help="generate ONE brief, then judge it N times, to measure how much "
+                             "of a mixed result is the judge's own noise rather than the brief")
     args = parser.parse_args()
 
     if args.dry_run:
@@ -165,6 +206,9 @@ def main() -> int:
         print("Missing ANTHROPIC_API_KEY -- these evals call the real model.")
         print("Use --dry-run to exercise the harness without it.")
         return 1
+
+    if args.judge_stability:
+        return judge_stability(args.scenario or "quiet_day", args.judge_stability)
 
     chosen = {args.scenario: SCENARIOS[args.scenario]} if args.scenario else SCENARIOS
     if args.scenario and args.scenario not in SCENARIOS:

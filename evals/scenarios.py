@@ -134,9 +134,15 @@ COMMON_RUBRIC = """
 ALSO FAIL the brief for either of these, whatever else it does well:
 
 (a) Asserting causation it wasn't given. It receives headlines and price moves, which show
-things happening together. "Fell 8% as/after/because the rules changed" states a link as
-fact; "fell 8%, which may be related to the rules reported this morning" does not. The
-second is acceptable, the first is not.
+things happening together, not one causing the other.
+
+FAIL only genuine assertions of cause: "fell 8% because the rules changed", "fell 8% as the
+rules widened", "the export news drove the selloff".
+
+Any correlational framing is ACCEPTABLE, not just one phrasing. All of these pass: "which
+may be related to", "which may be connected to", "in line with headlines about", "coincided
+with", "alongside reports of", "reportedly", "appears linked to". Do not fail a brief for
+hedging in words other than the example given.
 
 (b) Advising the reader on POSITION -- how to be invested. "A day for preservation, not
 action", "this is a holding pattern", "steady as it goes", "sit tight", "if you've been

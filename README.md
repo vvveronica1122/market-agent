@@ -278,6 +278,35 @@ lines instead of one pass rate. The check that most needed variance
 reporting was precisely the one where it silently didn't work. Labels are
 now fixed strings and the varying part is printed separately as detail.
 
+### When to stop tuning
+
+Chasing 100% is a trap. An eval that always passes has stopped telling you
+anything, and the way you get there is by loosening rubrics until nothing
+can fail — which quietly destroys the thing you built them for.
+
+Read the *shape* of the failures instead of the count:
+
+**0/N — systematic.** Something is genuinely wrong. Usually the rule, not
+the model: two scenarios failing every run is what exposed an over-broad
+posture rule that was flagging the product's core purpose.
+
+**N/N — passing.** Good, but only meaningful if the check can fail; that's
+what `evals/test_checks.py` exists to prove.
+
+**Mixed, on borderline wording — probably noise.** Here you need to know
+whether the *brief* varied or the *judge* did, and that's what
+`--judge-stability N` answers: it generates one brief and judges that same
+fixed text N times. If verdicts differ on identical input, the
+disagreement belongs to the judge, and no amount of prompt-tuning on the
+brief will settle it.
+
+```bash
+python3 evals/run_evals.py --judge-stability 5 --scenario quiet_day
+```
+
+A residual failure rate on genuinely ambiguous sentences is healthy. It
+means the standard still has teeth.
+
 ### What the first real eval run found
 
 Worth recording, because it's what evals are for.
