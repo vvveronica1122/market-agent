@@ -137,6 +137,29 @@ the reasons are shown as chips on the row. Clicking a row opens a detail
 view with a six-month chart, the AI analysis, headlines and the next
 earnings date. Search resolves any ticker, on your list or not.
 
+### Two front doors, one agent
+
+The same agent answers in two places:
+
+```bash
+python3 agent.py                 # in the terminal
+python3 web/app.py               # then click "Ask" in the sidebar
+```
+
+The web panel posts to `/api/chat`, which calls the identical `ask_agent`
+loop — not a reimplementation. Both show **every tool call the agent
+made** before answering, which is deliberate: the whole point of an agent
+is that it chose what to look up, and hiding that turns a legible chain of
+reasoning into a black box you have to take on faith.
+
+Chat history is held in the browser and sent with each message; the server
+keeps no session. Only text turns are replayed — earlier tool results are
+dropped rather than reconstructed, so the model keeps what it concluded
+without re-sending a growing pile of JSON every message. Everything
+arriving from the browser is treated as untrusted: roles are filtered to
+user/assistant, content must be a string, length and turn count are
+capped, and a forged `system` turn can't reach the model.
+
 ### The agent, and how a tool gets connected
 
 `agent.py` is the conversational half — ask it anything and it decides

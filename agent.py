@@ -72,11 +72,24 @@ Chain tools when a question needs it: to answer "which of my stocks reports soon
 the watchlist, then check each one's earnings schedule, then compare. Don't ask permission
 between steps, just do it.
 
+ANSWER THE QUESTION THAT WAS ASKED. This matters more than any detail you gather. If asked
+which one, name it in the first sentence -- don't do the lookups and then leave the reader
+to infer the answer from the data you present. If the question has two parts, answer both
+parts explicitly.
+
+Plain prose only. No markdown: no ** bold **, no bullet lists, no headings. This is read in
+a terminal and in a plain chat panel, where that syntax shows up as literal characters.
+
+Sanity-check what tools return before repeating it. If a figure looks implausible for the
+company in question -- a mid-cap suddenly showing mega-cap revenue, a margin far outside
+its industry's norm -- say the number looks wrong rather than reporting it with confidence.
+Bad data quoted confidently is worse than no answer.
+
 When a tool returns an error or no data, say so plainly instead of guessing or filling the
 gap from memory.
 
 Do not give buy/sell/hold recommendations or price targets. Explain what the data shows and
-let the reader decide. Keep answers concise and skimmable."""
+let the reader decide. Keep answers concise."""
 
 
 def read_watchlist() -> list[str]:
@@ -237,9 +250,17 @@ def run_tool(name: str, tool_input: dict) -> str:
         return json.dumps({"error": f"{type(exc).__name__}: {exc}"})
 
 
-def ask_agent(client: Anthropic, user_message: str, verbose: bool = True) -> str:
-    """Run the agentic loop for one request and return the final answer."""
-    messages: list[dict] = [{"role": "user", "content": user_message}]
+def ask_agent(client: Anthropic, user_message: str, verbose: bool = True,
+              history: list[dict] | None = None, trace: list[dict] | None = None) -> str:
+    """Run the agentic loop for one request and return the final answer.
+
+    `history` seeds earlier turns so follow-up questions work in a chat.
+    `trace`, if given, is filled with the tool calls made -- the web UI
+    shows these, because hiding them would turn a visible chain of
+    reasoning into a black box.
+    """
+    messages: list[dict] = list(history or [])
+    messages.append({"role": "user", "content": user_message})
 
     for step in range(MAX_STEPS):
         response = client.messages.create(
@@ -262,6 +283,8 @@ def ask_agent(client: Anthropic, user_message: str, verbose: bool = True) -> str
             if verbose:
                 args = ", ".join(f"{k}={v!r}" for k, v in use.input.items())
                 print(f"  [{step + 1}] {use.name}({args})")
+            if trace is not None:
+                trace.append({"step": step + 1, "tool": use.name, "input": dict(use.input)})
             results.append(
                 {
                     "type": "tool_result",

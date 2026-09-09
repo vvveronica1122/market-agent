@@ -43,6 +43,10 @@ from tools.market_data import (
 from tools.market_scan import get_market_movers, filter_quality, get_market_news
 from tools.fundamentals import get_earnings_schedule, get_quarterly_results, get_key_stats
 
+# The conversational agent, reused as-is. The dashboard and the chat panel
+# are now two front doors onto one implementation rather than two codebases.
+import agent as conversational_agent
+
 load_dotenv(PROJECT_ROOT / ".env")
 
 app = Flask(__name__, static_folder="static")
@@ -692,6 +696,58 @@ def build_brief(rows: list[dict], market_pct, indices: list[dict],
 # --- earnings calendar ------------------------------------------------
 # The one genuinely forward-looking thing in the app. Everything else
 # reports what already happened; this is what lets you prepare.
+# --- chat -------------------------------------------------------------
+MAX_HISTORY_TURNS = 12
+MAX_MESSAGE_CHARS = 2000
+
+
+def clean_history(raw) -> list[dict]:
+    """Trust nothing from the client.
+
+    Only text turns are replayed -- prior tool_use blocks are dropped
+    rather than reconstructed. The model loses the raw tool output from
+    earlier turns but keeps what it concluded from it, which is enough for
+    follow-up questions and avoids replaying a growing pile of JSON on
+    every message.
+    """
+    if not isinstance(raw, list):
+        return []
+    cleaned = []
+    for item in raw[-MAX_HISTORY_TURNS:]:
+        if not isinstance(item, dict):
+            continue
+        role = item.get("role")
+        content = item.get("content")
+        if role in ("user", "assistant") and isinstance(content, str) and content.strip():
+            cleaned.append({"role": role, "content": content[:MAX_MESSAGE_CHARS]})
+    # A conversation must start with a user turn and alternate sanely.
+    while cleaned and cleaned[0]["role"] != "user":
+        cleaned.pop(0)
+    return cleaned
+
+
+@app.route("/api/chat", methods=["POST"])
+def chat_route():
+    body = request.get_json(force=True, silent=True) or {}
+    question = (body.get("message") or "").strip()[:MAX_MESSAGE_CHARS]
+    if not question:
+        return jsonify({"error": "message is required"}), 400
+
+    trace: list[dict] = []
+    try:
+        answer = conversational_agent.ask_agent(
+            client,
+            question,
+            verbose=False,
+            history=clean_history(body.get("history")),
+            trace=trace,
+        )
+    except Exception as exc:
+        return jsonify({"error": f"{type(exc).__name__}: {exc}", "trace": trace}), 500
+
+    return jsonify({"answer": answer, "trace": trace})
+
+
 @app.route("/api/earnings")
 def earnings_route():
     tickers = load_watchlist()

@@ -21,7 +21,7 @@ const COLORS = {
   surface: "#FFFBF9",
 };
 
-const state = { view: "watchlist", rows: [], chart: null };
+const state = { view: "watchlist", rows: [], chart: null, chat: [], chatBusy: false };
 
 const viewEl = document.getElementById("view");
 const stripEl = document.getElementById("market-strip");
@@ -1006,6 +1006,137 @@ function showQuarterTooltip(q, clientX, clientY) {
   tooltipEl.style.top = Math.max(8, clientY - rect.height - 12) + "px";
 }
 
+/* ---------------- ask (the agent, in the browser) ---------------- */
+
+const STARTERS = [
+  "Which of my stocks reports soonest, and how did they do last quarter?",
+  "What moved most in the market today that I don't own?",
+  "Compare the profit margins of the companies on my watchlist.",
+];
+
+async function showChat() {
+  state.view = "chat";
+  setActiveNav("chat");
+
+  const frag = document.createDocumentFragment();
+  const head = el("div", "view-head");
+  head.appendChild(el("h1", null, "Ask"));
+  frag.appendChild(head);
+  frag.appendChild(
+    el("p", "view-sub",
+       "The same agent that runs in the terminal. It picks its own tools — you'll see every " +
+       "lookup it makes before it answers.")
+  );
+
+  const log = el("div", "chat-log");
+  log.id = "chat-log";
+  frag.appendChild(log);
+
+  const form = el("form", "chat-form");
+  const input = el("input", "chat-input");
+  input.type = "text";
+  input.id = "chat-input";
+  input.placeholder = "Ask about your watchlist or the market";
+  input.autocomplete = "off";
+  const send = el("button", "chat-send", "Ask");
+  send.type = "submit";
+  form.appendChild(input);
+  form.appendChild(send);
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const q = input.value.trim();
+    if (!q || state.chatBusy) return;
+    input.value = "";
+    askAgent(q);
+  });
+  frag.appendChild(form);
+
+  viewEl.replaceChildren(frag);
+  renderChat();
+  input.focus();
+}
+
+function renderChat() {
+  const log = document.getElementById("chat-log");
+  if (!log) return;
+  log.replaceChildren();
+
+  if (!state.chat.length) {
+    const empty = el("div", "chat-empty");
+    empty.appendChild(el("p", "chat-empty-title", "Try one of these"));
+    STARTERS.forEach((q) => {
+      const btn = el("button", "starter", q);
+      btn.type = "button";
+      btn.addEventListener("click", () => askAgent(q));
+      empty.appendChild(btn);
+    });
+    log.appendChild(empty);
+    return;
+  }
+
+  state.chat.forEach((turn) => {
+    if (turn.role === "user") {
+      log.appendChild(el("div", "bubble user", turn.content));
+      return;
+    }
+
+    const wrap = el("div", "assistant-turn");
+    // The tool calls stay visible on purpose: the whole point of an agent
+    // is that it decided what to look up, and hiding that turns a
+    // legible chain of reasoning into a black box.
+    if (turn.trace && turn.trace.length) {
+      const steps = el("details", "trace");
+      const summary = el("summary", null,
+        `${turn.trace.length} lookup${turn.trace.length === 1 ? "" : "s"}`);
+      steps.appendChild(summary);
+      turn.trace.forEach((call) => {
+        const args = Object.entries(call.input || {})
+          .map(([k, v]) => `${k}=${JSON.stringify(v)}`).join(", ");
+        steps.appendChild(el("div", "trace-call", `${call.tool}(${args})`));
+      });
+      wrap.appendChild(steps);
+    }
+    wrap.appendChild(el("div", "bubble agent" + (turn.error ? " is-error" : ""), turn.content));
+    log.appendChild(wrap);
+  });
+
+  if (state.chatBusy) {
+    log.appendChild(el("div", "bubble agent thinking", "Looking things up..."));
+  }
+  log.scrollTop = log.scrollHeight;
+}
+
+async function askAgent(question) {
+  state.chat.push({ role: "user", content: question });
+  state.chatBusy = true;
+  renderChat();
+
+  // Only text turns go back, matching what the server will replay.
+  const history = state.chat
+    .filter((t) => !t.error)
+    .slice(0, -1)
+    .map((t) => ({ role: t.role, content: t.content }));
+
+  try {
+    const res = await fetch("/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: question, history }),
+    });
+    const data = await res.json();
+    state.chat.push(
+      data.error
+        ? { role: "assistant", content: data.error, trace: data.trace || [], error: true }
+        : { role: "assistant", content: data.answer, trace: data.trace || [] }
+    );
+  } catch (err) {
+    state.chat.push({ role: "assistant", content: String(err), trace: [], error: true });
+  } finally {
+    state.chatBusy = false;
+    renderChat();
+  }
+}
+
 /* ---------------- daily brief ---------------- */
 
 function buildBriefPanel() {
@@ -1230,7 +1361,8 @@ async function removeTicker(ticker) {
 
 document.querySelectorAll(".nav-item[data-view]").forEach((btn) => {
   btn.addEventListener("click", () => {
-    if (btn.dataset.view === "discover") showDiscover();
+    if (btn.dataset.view === "chat") showChat();
+    else if (btn.dataset.view === "discover") showDiscover();
     else if (btn.dataset.view === "earnings") showEarnings();
     else showWatchlist(btn.dataset.view === "movers");
   });
