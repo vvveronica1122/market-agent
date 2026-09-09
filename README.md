@@ -122,3 +122,33 @@ This is a learning project, not investment advice, and the data sources
 (free, unauthenticated Yahoo Finance endpoints via `yfinance`) can be
 delayed, incomplete, or occasionally wrong. Don't make real financial
 decisions based solely on what it tells you.
+
+## Web dashboard
+
+In addition to the CLI (`agent.py`), there's a small local web dashboard
+at `web/app.py`: a watchlist of stocks, each shown as a card with price,
+a trend sparkline, recent news, upcoming events, and an AI-written summary.
+
+It's a deliberately different pattern from `agent.py`: instead of letting
+Claude decide which tools to call (the full agentic loop), the server
+already knows every card needs price + trend + news + events, so it calls
+those four tool functions directly and only asks Claude once per ticker,
+just to turn the fetched data into a short summary. Worth comparing the
+two files side by side -- `agent.py` vs `web/app.py` -- to see when each
+approach makes sense: use the full tool-calling loop when the model needs
+to *decide* what to look up; call tools directly and use the LLM only for
+language when you already know exactly what data you want.
+
+**Setup** (after the base setup above -- venv, `.env` -- is already done):
+
+```bash
+cd ~/Documents/market-agent
+source .venv/bin/activate
+pip install -r requirements.txt   # picks up flask, added for the dashboard
+python3 web/app.py
+```
+
+Then open <http://127.0.0.1:5050> in your browser. Add tickers with the
+box in the top right; your watchlist is saved to `web/watchlist.json` (not
+committed to git -- it's per-machine runtime state, not source code) so it
+persists between runs. Press Ctrl+C in the terminal to stop the server.

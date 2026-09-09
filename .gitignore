@@ -9,3 +9,6 @@ venv/
 
 # os
 .DS_Store
+
+# per-user runtime state, not source
+web/watchlist.json

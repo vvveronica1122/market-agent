@@ -123,3 +123,27 @@ def get_upcoming_events(ticker: str) -> dict[str, Any]:
         pass
 
     return result
+
+
+def get_price_history(ticker: str, period: str = "1mo") -> list[dict[str, Any]]:
+    """Get a short daily closing-price history for a ticker, used for trend charts.
+
+    Returns a list of {"date": "YYYY-MM-DD", "close": float} points, oldest
+    first. Returns an empty list (not an error) if no history is available.
+    """
+    t = yf.Ticker(ticker)
+    try:
+        hist = t.history(period=period)
+    except Exception as exc:
+        raise ValueError(f"Could not fetch price history for '{ticker}': {exc}") from exc
+
+    if hist is None or hist.empty:
+        return []
+
+    points: list[dict[str, Any]] = []
+    for idx, row in hist.iterrows():
+        close = row.get("Close")
+        if close is None:
+            continue
+        points.append({"date": idx.strftime("%Y-%m-%d"), "close": round(float(close), 2)})
+    return points
