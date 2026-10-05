@@ -365,6 +365,24 @@ def ask_agent(client: Anthropic, user_message: str, verbose: bool = True,
             "needs breaking into smaller parts.")
 
 
+def question_from_args(words: list[str]) -> str:
+    """Turn command-line words into the question to ask.
+
+    Bare tickers are shorthand for "brief me on these": `agent.py AAPL` or
+    `agent.py AAPL TSLA`. Anything else is taken as the question itself.
+    The shorthand used to fire only for a single ticker, so the README's
+    own two-ticker example went to the model as the question "AAPL TSLA".
+    """
+    if not all(w.isupper() and len(w) <= 5 for w in words):
+        return " ".join(words)
+    if len(words) == 1:
+        return (f"Give me a quick update on {words[0]}: price, notable news, "
+                f"and when it next reports.")
+    names = ", ".join(words[:-1]) + f" and {words[-1]}"
+    return (f"Give me a quick update on each of {names}: price, notable news, "
+            f"and when each next reports.")
+
+
 def main() -> None:
     if not os.environ.get("ANTHROPIC_API_KEY"):
         print("Missing ANTHROPIC_API_KEY. Copy .env.example to .env and add your key.")
@@ -373,11 +391,7 @@ def main() -> None:
     client = Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
 
     if len(sys.argv) > 1:
-        question = " ".join(sys.argv[1:])
-        # A bare ticker is a shorthand for "brief me on this".
-        if len(sys.argv) == 2 and sys.argv[1].isupper() and len(sys.argv[1]) <= 5:
-            question = (f"Give me a quick update on {sys.argv[1]}: price, notable news, "
-                        f"and when it next reports.")
+        question = question_from_args(sys.argv[1:])
         print(f"\n{question}\n")
         print(ask_agent(client, question) + "\n")
         return

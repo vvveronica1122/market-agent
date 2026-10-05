@@ -120,6 +120,17 @@ def main() -> int:
     out = agent.run_tool("get_watchlist", {"bogus": 1})
     failures += not check("bad arguments are caught too", "error" in json.loads(out), out)
 
+    print("\nCommand-line shorthand")
+    one = agent.question_from_args(["AAPL"])
+    failures += not check("a bare ticker becomes a briefing request",
+                          one.startswith("Give me a quick update on AAPL"), one)
+    two = agent.question_from_args(["AAPL", "TSLA"])
+    failures += not check("several bare tickers are all briefed, not sent as a question",
+                          "AAPL" in two and "TSLA" in two and two != "AAPL TSLA", two)
+    plain = agent.question_from_args(["what", "moved", "NVDA?"])
+    failures += not check("an ordinary question passes through unchanged",
+                          plain == "what moved NVDA?", plain)
+
     print("\nWatchlist is not a portfolio")
     # An eval caught the agent writing "Nvidia, which you do own". Nothing
     # here knows what anyone owns -- it tracks a list of names. The same
