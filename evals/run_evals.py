@@ -23,6 +23,7 @@ and compare pass RATES.
 from __future__ import annotations
 
 import argparse
+import copy
 import sys
 from pathlib import Path
 
@@ -32,7 +33,9 @@ sys.path.insert(0, str(PROJECT_ROOT / "web"))
 sys.path.insert(0, str(PROJECT_ROOT / "evals"))
 
 import app as server  # noqa: E402
+from analysis_scenarios import ANALYSIS_SCENARIOS  # noqa: E402
 from checks import (  # noqa: E402
+    check_absent,
     check_forbidden,
     check_format,
     check_mentions,
@@ -63,6 +66,25 @@ class _Reply:
         self.content = [_Block(text)]
 
 
+class Recorder:
+    """Passes calls through to the client and keeps the last prompt sent.
+
+    The judge needs the data an output was written from to tell a figure
+    restated from one invented -- the agent evals learned that the hard way
+    -- and the data is whatever the production code sent the model, so it's
+    captured on the way past rather than rebuilt here.
+    """
+
+    def __init__(self, inner):
+        self.inner = inner
+        self.messages = self
+        self.last_input = None
+
+    def create(self, **kwargs):
+        self.last_input = kwargs["messages"][0]["content"]
+        return self.inner.messages.create(**kwargs)
+
+
 class DryRunClient:
     """Returns canned text so the harness can be exercised for free."""
 
@@ -84,8 +106,11 @@ def run_scenario(name: str, spec: dict, runs: int) -> dict:
     failed_runs: list[dict] = []
     for attempt in range(runs):
         brief = server.build_brief(
-            spec["rows"], spec["market_pct"], spec["indices"], spec["movers"], spec["headlines"]
+            spec["rows"], spec["market_pct"], spec["indices"], spec["movers"], spec["headlines"],
+            themes=spec.get("themes"),
         )
+
+        evidence = server.client.last_input  # the payload build_brief just sent
 
         if attempt == 0:
             first_brief = brief
@@ -99,7 +124,7 @@ def run_scenario(name: str, spec: dict, runs: int) -> dict:
         results += check_forbidden(brief)
         results += check_format(brief)
 
-        passed, reason = judge(server.client, server.MODEL, brief, spec["rubric"])
+        passed, reason = judge(server.client, server.MODEL, brief, spec["rubric"], evidence)
         results.append((passed, "judge verdict", reason))
 
         for ok, label, detail in results:
@@ -125,6 +150,51 @@ def run_scenario(name: str, spec: dict, runs: int) -> dict:
     record = {"description": spec["description"], "runs": runs,
               "checks": summarize(totals), "first_output": first_brief,
               "failed_runs": failed_runs}
+    return {"checks": len(totals), "failed": failed, "record": record}
+
+
+def run_analysis_scenario(name: str, spec: dict, runs: int) -> dict:
+    """The stock page's analysis, against one fixed data set."""
+    print(f"\n{'=' * 74}\nanalysis:{name}  {DIM}{spec['description']}{RESET}\n{'=' * 74}")
+    totals: dict[str, list[tuple[bool, str]]] = {}
+    first_text = ""
+    failed_runs: list[dict] = []
+    for attempt in range(runs):
+        text = server.analyze(spec["ticker"], copy.deepcopy(spec["data"]))
+        evidence = server.client.last_input
+        if attempt == 0:
+            first_text = text
+            print(f"\n{DIM}--- what the model wrote ---{RESET}")
+            for line in text.split("\n"):
+                print(f"  {line}")
+            print(f"{DIM}--- end ---{RESET}\n")
+
+        results: list[tuple[bool, str, str]] = []
+        results += check_forbidden(text)
+        results += check_format(text)
+        results += check_absent(text, spec.get("absent", []))
+        passed, reason = judge(server.client, server.MODEL, text, spec["rubric"], evidence)
+        results.append((passed, "judge verdict", reason))
+
+        for ok, label, detail in results:
+            totals.setdefault(label, []).append((ok, detail))
+        if not all(ok for ok, _, _ in results):
+            failed_runs.append({"run": attempt + 1,
+                                "failed_checks": [label for ok, label, _ in results if not ok],
+                                "analysis": text})
+
+    for label, outcomes in totals.items():
+        oks = [ok for ok, _ in outcomes]
+        mark = f"{GREEN}PASS{RESET}" if all(oks) else f"{RED}FAIL{RESET}"
+        suffix = "" if len(oks) == 1 else f"  ({sum(oks)}/{len(oks)} runs)"
+        print(f"  [{mark}] {label}{suffix}")
+        detail = next((d for ok, d in outcomes if not ok), outcomes[-1][1])
+        if detail:
+            print(f"        {DIM}{detail}{RESET}")
+
+    failed = sum(1 for outcomes in totals.values() if not all(ok for ok, _ in outcomes))
+    record = {"description": spec["description"], "runs": runs, "checks": summarize(totals),
+              "first_output": first_text, "failed_runs": failed_runs}
     return {"checks": len(totals), "failed": failed, "record": record}
 
 
@@ -185,13 +255,16 @@ def judge_stability(name: str, times: int, text_path: str | None = None) -> dict
     if text_path:
         brief = Path(text_path).read_text().strip()
         source = f"saved text: {text_path}"
+        # A saved brief's input wasn't kept, so rule (c) is judged blind here.
+        evidence = None
     else:
         # Note the limitation this exists to fix: a freshly generated brief
         # is whatever the model happened to write this time, which is
         # rarely the borderline one you wanted to examine.
         brief = server.build_brief(spec["rows"], spec["market_pct"], spec["indices"],
-                                   spec["movers"], spec["headlines"])
+                                   spec["movers"], spec["headlines"], themes=spec.get("themes"))
         source = "freshly generated"
+        evidence = server.client.last_input
 
     print(f"\n{DIM}--- the brief being judged ({source}, identical every run) ---{RESET}")
     for line in brief.split("\n"):
@@ -201,7 +274,7 @@ def judge_stability(name: str, times: int, text_path: str | None = None) -> dict
     verdicts = []
     reasons = []
     for i in range(times):
-        passed, reason = judge(server.client, server.MODEL, brief, spec["rubric"])
+        passed, reason = judge(server.client, server.MODEL, brief, spec["rubric"], evidence)
         verdicts.append(passed)
         reasons.append(reason)
         mark = f"{GREEN}PASS{RESET}" if passed else f"{RED}FAIL{RESET}"
@@ -226,6 +299,8 @@ def main() -> int:
     parser.add_argument("--scenario", help="run only this scenario")
     parser.add_argument("--dry-run", action="store_true", help="no API calls; exercise the harness")
     parser.add_argument("--skip-themes", action="store_true")
+    parser.add_argument("--skip-analysis", action="store_true",
+                        help="leave out the stock-page analysis scenarios")
     parser.add_argument("--text", metavar="PATH",
                         help="with --judge-stability: judge this saved text instead of a "
                              "freshly generated one, so a specific borderline case can be pinned down")
@@ -245,6 +320,7 @@ def main() -> int:
         print("Missing ANTHROPIC_API_KEY -- these evals call the real model.")
         print("Use --dry-run to exercise the harness without it.")
         return 1
+    server.client = Recorder(server.client)
 
     if args.judge_stability:
         record = judge_stability(args.scenario or "quiet_day", args.judge_stability, args.text)
@@ -254,10 +330,17 @@ def main() -> int:
             print(f"Saved to {path.relative_to(PROJECT_ROOT)}\n")
         return 0
 
-    chosen = {args.scenario: SCENARIOS[args.scenario]} if args.scenario else SCENARIOS
-    if args.scenario and args.scenario not in SCENARIOS:
-        print(f"Unknown scenario. Available: {', '.join(SCENARIOS)}")
+    known = list(SCENARIOS) + list(ANALYSIS_SCENARIOS)
+    if args.scenario and args.scenario not in known:
+        print(f"Unknown scenario. Available: {', '.join(known)}")
         return 1
+    if args.scenario:
+        chosen = {args.scenario: SCENARIOS[args.scenario]} if args.scenario in SCENARIOS else {}
+        analyses = ({args.scenario: ANALYSIS_SCENARIOS[args.scenario]}
+                    if args.scenario in ANALYSIS_SCENARIOS else {})
+    else:
+        chosen = SCENARIOS
+        analyses = {} if args.skip_analysis else ANALYSIS_SCENARIOS
 
     checks = failed = 0
     records = {}
@@ -266,6 +349,12 @@ def main() -> int:
         checks += outcome["checks"]
         failed += outcome["failed"]
         records[name] = outcome["record"]
+
+    for name, spec in analyses.items():
+        outcome = run_analysis_scenario(name, spec, args.runs)
+        checks += outcome["checks"]
+        failed += outcome["failed"]
+        records[f"analysis:{name}"] = outcome["record"]
 
     if not args.scenario and not args.skip_themes:
         outcome = run_theme_eval()

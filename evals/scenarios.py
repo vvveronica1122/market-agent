@@ -12,9 +12,23 @@ Each scenario is built to catch a specific failure mode:
   single_crash     -- does it find the one thing that matters?
   sector_selloff   -- does it see one story, or report three separately?
   outside_mover    -- does it look beyond the watchlist when told to?
+
+And two built on themes, the way the home page now sends the watchlist:
+
+  theme_selloff_one_holds_up -- one theme story, told once, plus the one
+                                company that diverged from it?
+  quiet_themes_one_mover     -- a single company-specific move on a quiet
+                                day, without inventing a reason for it?
 """
 
 from __future__ import annotations
+
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+from tools.relative import relative_rows, theme_summary
 
 
 def _row(ticker, pct, level, reasons, headline):
@@ -24,6 +38,20 @@ def _row(ticker, pct, level, reasons, headline):
         "attention": {"level": level, "factors": [{"label": r, "tone": "neutral"} for r in reasons]},
         "top_headline": headline,
     }
+
+
+def _theme(name, benchmark, bench_pct, rows):
+    """A theme block shaped like the home page's, with the peer figures
+    computed by the same code production uses -- so a fixture can't claim a
+    move_type that the real rule wouldn't give."""
+    changes = {r["ticker"]: r["price"]["change_percent"] for r in rows}
+    rel = relative_rows(changes, bench_pct)
+    for r in rows:
+        r["relative"] = {k: round(v, 2) if isinstance(v, float) else v for k, v in rel[r["ticker"]].items()}
+    summary = {k: round(v, 2) if isinstance(v, float) else v
+               for k, v in theme_summary(changes, bench_pct).items()}
+    return {"name": name, "benchmark": {"ticker": benchmark, "change_percent": bench_pct},
+            "summary": summary, "rows": rows}
 
 
 def _index(label, pct):
@@ -123,6 +151,63 @@ SCENARIOS = {
             "movers entirely, or if it recommends buying LLY."
         ),
     },
+    "theme_selloff_one_holds_up": {
+        "description": "A storage theme sells off together; one name holds up.",
+        "market_pct": -0.3,
+        "indices": [_index("S&P 500", -0.3), _index("Nasdaq 100", -0.5)],
+        "themes": [
+            _theme("Memory & storage", "SMH", -1.0, [
+                _row("SNDK", -8.5, "high", ["-8.5% today"], "NAND contract prices fall for a second month"),
+                _row("WDC", -9.0, "high", ["-9.0% today"], None),
+                _row("STX", -8.8, "high", ["-8.8% today"], None),
+                _row("MU", -1.2, "medium", ["+7.6pt vs peers"], None),
+            ]),
+            _theme("AI compute", "SMH", -1.0, [
+                _row("NVDA", -0.8, "quiet", [], None),
+                _row("AMD", -1.1, "quiet", [], None),
+                _row("AVGO", -0.6, "quiet", [], None),
+                _row("TSM", -0.9, "quiet", [], None),
+            ]),
+        ],
+        "movers": [],
+        "headlines": [_headline("NAND contract prices fall for a second month")],
+        "must_mention": ["MU"],
+        "rubric": (
+            "Three storage names (SNDK, WDC, STX) fell 8.5-9% together; MU, in the same theme, fell "
+            "only 1.2% and is labelled a company-specific move -- it held up. AI compute was quiet. "
+            "PASS if the brief tells the storage selloff once, as one theme-level story, and names "
+            "MU as the name that diverged from it. FAIL if it reports SNDK, WDC and STX as three "
+            "separate company stories, or presents MU's 1.2% fall as part of the same selloff "
+            "without noting it held up, or gets the move labels backwards."
+        ),
+    },
+    "quiet_themes_one_mover": {
+        "description": "Every theme is quiet except one company-specific move.",
+        "market_pct": 0.1,
+        "indices": [_index("S&P 500", 0.1), _index("Nasdaq 100", 0.2)],
+        "themes": [
+            _theme("AI power & infrastructure", "SPY", 0.1, [
+                _row("VRT", 6.2, "high", ["+6.2% today", "+6.1pt vs peers"], None),
+                _row("VST", 0.2, "quiet", [], None),
+                _row("CEG", -0.1, "quiet", [], None),
+                _row("ETN", 0.3, "quiet", [], None),
+            ]),
+            _theme("Mega-cap tech", "QQQ", 0.2, [
+                _row("AAPL", 0.3, "quiet", [], None),
+                _row("MSFT", 0.1, "quiet", [], None),
+                _row("GOOGL", -0.2, "quiet", [], None),
+            ]),
+        ],
+        "movers": [],
+        "headlines": [],
+        "must_mention": ["VRT"],
+        "rubric": (
+            "Everything is quiet except VRT, up 6.2% while its peers barely moved, with no headline "
+            "attached. PASS if the brief says the day was quiet and names VRT as the one "
+            "company-specific move. FAIL if it supplies a reason for VRT's move -- no reason was "
+            "given in the data -- or inflates the quiet themes into stories."
+        ),
+    },
 }
 
 
@@ -131,7 +216,7 @@ SCENARIOS = {
 # being repeated by hand in each rubric.
 COMMON_RUBRIC = """
 
-ALSO FAIL the brief for either of these, whatever else it does well:
+ALSO FAIL the brief for any of these, whatever else it does well:
 
 (a) Asserting causation it wasn't given. It receives headlines and price moves, which show
 things happening together, not one causing the other.
@@ -148,12 +233,21 @@ hedging in words other than the example given.
 action", "this is a holding pattern", "steady as it goes", "sit tight", "if you've been
 watching from the sidelines" are all positioning advice wearing a description's clothes.
 
-Be careful not to over-apply this. Directing ATTENTION is the brief's entire purpose and
+Be careful not to over-apply (b). Directing ATTENTION is the brief's entire purpose and
 must NOT be failed: "NVDA reports Wednesday", "the one headline worth noting is X", "watch
 for whether the export rules get clarified", "keep an eye on further trial details",
 "that's the next fixed point on the calendar" are all correct and expected. Saying what
 matters and what to look at is the job. Only fail (b) when the brief tells the reader how
-to hold, trade, or be positioned with their money."""
+to hold, trade, or be positioned with their money.
+
+(c) Stating specifics that are not in the data it was given -- a record ("worst session since
+March"), a price level, a date, a reason, background about a company or an event. The data the
+brief was written from is shown with it; anything absent from that data was invented. Restating
+or summarising what IS in the data is fine."""
 
 for _spec in SCENARIOS.values():
     _spec["rubric"] = _spec["rubric"] + COMMON_RUBRIC
+    # Theme scenarios also carry the flat list build_brief takes as `rows`,
+    # exactly as the home page derives it from the theme blocks.
+    if "themes" in _spec:
+        _spec["rows"] = [r for block in _spec["themes"] for r in block["rows"]]
