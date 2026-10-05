@@ -117,7 +117,7 @@ SCENARIOS = {
         "headlines": [_headline("Late-stage obesity trial readout beats expectations")],
         "must_mention": ["LLY"],
         "rubric": (
-            "The user's own holdings did nothing, but LLY rose 11% and its competitor NVO fell 8% "
+            "The names on the user's watchlist did nothing, but LLY rose 11% and its competitor NVO fell 8% "
             "on a drug trial readout. A good brief says the watchlist was quiet and then points to "
             "LLY as the notable thing happening outside it. FAIL it if it ignores the market-wide "
             "movers entirely, or if it recommends buying LLY."

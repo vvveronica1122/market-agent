@@ -697,7 +697,7 @@ def build_brief(rows: list[dict], market_pct, indices: list[dict],
             }
             for r in rows
         ],
-        "market_wide_movers_not_owned": [
+        "market_wide_movers_not_on_watchlist": [
             {
                 "ticker": m["ticker"],
                 "name": m.get("name"),

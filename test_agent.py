@@ -141,7 +141,14 @@ def main() -> int:
     # quote it, and in a multi-line prompt string the word "never" may sit
     # several lines above the quote -- so a window around each hit is
     # checked for a prohibition marker rather than the line alone.
-    banned = ["you own", "don't own", "already own", "your holdings", "your position"]
+    # "own holdings" and "not_owned" were added after both slipped past the
+    # first list: one in an eval rubric, one as a JSON key in the brief's
+    # payload -- the model reads key names too. The key is now caught. The
+    # rubric case is a known blind spot: rubrics say "FAIL it if...", which
+    # the window below reads as a prohibition, so phrasing inside a rubric
+    # is skipped.
+    banned = ["you own", "don't own", "already own", "your holdings", "your position",
+              "own holdings", "not_owned"]
     root = Path(__file__).resolve().parent
     sources = ["agent.py", "web/app.py", "web/static/app.js", "web/static/index.html",
                "evals/agent_scenarios.py", "evals/scenarios.py"]

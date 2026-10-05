@@ -335,7 +335,7 @@ def main() -> int:
     client.get("/api/brief")
     sent_brief = server.client.messages.calls[0]["messages"][0]["content"]
     failures += not check("market-wide movers reach the brief prompt",
-                          "market_wide_movers_not_owned" in sent_brief and "SURGE" in sent_brief)
+                          "market_wide_movers_not_on_watchlist" in sent_brief and "SURGE" in sent_brief)
     failures += not check("market headlines reach the brief prompt",
                           "Chip export rules widen" in sent_brief)
     failures += not check("the brief still costs exactly one model call",
