@@ -8,6 +8,7 @@ behind it.
 
 - [Principles](#principles)
 - [Rank with rules, explain with the model](#rank-with-rules-explain-with-the-model)
+- [Themes: measuring a move against its peers](#themes-measuring-a-move-against-its-peers)
 - [Two front doors, one agent](#two-front-doors-one-agent)
 - [The agent, and how a tool gets connected](#the-agent-and-how-a-tool-gets-connected)
 - [The two agent patterns, side by side](#the-two-agent-patterns-side-by-side)
@@ -52,6 +53,65 @@ and how much news there is -- then the list is sorted by that score and
 the reasons are shown as chips on the row. Clicking a row opens a detail
 view with a six-month chart, the AI analysis, headlines and the next
 earnings date. Search resolves any ticker, on your list or not.
+
+## Themes: measuring a move against its peers
+
+A flat watchlist ranked every name against the market, which answers the
+wrong question for most moves. MU down 8% on a day SPY is flat looks like
+news; MU down 8% on a day every memory and storage company is down 8% is
+one story about the group, not four about the companies. So the watchlist
+became themes -- groups that share a driver -- and each company is measured
+against two things.
+
+**The theme's ETF**, because it's the market's standard yardstick. But
+cap-weighted ETFs are dominated by the very names being measured. When the
+themes were set up, Yahoo's holdings data had NVDA at 22.6% of SMH; GE and
+RTX together at 38.8% of ITA, which made ITA a poor benchmark for defense
+contractors; and NVDA, AAPL and MSFT at 8.5%, 7.4% and 6.0% of QQQ. "NVDA vs
+SMH" is partly NVDA against itself. And two themes have no fitting ETF at all:
+memory and storage (SMH holds only MU), and power producers plus electrical
+equipment (XLU is regulated utilities, XLI is broad industrials). Their
+descriptions say so rather than pretend.
+
+**Its peers**: the equal-weighted average of the *other* companies in the
+same theme. Leaving the company out of its own average removes the
+self-comparison, and equal weighting stops one giant from being the whole
+benchmark. It needs at least two other companies with data; below that the
+"peer group" is one stock, so the comparison is withheld rather than shown.
+For the same reason each company belongs to exactly one theme: in two, it
+would have two peer groups and count twice in theme averages.
+
+### Calling a move the theme's or the company's own
+
+Each move gets a label, and the rule for it was rewritten twice -- both
+times because the first live run produced a label a reader would know was
+wrong.
+
+The first rule asked whether the peers explained at least half the move.
+On the first live run WDC fell 10.10% and STX 10.19%, two hard-disk makers
+moving together; their peers explained 50.0% of one move and 49.3% of the
+other, so one was labelled "with theme" and the other "own move". **A
+single threshold turns near-identical cases into opposite labels whenever
+they sit near it.** The fix was a middle band, "partly shared", so a
+coin-flip case is reported as one.
+
+The second rule measured the share of the company's *own* move its peers
+accounted for. Same run: MU fell 1.40% while its peers fell 7.95%. Peers
+"accounted for" more than all of it, so MU came out "with theme" -- but
+MU's story that day was precisely that it didn't fall with them. A ratio
+with the company's own move underneath can't see a company holding up.
+
+The rule now measures the **gap** between the company and its peers, as a
+share of the larger of the two moves: up to 40% (or under a point in
+absolute terms) it tracked its theme; 60% or more it diverged -- moved
+alone, against its peers, or held up while they fell; in between it's
+partly shared; if neither moved 1%, it's quiet. On that run the hard-disk
+pair both came out "partly shared", MU "own move".
+
+The thresholds are judgement, not estimates, and the README says so. What
+the rewrites did establish is what the label is for: a reader scanning a
+theme should be pointed at the companies whose day differed from their
+group's, in either direction.
 
 ## Two front doors, one agent
 

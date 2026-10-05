@@ -19,18 +19,36 @@ facts that weren't in its input.
 
 **Dashboard** (`web/app.py`, a local web app)
 
-- **Watchlist** — sorted by an attention score built from four factors:
-  size of today's move, the move relative to the market (SPY), how close
-  earnings are, and how much news there is. The reasons appear as chips on
-  each row, and an AI brief at the top summarises the watchlist and anything
-  notable outside it.
-- **Detail view** — six-month chart, AI analysis, headlines with summaries,
-  key financials, and a *Going into earnings* panel: the actual next-session
-  move after each of the last eight reports, how often the company beat and
-  fell anyway, and how analyst estimates have been revised.
+The watchlist is organised into **themes**: groups of companies that share
+a driver, each with a benchmark ETF. It ships with four (AI compute, Memory
+& storage, Mega-cap tech, AI power & infrastructure), and themes and their
+companies can be created, edited and moved from the page.
+
+Every company is measured two ways: against its theme's ETF, and against
+its **peers** — the equal-weighted average of the other companies in the
+same theme. The second matters because cap-weighted ETFs are dominated by
+the names being measured (NVDA is over a fifth of SMH). Each move is then
+labelled *with theme*, *partly shared* or *own move*, depending on how far
+it diverged from its peers.
+
+- **Home** — one card per theme: the theme's equal-weighted move against
+  its ETF, how many companies beat it (breadth), how far apart they moved
+  (dispersion), earnings this week, and the companies that most need
+  attention. An AI brief on top tells each theme's story once and names the
+  companies that diverged.
+- **Theme page** — every company against the ETF and its peers, ranked by
+  an attention score (size of move, divergence from peers, earnings
+  proximity, news), plus notes on why each is watched and the controls to
+  edit the theme.
+- **Stock page** — the company's place in its theme today (peer average,
+  gap, label), six-month chart, AI analysis, headlines with summaries, key
+  financials, and a *Going into earnings* panel: the actual next-session
+  move after each of the last eight reports, how often it beat and fell
+  anyway, and how analyst estimates have been revised.
+- **Earnings calendar** — the next two weeks by theme, then three months.
 - **Discover** — a market-wide scan of top gainers, losers and unusually
-  active names (above $2B market cap and $5 a share), grouped into themes.
-- **Earnings calendar** — upcoming report dates for the watchlist.
+  active names (above $2B market cap and $5 a share), grouped into themes,
+  each addable to one of yours.
 - **Ask** — a chat panel backed by the same agent as the terminal, showing
   every tool call it made before answering.
 
@@ -70,6 +88,12 @@ flowchart TB
   good explainers. The agent handles questions nobody can anticipate, so
   there the model chooses the tools.
   [More](docs/DESIGN.md#the-two-agent-patterns-side-by-side)
+- **Measure a move against its peers, not just an ETF.** Cap-weighted ETFs
+  are dominated by the companies being compared with them, so each company
+  is also measured against the equal-weighted average of the *other*
+  companies in its theme. The rule for calling a move the theme's or the
+  company's own was rewritten twice after the first live run broke it.
+  [More](docs/DESIGN.md#themes-measuring-a-move-against-its-peers)
 - **Evidence, not predictions.** Asked whether a stock will rise after
   earnings, the agent says direction isn't knowable and shows what already
   happened instead. Getting that evidence right meant reading each report's
@@ -122,8 +146,10 @@ python3 agent.py "what moved most in the market today?"
 | `ANTHROPIC_API_KEY` | yes | Claude API access |
 | `MARKET_AGENT_MODEL` | no | Model for every Claude call, including the eval judge. Defaults to `claude-sonnet-4-5`. |
 
-Set them in `.env` or the environment. The watchlist is saved to
-`web/watchlist.json`, which is per-machine state and not committed.
+Set them in `.env` or the environment. Themes are saved to
+`web/themes.json`, which is per-machine state and not committed; on first
+run it's created from the default themes, and anything in an older
+`web/watchlist.json` that they don't cover is kept in an "Other" theme.
 
 ## Tests and evals
 
@@ -171,10 +197,12 @@ which data sources are reachable from your network.
 ```
 agent.py              the agent: tool schemas, the loop, the CLI
 config.py             shared settings (model, .env loading)
+themes.py             theme storage: defaults, validation, upgrade from the old watchlist
 tools/
   market_data.py      price, price history, company news, upcoming events
   market_scan.py      market-wide movers and market news
   fundamentals.py     earnings schedule and setup, quarterly results, key stats
+  relative.py         peer averages, theme-vs-company attribution, breadth, dispersion
   calc.py             safe arithmetic for the agent (parsed, never eval'd)
   check_sources.py    which data sources work from this network
   probe_*.py          scripts that inspect raw API payloads
@@ -196,7 +224,10 @@ docs/DESIGN.md        design decisions and lessons
 - Discover depends on Yahoo's screener endpoint; if it's unavailable the
   page falls back to a fixed large-cap list and labels itself as such.
 - The attention score's weights are hand-set heuristics and haven't been
-  validated against outcomes.
+  validated against outcomes. The same goes for the attribution thresholds
+  (40% / 60% of the larger move, 1-point floor).
+- Theme comparisons use today's moves only; multi-period and
+  beta-adjusted comparisons are not built yet.
 
 ## License
 
