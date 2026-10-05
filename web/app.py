@@ -49,6 +49,7 @@ from tools.market_data import (
 )
 from tools.market_scan import get_market_movers, filter_quality, get_market_news
 from tools.fundamentals import (
+    figure_caveats,
     get_earnings_schedule,
     get_quarterly_results,
     get_key_stats,
@@ -641,26 +642,10 @@ def theme_earnings(theme: dict) -> dict:
     }
 
 
-# Shown beside a figure when the number on its own would mislead.
+# Shown beside a figure when the number on its own would mislead. The rules
+# live with the figures (tools/fundamentals.py) so the agent sees them too.
 def peer_flags(stats: dict) -> list[str]:
-    flags = []
-    net, gross = stats.get("profit_margin_percent"), stats.get("gross_margin_percent")
-    if net is not None and gross is not None and net > gross:
-        flags.append("Net margin is above gross margin, so the last twelve months include "
-                     "one-off gains; net margin overstates the business.")
-    operating = stats.get("operating_margin_percent")
-    if operating is not None and gross is not None and operating > gross:
-        flags.append("Operating margin (latest quarter) is above gross margin (last twelve "
-                     "months): margins rose fast enough that the two periods disagree.")
-    fpe = stats.get("forward_pe")
-    if fpe is not None and (fpe <= 0 or fpe > 100):
-        flags.append("Forward P/E is above 100 or negative: expected earnings are too small "
-                     "for P/E to compare usefully with peers.")
-    growth = stats.get("revenue_growth_percent")
-    if growth is not None and growth > 100:
-        flags.append("Revenue more than doubled from a year earlier; growth rates this large "
-                     "say as much about the starting point as the trend.")
-    return flags
+    return figure_caveats(stats)
 
 
 PEER_METRICS = [
@@ -1111,9 +1096,11 @@ Cover, in this order:
 3. What's beyond their list: from the market-wide movers and headlines you're given, \
 anything genuinely worth their attention that isn't on their watchlist -- name the tickers. \
 Skip this if nothing out there is notable; don't manufacture a reason to mention something.
-4. Earnings in the next week: each name carries next_earnings_in_days (null when no date is \
-known). If none falls within seven days, one short sentence saying so is enough, or leave it \
-out -- don't put a judgement about what kind of week it is in its place.
+4. Earnings in the next week: upcoming_reports lists the watchlist's known report dates, \
+soonest first, already sorted -- when you say which company reports next, take it from there \
+rather than working it out from the names. Each name also carries next_earnings_in_days (null \
+when no date is known). If none falls within seven days, one short sentence saying so is \
+enough, or leave it out -- don't put a judgement about what kind of week it is in its place.
 
 The watchlist is a list of names the reader is TRACKING. It is not a portfolio and this app
 has no holdings data, so never write "you own", "your holdings" or "your position" -- write
@@ -1238,6 +1225,15 @@ def build_brief(rows: list[dict], market_pct, indices: list[dict],
         ]
     else:
         payload["watchlist"] = [_brief_name(r) for r in rows]
+    # Sorted here, not left to the model: asked to find the soonest among
+    # nineteen names spread over four themes, it named VRT and TSLA (16 days)
+    # as the next to report when TSM, last in its theme, reported in 10.
+    upcoming = []
+    for r in rows:
+        days = days_until_earnings(r.get("events"))
+        if days is not None and days >= 0:
+            upcoming.append({"ticker": r["ticker"], "days": days})
+    payload["upcoming_reports"] = sorted(upcoming, key=lambda e: (e["days"], e["ticker"]))[:6]
     payload.update({
         "market_wide_movers_not_on_watchlist": [
             {

@@ -109,6 +109,15 @@ training data is old and the reader cannot tell which half of your sentence came
 live lookup and which half you recalled. An unverifiable aside costs more trust than the
 context it adds.
 
+When a tool result includes caveats, they say a figure would mislead on its own -- a net
+margin inflated by one-off gains, margins from different periods, a P/E on near-zero earnings.
+Whenever you use a figure that has a caveat, say so in the same sentence, and don't rank or
+compare companies on it as if it were ordinary.
+
+Prices and headlines show things happening together, not one causing the other. Don't offer a
+cause or catalyst for a move unless a tool returned it, and not even hedged as "likely" -- a
+guessed reason reads as a finding.
+
 When a tool returns an error or no data, say so plainly instead of guessing or filling the
 gap from memory.
 
@@ -229,8 +238,9 @@ TOOLS = [
     {
         "name": "get_key_stats",
         "description": (
-            "Get company size and valuation figures: market cap, trailing and forward P/E, "
-            "profit margin, revenue growth, and sector."
+            "Get company size, valuation and profitability figures: market cap, trailing and "
+            "forward P/E, EV/sales, gross, operating and net margin, revenue and earnings growth, "
+            "and sector. Figures that would mislead on their own come with a 'caveats' list."
         ),
         "input_schema": TICKER_ARG,
         "handler": lambda ticker: get_key_stats(ticker),

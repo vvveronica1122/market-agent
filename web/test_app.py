@@ -565,6 +565,23 @@ def main() -> int:
     failures += not check("each name carries its next report date, null when none is known",
                           '"next_earnings_in_days": 3' in sent_brief
                           and '"next_earnings_in_days": null' in sent_brief)
+    upcoming = json.loads(sent_brief).get("upcoming_reports", [])
+    failures += not check("the soonest reports reach the brief, sorted",
+                          upcoming and upcoming[0]["days"] == 3
+                          and [u["days"] for u in upcoming] == sorted(u["days"] for u in upcoming),
+                          str(upcoming))
+    server.client = FakeClient()
+    from datetime import date as _date, timedelta as _days
+    soon = lambda t, d: {"ticker": t, "price": fake_price("CRASH"),
+                         "events": {"next_earnings_date": (_date.today() + _days(days=d)).isoformat()}}
+    server.build_brief([soon("LATE", 16), soon("PAST", -2), soon("FIRST", 10), soon("TIE", 16)],
+                       0.2, [], [], [])
+    sent = json.loads(server.client.messages.calls[0]["messages"][0]["content"])
+    failures += not check("upcoming reports are soonest first, past dates dropped, ties by ticker",
+                          sent["upcoming_reports"] == [{"ticker": "FIRST", "days": 10},
+                                                       {"ticker": "LATE", "days": 16},
+                                                       {"ticker": "TIE", "days": 16}],
+                          str(sent["upcoming_reports"]))
     server.client = FakeClient()
     server.build_brief([{"ticker": "CRASH", "price": fake_price("CRASH")}], 0.2, [], [], [])
     flat = server.client.messages.calls[0]["messages"][0]["content"]

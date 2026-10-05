@@ -240,6 +240,35 @@ def _percent(value) -> float | None:
     return round(number * 100, 1) if number is not None else None
 
 
+def figure_caveats(stats: dict) -> list[str]:
+    """Plain-language warnings for figures that would mislead on their own.
+
+    They travel with the figures: the peer table shows them as footnotes,
+    and the agent receives them in get_key_stats' result. Before that, the
+    agent ranked WDC first on a 72.9% net margin -- above its 48.9% gross
+    margin, which only one-off gains can produce -- without a word of
+    warning, while the dashboard's peer table flagged the same figure.
+    """
+    caveats = []
+    net, gross = stats.get("profit_margin_percent"), stats.get("gross_margin_percent")
+    if net is not None and gross is not None and net > gross:
+        caveats.append("Net margin is above gross margin, so the last twelve months include "
+                       "one-off gains; net margin overstates the business.")
+    operating = stats.get("operating_margin_percent")
+    if operating is not None and gross is not None and operating > gross:
+        caveats.append("Operating margin (latest quarter) is above gross margin (last twelve "
+                       "months): margins rose fast enough that the two periods disagree.")
+    fpe = stats.get("forward_pe")
+    if fpe is not None and (fpe <= 0 or fpe > 100):
+        caveats.append("Forward P/E is above 100 or negative: expected earnings are too small "
+                       "for P/E to compare usefully with peers.")
+    growth = stats.get("revenue_growth_percent")
+    if growth is not None and growth > 100:
+        caveats.append("Revenue more than doubled from a year earlier; growth rates this large "
+                       "say as much about the starting point as the trend.")
+    return caveats
+
+
 def get_key_stats(ticker: str) -> dict[str, Any]:
     """Headline valuation, growth and profitability figures.
 
@@ -256,7 +285,7 @@ def get_key_stats(ticker: str) -> dict[str, Any]:
     except Exception:
         return {}
 
-    return {
+    stats = {
         "market_cap": _clean(info.get("marketCap")),
         "trailing_pe": _clean(info.get("trailingPE")),
         "forward_pe": _clean(info.get("forwardPE")),
@@ -271,6 +300,8 @@ def get_key_stats(ticker: str) -> dict[str, Any]:
         "sector": info.get("sector"),
         "name": info.get("shortName") or info.get("longName"),
     }
+    stats["caveats"] = figure_caveats(stats)
+    return stats
 
 
 def get_estimate_revisions(ticker: str) -> dict[str, Any]:

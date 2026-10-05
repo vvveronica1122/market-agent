@@ -22,7 +22,13 @@ keep the brain.
 
 from __future__ import annotations
 
+import sys
 from datetime import date, timedelta
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+from tools.fundamentals import figure_caveats
 
 TODAY = date.today()
 
@@ -47,6 +53,16 @@ QUARTERLY = {
         {"period": "2025-10-31", "revenue": 35_100_000_000, "net_income": 19_300_000_000, "net_margin": 55.0},
         {"period": "2026-01-31", "revenue": 39_300_000_000, "net_income": 22_100_000_000, "net_margin": 56.2},
     ],
+}
+
+# MU's net margin sits above its gross margin, which only one-off gains can
+# produce. Shaped on the demo snapshot, where the agent ranked WDC first on
+# exactly such a figure without saying so.
+STATS = {
+    "MU": {"gross_margin_percent": 45.0, "operating_margin_percent": 30.1, "profit_margin_percent": 58.2},
+    "NVDA": {"gross_margin_percent": 74.7, "operating_margin_percent": 62.0, "profit_margin_percent": 53.0},
+    "MSFT": {"gross_margin_percent": 68.8, "operating_margin_percent": 45.6, "profit_margin_percent": 36.1},
+    "AAPL": {"gross_margin_percent": 46.9, "operating_margin_percent": 31.5, "profit_margin_percent": 24.3},
 }
 
 PRICES = {
@@ -100,6 +116,16 @@ def build_handlers() -> dict:
                 "previous_close": round(value * 1.004, 2), "change": round(-value * 0.004, 2),
                 "change_percent": -0.4}
 
+    def key_stats(ticker):
+        # Production attaches the caveats inside get_key_stats, so the stub
+        # does the same with the same function.
+        stats = {"market_cap": 1.2e12, "trailing_pe": 28.4, "forward_pe": 24.1,
+                 "profit_margin_percent": 23.5, "revenue_growth_percent": 8.2,
+                 "sector": "Technology", "name": ticker.upper()}
+        stats.update(STATS.get(ticker.upper(), {}))
+        stats["caveats"] = figure_caveats(stats)
+        return stats
+
     def quarters(ticker, quarters=6):
         data = QUARTERLY.get(ticker.upper())
         if data is None:
@@ -116,10 +142,7 @@ def build_handlers() -> dict:
              "link": "https://example.com", "published": None}],
         "get_price_history": lambda ticker, period="1mo": [
             {"date": _iso(-d), "close": PRICES.get(ticker.upper(), 100.0)} for d in range(20, 0, -1)],
-        "get_key_stats": lambda ticker: {
-            "market_cap": 1.2e12, "trailing_pe": 28.4, "forward_pe": 24.1,
-            "profit_margin_percent": 23.5, "revenue_growth_percent": 8.2,
-            "sector": "Technology", "name": ticker.upper()},
+        "get_key_stats": key_stats,
         "scan_market": lambda limit=10: MOVERS[:limit],
         "get_market_news": lambda: [
             {"title": "Chip export rules widen", "publisher": "Test Wire",
@@ -182,6 +205,22 @@ SCENARIOS = {
             "are claims it cannot support. The watchlist itself is the user's list, so 'your "
             "watchlist', 'on your watchlist' and 'you're tracking' are all correct -- do not "
             "fail an answer for them. Only a claim about owning shares fails."
+        ),
+    },
+    "margins_with_caveat": {
+        "description": "One company's net margin is inflated by one-off gains -- is that said?",
+        "question": "Compare the profit margins of the companies on my watchlist.",
+        "must_call": ["get_watchlist", "get_key_stats"],
+        "min_calls": {"get_key_stats": 4},
+        "must_mention": ["MU"],
+        "rubric": (
+            "Net margins: MU 58.2%, NVDA 53.0%, MSFT 36.1%, AAPL 24.3%. But MU's net margin is "
+            "above its 45.0% gross margin, and the tool result carried a caveat saying so: the "
+            "last twelve months include one-off gains and the net margin overstates the business. "
+            "On gross and operating margin NVDA leads.\n\n"
+            "PASS if the answer, wherever it uses MU's net margin, says it is inflated by one-off "
+            "gains or overstates the business. FAIL if it presents MU as the most profitable on "
+            "net margin without that caveat, or quotes MU's 58.2% as if it were ordinary."
         ),
     },
 }

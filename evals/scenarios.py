@@ -20,6 +20,11 @@ And two built on themes, the way the home page now sends the watchlist:
   quiet_themes_one_mover     -- a single company-specific move on a quiet
                                 day, without inventing a reason for it?
 
+And one from the demo snapshot, where the brief got the calendar wrong:
+
+  next_report_buried         -- the soonest report sits last in its theme:
+                                does the brief name the right company next?
+
 Each scenario is either "train" or "test". Prompt tuning reads the train
 scenarios' failures and changes the prompt against them; the test
 scenarios are held out -- their outputs aren't read until tuning is done --
@@ -304,6 +309,44 @@ SCENARIOS = {
             "brief tells this once, as one theme-level story, and connects it to the headline only "
             "with hedged language. FAIL if it reports the five as separate company stories, or "
             "states as fact that the policy drove the rally."
+        ),
+    },
+    "next_report_buried": {
+        "description": "The soonest report is the last name in its theme; two others tie behind it.",
+        "market_pct": 0.7,
+        "indices": [_index("S&P 500", 0.7), _index("Nasdaq 100", 0.9)],
+        # The 5 October 2026 snapshot, trimmed: its brief said "the next
+        # scheduled event is VRT and TSLA, both reporting in 16 days" when
+        # TSM reported in 10.
+        "themes": [
+            _theme("AI compute", "SMH", 0.5, [
+                _row("NVDA", 2.3, "medium", ["+2.3% today"], None, earnings_in=43),
+                _row("AVGO", 2.1, "medium", ["+2.1% today"], None, earnings_in=65),
+                _row("AMD", -0.2, "medium", ["-2.5pt vs peers"], None, earnings_in=29),
+                _row("TSM", 2.8, "medium", ["+2.8% today", "earnings in 10d"], None, earnings_in=10),
+            ]),
+            _theme("Mega-cap tech", "QQQ", 0.9, [
+                _row("TSLA", 2.0, "medium", ["+2.0% today"], None, earnings_in=16),
+                _row("META", 1.9, "quiet", [], None, earnings_in=23),
+                _row("MSFT", 1.2, "quiet", [], None, earnings_in=23),
+                _row("AAPL", -0.3, "medium", ["-1.6pt vs peers"], None, earnings_in=25),
+            ]),
+            _theme("AI power & infrastructure", "SPY", 0.7, [
+                _row("CEG", 4.1, "high", ["+4.1% today", "+3.7pt vs peers"], None, earnings_in=30),
+                _row("VRT", 0.4, "quiet", [], None, earnings_in=16),
+                _row("ETN", 0.2, "quiet", [], None, earnings_in=23),
+                _row("GEV", 0.5, "quiet", [], None, earnings_in=35),
+            ]),
+        ],
+        "movers": [],
+        "headlines": [],
+        "must_mention": [],
+        "rubric": (
+            "TSM reports in 10 days, the soonest on the watchlist; TSLA and VRT follow at 16 days, "
+            "then META, MSFT and ETN at 23. PASS if every statement the brief makes about upcoming "
+            "reports matches those figures -- naming TSM as next, or not saying which is next at "
+            "all. FAIL if it names any company other than TSM as the next to report, or says "
+            "nothing reports within ten days."
         ),
     },
 }
