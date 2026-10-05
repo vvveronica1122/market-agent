@@ -56,6 +56,38 @@ the reasons are shown as chips on the row. Clicking a row opens a detail
 view with a six-month chart, the AI analysis, headlines and the next
 earnings date. Search resolves any ticker, on your list or not.
 
+### Checking the hand-set weights
+
+The weights were picked by feel, so they were eventually tested
+(`validation/attention.py`, write-up in
+[validation/attention-2026-10.md](../validation/attention-2026-10.md)).
+The trouble with testing an attention score is that attention has no
+ground truth. The way round it was to grade the score against something
+it never sees: that day's trading volume against the stock's own normal,
+which is the market's own record of what people were looking at.
+
+Over two years of the default themes, the score agreed with that record.
+Its daily rank correlation with abnormal volume was +0.29, and the
+top-ranked company had the theme's most unusual volume on 42% of days,
+against 22% by chance. It said nothing about the *next* session once
+volatility was accounted for. It is a description of today, which is all
+it claims to be.
+
+The test also showed where the hand-set choices went wrong:
+
+- **Volatile stocks win.** The move part is scored in raw percent, so TSLA
+  topped mega-cap tech on 41% of days, against an even split of 17%.
+- **Earnings points are mistimed.** They arrived in the quiet week before
+  a report, and were gone by the session after it, which was the busiest
+  day of the cycle (2.1x normal volume).
+- **The news part doesn't discriminate.** It counts headlines regardless
+  of age, so live it is a constant.
+
+Scaling the move by the stock's own volatility fixed the first and matched
+the volume record better. The fixes are written up but not applied: they
+came from the same sample, so they need checking on data they weren't
+designed on before they replace the current weights.
+
 ## Themes: measuring a move against its peers
 
 A flat watchlist ranked every name against the market, which answers the

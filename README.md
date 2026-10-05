@@ -269,6 +269,7 @@ evals/                model evals, scenarios, and tests of the checks
 evals/tuning/         logs of the prompt tuning runs
 demo/build.py         builds the static demo snapshot
 demo/capture.py       screenshots and a walkthrough video of the snapshot
+validation/           backtests of the hand-set rules, with their reports
 run_tests.py          runs every offline suite
 docs/DESIGN.md        design decisions and lessons
 ```
@@ -289,9 +290,14 @@ docs/DESIGN.md        design decisions and lessons
   looking) need a background scheduler, not just a web server.
 - Discover depends on Yahoo's screener endpoint; if it's unavailable the
   page falls back to a fixed large-cap list and labels itself as such.
-- The attention score's weights are hand-set heuristics and haven't been
-  validated against outcomes. The same goes for the attribution thresholds
-  (40% / 60% of the larger move, 1-point floor).
+- The attention score's weights are hand-set. A two-year backtest
+  ([validation/attention-2026-10.md](validation/attention-2026-10.md))
+  found it agrees with the market's own attention (abnormal volume, IC
+  +0.29), but favours volatile stocks, gives earnings points before a
+  report rather than on the reaction, and says nothing about the next
+  session. The changes it suggests haven't been made yet. The attribution
+  thresholds (40% / 60% of the larger move, 1-point floor) haven't been
+  validated.
 - A theme that splits in two (hard-disk makers down 10%, memory makers down
   2%) labels every company as diverging, which is true but hides that each
   half moved together; there are no sub-groups within a theme yet.

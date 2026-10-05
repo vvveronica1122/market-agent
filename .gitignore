@@ -23,3 +23,6 @@ demo/site/
 
 # screen recordings from demo/capture.py: large, regenerated, published with the site not the repo
 demo/media/
+
+# validation/attention.py caches Yahoo data here: re-fetchable, not ours to republish
+validation/cache/
