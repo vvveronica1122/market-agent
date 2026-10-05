@@ -17,3 +17,6 @@ web/themes.unreadable-*.json
 
 # dry-run eval results exercise the saving code but measure nothing
 evals/results/*_dry-run.json
+
+# the built static demo: regenerate with demo/build.py; commit it only to deploy it
+demo/site/

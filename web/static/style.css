@@ -1061,3 +1061,16 @@ div.row:focus-visible { outline: 2px solid var(--series-1); outline-offset: 2px;
   .upcoming-days { display: none; }
   .theme-menu { max-width: calc(100vw - 16px); }
 }
+
+/* ---------- static demo ---------- */
+.demo-banner {
+  background: var(--accent-ai-wash);
+  border-bottom: 1px solid var(--border);
+  color: var(--ink-secondary);
+  font-size: 12.5px;
+  padding: 8px 28px;
+  line-height: 1.45;
+}
+.demo-banner strong { color: var(--accent-ai); }
+.demo-banner a { color: var(--accent-ai); }
+@media (max-width: 760px) { .demo-banner { padding: 8px 16px; } }

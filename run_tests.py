@@ -29,6 +29,7 @@ SUITES = [
     ("calculator", "tools/test_calc.py"),
     ("eval checks", "evals/test_checks.py"),
     ("eval results", "evals/test_results.py"),
+    ("static demo build", "demo/test_build.py"),
 ]
 
 

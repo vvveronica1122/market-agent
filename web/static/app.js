@@ -33,6 +33,10 @@ const state = {
   sessionToday: null, // today's date in New York
 };
 
+// Set by demo-config.js in the static demo (demo/build.py); absent when the
+// app runs against its own server.
+const DEMO = window.MARKET_AGENT_DEMO || null;
+
 const viewEl = document.getElementById("view");
 const stripEl = document.getElementById("market-strip");
 const tooltipEl = document.getElementById("tooltip");
@@ -84,6 +88,7 @@ function beginView(view, navKey) {
 const isCurrent = (token) => token === state.renderToken;
 
 async function api(method, url, body) {
+  if (DEMO) return demoApi(method, url);
   try {
     const res = await fetch(url, {
       method,
@@ -95,6 +100,52 @@ async function api(method, url, body) {
   } catch (err) {
     return { ok: false, data: { error: String(err) } };
   }
+}
+
+// The static demo has no server: each request maps to a JSON file captured
+// from the live app once (demo/build.py), and nothing can be changed.
+async function demoApi(method, url) {
+  if (method !== "GET") {
+    return { ok: false, data: { error: "The demo is read-only. Run Market Agent locally to edit themes." } };
+  }
+  const [path, query] = url.replace(/^\/api\//, "").split("?");
+  let file = `data/${path}.json`;
+  if (path === "search") {
+    const q = (new URLSearchParams(query || "").get("q") || "").toUpperCase();
+    file = `data/search/${encodeURIComponent(q)}.json`;
+    const found = await fetch(file).catch(() => null);
+    if (!found || !found.ok) {
+      return { ok: true, data: { results: [], message: `${q} isn't in this snapshot. The demo covers the ` +
+        "companies in its themes and on its Discover page." } };
+    }
+    return { ok: true, data: await found.json() };
+  }
+  try {
+    const res = await fetch(file);
+    if (!res.ok) return { ok: false, data: { error: "Not in this snapshot." } };
+    return { ok: true, data: await res.json() };
+  } catch (err) {
+    return { ok: false, data: { error: "Not in this snapshot." } };
+  }
+}
+
+function buildDemoBanner() {
+  const banner = el("div", "demo-banner");
+  banner.setAttribute("role", "note");
+  banner.appendChild(el("strong", null, "Demo. "));
+  banner.appendChild(document.createTextNode(
+    `A snapshot of the ${DEMO.snapshot_session ? formatSession(DEMO.snapshot_session) : "captured"} session, ` +
+    `taken ${DEMO.captured_label || ""}. Prices don't update, the AI text was written when the snapshot was ` +
+    "taken, and Ask replays recorded conversations. Nothing here is financial advice."));
+  if (DEMO.repo_url) {
+    banner.appendChild(document.createTextNode(" "));
+    const link = el("a", null, "How it's built ↗");
+    link.href = DEMO.repo_url;
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    banner.appendChild(link);
+  }
+  return banner;
 }
 
 function toast(message) {
@@ -155,7 +206,8 @@ function sessionShort() {
 }
 
 function sessionNote() {
-  if (sessionIsToday()) return null;
+  if (sessionIsToday() && !DEMO) return null;
+  if (DEMO) return el("p", "session-note", `Prices and moves are from the ${formatSession(state.lastSession)} session.`);
   const now = state.market ? ` -- the US market is ${state.market.state} now` : "";
   return el("p", "session-note",
     `Prices and moves are from the ${formatSession(state.lastSession)} session${now}.`);
@@ -257,8 +309,8 @@ function renderNavThemes() {
 
 async function loadOverview() {
   try {
-    const res = await fetch("/api/overview");
-    const data = await res.json();
+    const { ok, data } = await api("GET", "/api/overview");
+    if (!ok) throw new Error(data.error || "overview unavailable");
     state.market = data.market || null;
     state.lastSession = data.last_session || null;
     state.sessionToday = data.today || null;
@@ -287,7 +339,9 @@ function renderStrip(data) {
   const dot = el("span", "dot");
   if (data.market && data.market.state === "open") dot.classList.add("open");
   session.appendChild(dot);
-  session.appendChild(el("span", null, data.market ? `${data.market.state} · ${data.market.time}` : ""));
+  session.appendChild(el("span", null, DEMO
+    ? `snapshot · ${data.last_session ? formatSession(data.last_session) : ""}`
+    : data.market ? `${data.market.state} · ${data.market.time}` : ""));
   frag.appendChild(session);
 
   stripEl.replaceChildren(frag);
@@ -344,7 +398,7 @@ async function showHome() {
   frag.appendChild(grid);
 
   frag.appendChild(buildReadingGuide());
-  frag.appendChild(buildNewThemeForm());
+  if (!DEMO) frag.appendChild(buildNewThemeForm());
   viewEl.replaceChildren(frag);
 }
 
@@ -606,13 +660,15 @@ function renderThemeToday(holder, data) {
     const list = el("div", "rows");
     data.rows.forEach((row) => {
       list.appendChild(buildThemeRow(row, data));
-      list.appendChild(buildEditPanel(row, data));
+      if (!DEMO) list.appendChild(buildEditPanel(row, data));
     });
     frag.appendChild(list);
   }
 
-  frag.appendChild(buildAddCompanyForm(data));
-  frag.appendChild(buildThemeSettings(data));
+  if (!DEMO) {
+    frag.appendChild(buildAddCompanyForm(data));
+    frag.appendChild(buildThemeSettings(data));
+  }
   holder.replaceChildren(frag);
 
   data.rows.forEach((row) => {
@@ -1130,6 +1186,10 @@ function buildThemeRow(row, theme) {
   sparkCell.appendChild(el("span", "spark-label", "1 month"));
   item.appendChild(sparkCell);
 
+  if (DEMO) {
+    item.appendChild(el("div"));  // keeps the grid's last column
+    return item;
+  }
   const edit = el("button", "row-edit", "Edit");
   edit.type = "button";
   edit.setAttribute("aria-expanded", "false");
@@ -1418,6 +1478,10 @@ function buildRow(row, opts) {
   sparkCell.appendChild(el("span", "spark-label", "1 month"));
   item.appendChild(sparkCell);
 
+  if (DEMO) {
+    item.appendChild(el("div"));
+    return item;
+  }
   const add = el("button", "add", "+");
   add.type = "button";
   add.title = `Add ${row.ticker} to a theme`;
@@ -1807,6 +1871,7 @@ function buildThemeContext(data) {
     panel.appendChild(el("h2", null, "Theme"));
     panel.appendChild(el("p", "form-hint",
       `${data.ticker} isn't in any of your themes, so there's no peer group to compare it with.`));
+    if (DEMO) return panel;
     const add = el("button", "button-secondary", "Add to a theme");
     add.type = "button";
     add.addEventListener("click", (e) => {
@@ -2637,11 +2702,13 @@ function showQuarterTooltip(q, clientX, clientY) {
 
 /* ---------------- ask (the agent, in the browser) ---------------- */
 
-const STARTERS = [
-  "Which of my stocks reports soonest, and how did they do last quarter?",
-  "What moved most in the market today that isn't on my watchlist?",
-  "Compare the profit margins of the companies in my Memory & storage theme.",
-];
+const STARTERS = DEMO && DEMO.chat && DEMO.chat.length
+  ? DEMO.chat.map((c) => c.question)
+  : [
+      "Which of my stocks reports soonest, and how did they do last quarter?",
+      "What moved most in the market today that isn't on my watchlist?",
+      "Compare the profit margins of the companies in my Memory & storage theme.",
+    ];
 
 async function showChat() {
   beginView("ask");
@@ -2692,7 +2759,9 @@ function renderChat() {
 
   if (!state.chat.length) {
     const empty = el("div", "chat-empty");
-    empty.appendChild(el("p", "chat-empty-title", "Try one of these"));
+    empty.appendChild(el("p", "chat-empty-title", DEMO
+      ? "Recorded when the snapshot was taken -- pick one to replay it"
+      : "Try one of these"));
     STARTERS.forEach((q) => {
       const btn = el("button", "starter", q);
       btn.type = "button";
@@ -2736,6 +2805,7 @@ function renderChat() {
 }
 
 async function askAgent(question) {
+  if (DEMO) return replayAgent(question);
   state.chat.push({ role: "user", content: question });
   state.chatBusy = true;
   renderChat();
@@ -2766,6 +2836,19 @@ async function askAgent(question) {
   }
 }
 
+// The demo can't call the model. It replays the conversations recorded
+// when the snapshot was taken -- real answers, with their real lookups.
+function replayAgent(question) {
+  state.chat.push({ role: "user", content: question });
+  const recorded = (DEMO.chat || []).find((c) => c.question === question);
+  state.chat.push(recorded
+    ? { role: "assistant", content: recorded.answer, trace: recorded.trace || [] }
+    : { role: "assistant", trace: [], content: "This demo replays conversations recorded when the snapshot " +
+        "was taken, so it can only answer the suggested questions. Run Market Agent locally with your own " +
+        "API key to ask anything." });
+  renderChat();
+}
+
 /* ---------------- daily brief ---------------- */
 
 function buildBriefPanel() {
@@ -2787,12 +2870,9 @@ async function loadBrief(panel, force) {
   const body = panel.querySelector(".brief-body");
   body.replaceChildren(el("p", null, force ? "Rewriting..." : "Reading your themes..."));
 
-  let data;
-  try {
-    const res = await fetch("/api/brief" + (force ? "?t=" + Date.now() : ""));
-    data = await res.json();
-  } catch (err) {
-    body.replaceChildren(el("p", null, "Brief unavailable: " + err));
+  const { ok, data } = await api("GET", "/api/brief" + (force && !DEMO ? "?t=" + Date.now() : ""));
+  if (!ok) {
+    body.replaceChildren(el("p", null, "Brief unavailable: " + (data.error || "")));
     return;
   }
 
@@ -2805,7 +2885,9 @@ async function loadBrief(panel, force) {
   const old = panel.querySelector(".brief-meta");
   if (old) old.remove();
   if (data.generated_at) {
-    panel.appendChild(el("p", "brief-meta", `Written ${data.generated_at} from the data below. Not financial advice.`));
+    panel.appendChild(el("p", "brief-meta", DEMO
+      ? `Written ${data.generated_at} when the snapshot was taken, from the data below. Not financial advice.`
+      : `Written ${data.generated_at} from the data below. Not financial advice.`));
   }
 }
 
@@ -2953,6 +3035,8 @@ async function showSearch(query) {
     const owner = state.themes.find((t) => t.stocks.some((s) => s.ticker === result.ticker));
     if (owner) {
       row.appendChild(el("span", "attr-tag attr-none", "In " + owner.name));
+    } else if (DEMO) {
+      row.appendChild(el("div"));
     } else {
       const add = el("button", "remove", "+");
       add.type = "button";
@@ -2989,4 +3073,5 @@ window.addEventListener("hashchange", route);
 // The sidebar and add-to-theme menus need the theme setup, and the pages
 // need to know which session the prices are from, so both load before the
 // first page draws.
+if (DEMO) document.querySelector(".main").prepend(buildDemoBanner());
 Promise.all([loadOverview(), loadThemes()]).then(route);
