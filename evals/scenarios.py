@@ -240,10 +240,10 @@ for whether the export rules get clarified", "keep an eye on further trial detai
 matters and what to look at is the job. Only fail (b) when the brief tells the reader how
 to hold, trade, or be positioned with their money.
 
-(c) Stating specifics that are not in the data it was given -- a record ("worst session since
-March"), a price level, a date, a reason, background about a company or an event. The data the
-brief was written from is shown with it; anything absent from that data was invented. Restating
-or summarising what IS in the data is fine."""
+(c) Stating specifics that are not in the data it was given -- a record, a price level, a date,
+a reason, background about a company or an event. The data the brief was written from is shown
+with it: check a specific against that data before failing it. Anything absent from the data was
+invented; restating or summarising what IS in the data, headlines included, is fine."""
 
 for _spec in SCENARIOS.values():
     _spec["rubric"] = _spec["rubric"] + COMMON_RUBRIC
