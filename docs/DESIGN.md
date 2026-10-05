@@ -23,6 +23,7 @@ behind it.
 - [Evals — testing the part that isn't deterministic](#evals--testing-the-part-that-isnt-deterministic)
 - [When to stop tuning](#when-to-stop-tuning)
 - [What the first real eval run found](#what-the-first-real-eval-run-found)
+- [Tuning the brief prompt, with a held-out test set](#tuning-the-brief-prompt-with-a-held-out-test-set)
 
 ## Principles
 
@@ -555,3 +556,38 @@ not** — and verify new patterns against the actual failing sentences,
 plus legitimate ones, so you can see the false-positive rate.
 
 After the prompt fix, `--runs 3` on that scenario passed 3/3.
+
+## Tuning the brief prompt, with a held-out test set
+
+The full record is [evals/tuning/brief-prompt-2026-10.md](../evals/tuning/brief-prompt-2026-10.md);
+the method is what's worth keeping.
+
+**Fix the measurement first.** Before any prompt change, two failing briefs
+were saved and judged five times each. One came back 0/5 with the same
+reason every time -- a solid standard, so the prompt was the thing to change.
+The other split 2/5 on identical text: the brief had hedged one sentence and
+asserted the next, and the rubric hadn't said whether that counts. It was
+sharpened first ("a hedge in one sentence doesn't license an assertion in
+another"), then checked both ways: 0/5 on the failing brief, 3/3 on a
+hand-written brief hedged throughout.
+
+**Don't score on what you tuned on.** The scenarios were split before the
+baseline, and the split committed: four train scenarios whose failures were
+read, five test scenarios whose outputs weren't, three of them written for
+the purpose with new surface details. With about 32 trials a set, anything
+under roughly 25 points was treated as noise.
+
+**Read the failures, change one principle a round.** The baseline's 19 train
+failures were 10 posture or closing verdicts and 8 causes asserted through
+idioms the rule didn't name. Two of the posture failures were the prompt's
+own doing: its example of a calendar fact, "AAPL, MSFT and KO have nothing
+scheduled this week", was a claim the scenario's data didn't support, and its
+outline asked for "what's coming this week they should prepare for". Round 1
+made the causation rule about meaning rather than the word "because"; round
+2 moved the ending onto a fact and off the reader.
+
+Train went 41% -> 59% -> 84%. The held-out test set, run once at the end,
+went **35% -> 78%**. What's left mostly sits outside the prompt: the brief's
+input has no explicit report dates, so "nothing scheduled this week" can't be
+checked whatever the prompt says.
+
