@@ -86,12 +86,17 @@ def get_recent_news(ticker: str, limit: int = 5) -> list[dict[str, Any]]:
 
     Returns an empty list (not an error) if no news is found -- the agent
     should treat that as "nothing notable right now", not a failure.
+
+    When the ticker's own feed is empty, Yahoo's search endpoint is tried;
+    see _search_news.
     """
     t = yf.Ticker(ticker)
     try:
         raw_items = t.news or []
     except Exception:
         raw_items = []
+    if not raw_items:
+        raw_items = _search_news(ticker, limit)
 
     items: list[dict[str, Any]] = []
     for entry in raw_items[:limit]:
@@ -114,7 +119,7 @@ def get_recent_news(ticker: str, limit: int = 5) -> list[dict[str, Any]]:
             continue
 
         summary = _plain_text(content.get("summary")) or _plain_text(content.get("description"))
-        content_type = (content.get("contentType") or "").upper()
+        content_type = (content.get("contentType") or entry.get("type") or "").upper()
 
         items.append(
             {
@@ -129,6 +134,23 @@ def get_recent_news(ticker: str, limit: int = 5) -> list[dict[str, Any]]:
         )
 
     return items
+
+
+def _search_news(ticker: str, limit: int) -> list[dict[str, Any]]:
+    """Stories from Yahoo's search endpoint, as a fallback.
+
+    In October 2026 every ticker's own news feed came back empty while
+    search still returned current stories, so the dashboard showed
+    "No recent headlines" everywhere and news never counted towards a rank.
+    Search matches text, so only stories Yahoo tags with this ticker are
+    kept. They come in the flat format: a headline and publisher, no summary.
+    """
+    try:
+        found = yf.Search(ticker, max_results=1, news_count=limit * 2).news or []
+    except Exception:
+        return []
+    symbol = ticker.upper()
+    return [item for item in found if symbol in (item.get("relatedTickers") or [])]
 
 
 def get_upcoming_events(ticker: str) -> dict[str, Any]:

@@ -27,6 +27,7 @@ SUITES = [
     ("relative performance", "tools/test_relative.py"),
     ("market model", "tools/test_performance.py"),
     ("calculator", "tools/test_calc.py"),
+    ("news parsing", "tools/test_market_data.py"),
     ("eval checks", "evals/test_checks.py"),
     ("eval results", "evals/test_results.py"),
     ("static demo build", "demo/test_build.py"),
