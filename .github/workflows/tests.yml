@@ -1,0 +1,28 @@
+# Runs the offline suites on every push and pull request.
+#
+# Only the free ones: no network, no model calls, so no API key is needed
+# and a run can't fail because Yahoo rate-limited the runner. The evals call
+# the real model, cost money, and stay a manual step.
+
+name: tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  offline:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # Oldest supported, and a current one.
+        python-version: ["3.9", "3.12"]
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      - run: pip install -r requirements.txt
+      - run: python run_tests.py
