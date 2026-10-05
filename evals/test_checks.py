@@ -264,6 +264,19 @@ def main() -> int:
     failures += not check("unparseable verdict fails closed rather than passing",
                           ok is False and "unparseable" in reason)
 
+    ok, reason = judge(_C('Looking at the rubric: (a) is fine; (b) the closing line advises a posture.\n\n'
+                          '{"pass": false, "reason": "posture in the closing line"}'), "m", "x", "r")
+    failures += not check("a verdict after prose reasoning is still read",
+                          ok is False and reason == "posture in the closing line", reason)
+    ok, reason = judge(_C('For example {"pass": true} would mean fine. Final: {"pass": false, "reason": "cause"}'),
+                       "m", "x", "r")
+    failures += not check("the last verdict wins over one quoted along the way",
+                          ok is False and reason == "cause", reason)
+    ok, reason = judge(_C("Looking at this brief against the rubric:\n\n**Checking (a)**: the brief"),
+                       "m", "x", "r")
+    failures += not check("reasoning cut off before any verdict still fails closed",
+                          ok is False and "unparseable" in reason, reason)
+
     class _Boom:
         class _MM:
             def create(self, **kw): raise RuntimeError("rate limited")

@@ -125,7 +125,10 @@ def judge(client, model: str, output: str, rubric: str,
     try:
         response = client.messages.create(
             model=model,
-            max_tokens=250,
+            # Room for a judge that reasons before its verdict. At 250 it
+            # was sometimes cut off mid-reasoning, and the missing verdict
+            # counted against the output being graded.
+            max_tokens=600,
             system=JUDGE_SYSTEM,
             messages=[{"role": "user", "content": prompt}],
         )
@@ -133,16 +136,33 @@ def judge(client, model: str, output: str, rubric: str,
     except Exception as exc:
         return False, f"judge call failed: {exc}"
 
-    if text.startswith("```"):
-        text = text.split("```")[1]
-        if text.startswith("json"):
-            text = text[4:]
-    try:
-        verdict = json.loads(text)
-    except json.JSONDecodeError:
+    verdict = _extract_verdict(text)
+    if verdict is None:
         return False, f"judge returned unparseable output: {text[:120]}"
-
     return bool(verdict.get("pass")), str(verdict.get("reason", ""))[:300]
+
+
+def _extract_verdict(text: str) -> dict | None:
+    """The judge's JSON verdict, wherever it sits in the reply.
+
+    Asked for bare JSON, the judge still sometimes reasons in prose first
+    and puts the object at the end, or wraps it in a code fence. Each "{" is
+    tried as the start of a JSON object, and the last one carrying a "pass"
+    key wins -- a verdict reached after reasoning, not an example quoted
+    along the way. No such object, no verdict: the caller fails closed.
+    """
+    decoder = json.JSONDecoder()
+    found = None
+    for i, ch in enumerate(text):
+        if ch != "{":
+            continue
+        try:
+            obj, _ = decoder.raw_decode(text[i:])
+        except json.JSONDecodeError:
+            continue
+        if isinstance(obj, dict) and "pass" in obj:
+            found = obj
+    return found
 
 
 def check_no_invented_tickers(themes: list[dict], allowed: set[str]) -> list[tuple[bool, str, str]]:
