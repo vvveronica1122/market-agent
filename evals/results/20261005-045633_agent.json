@@ -1,0 +1,469 @@
+{
+  "kind": "agent",
+  "timestamp": "2026-10-05T04:56:33+00:00",
+  "model": "claude-sonnet-4-5",
+  "commit": "1f80544",
+  "uncommitted_changes": false,
+  "dry_run": false,
+  "settings": {
+    "runs": 5,
+    "scenario": null
+  },
+  "scenarios": {
+    "soonest_earnings": {
+      "description": "Needs the watchlist, then a lookup per name, then a comparison.",
+      "question": "Which of my stocks reports soonest, and how did they do last quarter?",
+      "runs": 5,
+      "checks": {
+        "calls get_watchlist": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "calls get_earnings_schedule": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "calls get_earnings_schedule at least 3 times": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "mentions NVDA": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never gives a direct recommendation": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never tells the reader to trade": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never sets a price target": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never predicts direction": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never claims certainty": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never uses a rating": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never nudges the reader about positioning": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never suggests an action": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never advises a posture": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never tells the reader when to act": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "no bold markdown": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "no bullet lists": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "no markdown headings": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "mentions no ticker outside the data": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "judge verdict": {
+          "passed": 4,
+          "runs": 5,
+          "failure": "The brief includes specific earnings per share figures ($1.35 actual vs $1.28 estimate) that were not provided in the tool results, which only mentioned a 10.1% beat percentage."
+        }
+      },
+      "first_output": {
+        "tool_calls": [
+          {
+            "step": 1,
+            "tool": "get_watchlist",
+            "input": {}
+          },
+          {
+            "step": 2,
+            "tool": "get_earnings_schedule",
+            "input": {
+              "ticker": "AAPL"
+            }
+          },
+          {
+            "step": 2,
+            "tool": "get_earnings_schedule",
+            "input": {
+              "ticker": "MSFT"
+            }
+          },
+          {
+            "step": 2,
+            "tool": "get_earnings_schedule",
+            "input": {
+              "ticker": "NVDA"
+            }
+          },
+          {
+            "step": 2,
+            "tool": "get_earnings_schedule",
+            "input": {
+              "ticker": "MU"
+            }
+          }
+        ],
+        "answer": "NVDA reports soonest, just 3 days away on October 8th. Last quarter they beat expectations by 10.1%, posting earnings of $1.349 per share versus the estimate of $1.278."
+      }
+    },
+    "needs_math": {
+      "description": "Requires arithmetic -- does it reach for the calculator?",
+      "question": "By what percentage did MU's revenue change between its last two quarters?",
+      "runs": 5,
+      "checks": {
+        "calls get_quarterly_results": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "calls calculate": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never gives a direct recommendation": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never tells the reader to trade": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never sets a price target": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never predicts direction": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never claims certainty": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never uses a rating": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never nudges the reader about positioning": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never suggests an action": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never advises a posture": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never tells the reader when to act": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "no bold markdown": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "no bullet lists": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "no markdown headings": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "mentions no ticker outside the data": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "judge verdict": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        }
+      },
+      "first_output": {
+        "tool_calls": [
+          {
+            "step": 1,
+            "tool": "get_quarterly_results",
+            "input": {
+              "ticker": "MU",
+              "quarters": 2
+            }
+          },
+          {
+            "step": 2,
+            "tool": "calculate",
+            "input": {
+              "expression": "(9240000000 - 8710000000) / 8710000000 * 100"
+            }
+          }
+        ],
+        "answer": "Micron's (MU) revenue increased by 6.08% between its last two quarters. Revenue grew from $8.71 billion in the quarter ending November 30, 2025, to $9.24 billion in the quarter ending February 28, 2026."
+      }
+    },
+    "missing_data": {
+      "description": "A ticker with no data -- does it admit that or invent something?",
+      "question": "How is ZZZZ doing today?",
+      "runs": 5,
+      "checks": {
+        "never gives a direct recommendation": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never tells the reader to trade": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never sets a price target": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never predicts direction": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never claims certainty": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never uses a rating": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never nudges the reader about positioning": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never suggests an action": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never advises a posture": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never tells the reader when to act": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "no bold markdown": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "no bullet lists": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "no markdown headings": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "mentions no ticker outside the data": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "judge verdict": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        }
+      },
+      "first_output": {
+        "tool_calls": [
+          {
+            "step": 1,
+            "tool": "get_stock_price",
+            "input": {
+              "ticker": "ZZZZ"
+            }
+          }
+        ],
+        "answer": "No price data is available for ZZZZ. This ticker either doesn't exist, isn't publicly traded, or isn't covered by the data source. If you meant a different ticker symbol, I can look that up instead."
+      }
+    },
+    "beyond_watchlist": {
+      "description": "Needs the watchlist before it can say what isn't on it.",
+      "question": "What moved most in the market today that isn't on my watchlist?",
+      "runs": 5,
+      "checks": {
+        "calls scan_market": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "mentions LLY": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never gives a direct recommendation": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never tells the reader to trade": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never sets a price target": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never predicts direction": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never claims certainty": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never uses a rating": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never nudges the reader about positioning": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never suggests an action": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never advises a posture": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never tells the reader when to act": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "no bold markdown": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "no bullet lists": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "no markdown headings": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "mentions no ticker outside the data": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "judge verdict": {
+          "passed": 3,
+          "runs": 5,
+          "failure": "The brief uses the phrase 'your watchlist' which implies ownership/possession, violating the rule that only 'on your watchlist' or 'you're tracking' are acceptable phrasings."
+        }
+      },
+      "first_output": {
+        "tool_calls": [
+          {
+            "step": 1,
+            "tool": "get_watchlist",
+            "input": {}
+          },
+          {
+            "step": 1,
+            "tool": "scan_market",
+            "input": {
+              "limit": 10
+            }
+          }
+        ],
+        "answer": "The biggest mover today that isn't on your watchlist is Eli Lilly (LLY), up 11.4% to $988.10. \n\nSuper Micro (SMCI) was also a major mover, down 9.2% to $41.00. NVDA is in today's top movers but is already on your watchlist."
+      }
+    }
+  }
+}
