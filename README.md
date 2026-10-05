@@ -62,12 +62,27 @@ flowchart TB
     tools <--> loop
 ```
 
-Two patterns, chosen per job. The dashboard knows in advance what every row
-needs, so it calls the tools directly and ranks in Python. LLMs make slow,
-costly and inconsistent sorting functions, and good explainers. The agent
-handles questions nobody can anticipate, so the model chooses the tools.
+## Key decisions
 
-The reasoning behind these choices, and the bugs that shaped them, are in
+- **Rank with rules, explain with the model.** The dashboard knows in
+  advance what every row needs, so it calls the tools directly and ranks in
+  Python; LLMs make slow, costly and inconsistent sorting functions, and
+  good explainers. The agent handles questions nobody can anticipate, so
+  there the model chooses the tools.
+  [More](docs/DESIGN.md#the-two-agent-patterns-side-by-side)
+- **Evidence, not predictions.** Asked whether a stock will rise after
+  earnings, the agent says direction isn't knowable and shows what already
+  happened instead. Getting that evidence right meant reading each report's
+  timestamp: a before-open report is traded the same day, an after-close
+  one the next, and the first version measured the wrong session for every
+  before-open reporter. [More](docs/DESIGN.md#will-it-go-up-after-earnings)
+- **Test the AI part, and test the tests.** Regex checks what is fixed; an
+  LLM judge grades what needs judgement and fails closed; repeated runs
+  turn single results into pass rates; and the checks are fed bad output to
+  prove they can fail.
+  [More](docs/DESIGN.md#evals--testing-the-part-that-isnt-deterministic)
+
+The full reasoning, and the mistakes that shaped it, are in
 [docs/DESIGN.md](docs/DESIGN.md).
 
 ## Quick start
