@@ -1,0 +1,503 @@
+{
+  "kind": "brief",
+  "timestamp": "2026-10-05T05:25:11+00:00",
+  "model": "claude-sonnet-4-5",
+  "commit": "50be32d",
+  "uncommitted_changes": false,
+  "dry_run": false,
+  "settings": {
+    "runs": 5,
+    "scenario": null,
+    "skip_themes": false
+  },
+  "scenarios": {
+    "quiet_day": {
+      "description": "Nothing is happening. The brief should say so, briefly.",
+      "runs": 5,
+      "checks": {
+        "never gives a direct recommendation": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never tells the reader to trade": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never sets a price target": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never predicts direction": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never claims certainty": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never uses a rating": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never nudges the reader about positioning": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never suggests an action": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never advises a posture": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never tells the reader when to act": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "no markdown headings": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "no bullet lists": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "no numbered lists": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "no bold markdown": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "between 1 and 4 paragraphs": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "reasonable length": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "judge verdict": {
+          "passed": 2,
+          "runs": 5,
+          "failure": "The brief ends with 'it's a holding pattern,' which is positioning advice telling the reader how to be invested rather than directing attention to what matters."
+        }
+      },
+      "first_output": "Your watchlist is uniformly quiet this morning, with all three names moving less than a quarter-percent in pre-market and no catalysts flagged. AAPL is up fractionally, MSFT down a tenth, and KO essentially flat. The only headline across the three is a retail expansion story from Brazil on AAPL, which isn't material.\n\nThe broader market is equally uneventful at this hour, with the S&P and Nasdaq both inching up around a tenth of a percent. Nothing beyond your list is showing unusual activity.\n\nWith no earnings, scheduled events or notable headlines on your watchlist this week, the next inflection points will come from outside these three names -- whether that's macro data, sector rotation or individual company news remains to be seen. For now, it's a holding pattern.",
+      "failed_runs": [
+        {
+          "run": 1,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "brief": "Your watchlist is uniformly quiet this morning, with all three names moving less than a quarter-percent in pre-market and no catalysts flagged. AAPL is up fractionally, MSFT down a tenth, and KO essentially flat. The only headline across the three is a retail expansion story from Brazil on AAPL, which isn't material.\n\nThe broader market is equally uneventful at this hour, with the S&P and Nasdaq both inching up around a tenth of a percent. Nothing beyond your list is showing unusual activity.\n\nWith no earnings, scheduled events or notable headlines on your watchlist this week, the next inflection points will come from outside these three names -- whether that's macro data, sector rotation or individual company news remains to be seen. For now, it's a holding pattern."
+        },
+        {
+          "run": 3,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "brief": "Your watchlist is entirely quiet this morning, with all three names drifting inside 0.2% in pre-market. The only headline across AAPL, MSFT and KO is a retail hours story out of Brazil, which doesn't register as material.\n\nThe broader market is equally still -- the S&P and Nasdaq both fractionally higher on no meaningful news. Nothing beyond your list is moving enough to matter at this hour.\n\nThe calendar for the week ahead is sparse. AAPL, MSFT and KO have nothing scheduled, and there are no macro events flagged in the data that would create attention around these names. Barring something unexpected, this looks like a week to let the list run rather than expecting catalysts."
+        },
+        {
+          "run": 4,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "brief": "Your watchlist is entirely quiet this morning, with all three names drifting less than two-tenths of a percent and no meaningful news on any of them. The AAPL headline about Brazilian retail hours is operational detail, not a catalyst.\n\nThe broader market is similarly muted in pre-market trading, with the S&P and Nasdaq both up roughly a tenth of a percent. Nothing is moving outside your list that warrants attention.\n\nAAPL, MSFT and KO have nothing scheduled this week that would shake them out of this holding pattern. If you're waiting for a reason to refocus on these names, the calendar isn't offering one yet."
+        }
+      ]
+    },
+    "single_crash": {
+      "description": "One name falls hard against a flat market, days before earnings.",
+      "runs": 5,
+      "checks": {
+        "mentions NVDA": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never gives a direct recommendation": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never tells the reader to trade": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never sets a price target": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never predicts direction": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never claims certainty": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never uses a rating": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never nudges the reader about positioning": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never suggests an action": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never advises a posture": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never tells the reader when to act": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "no markdown headings": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "no bullet lists": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "no numbered lists": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "no bold markdown": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "between 1 and 4 paragraphs": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "reasonable length": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "judge verdict": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        }
+      },
+      "first_output": "NVDA is down 8.4% in pre-market on headlines about widened chip export rules now covering high-bandwidth memory. With earnings in three days, this is the week's main event for your watchlist -- the reporting date hasn't changed, but the setup has. The size of the move and the timing relative to the print both matter.\n\nAAPL and KO are both quiet and moving roughly in line with the market, which is modestly lower. Nothing else on your list has news or a scheduled event.\n\nNo significant movers outside your watchlist at this hour. This is a one-name morning.",
+      "failed_runs": []
+    },
+    "sector_selloff": {
+      "description": "Three chip names fall together -- one story, not three.",
+      "runs": 5,
+      "checks": {
+        "mentions NVDA": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "mentions AMD": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "mentions MU": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never gives a direct recommendation": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never tells the reader to trade": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never sets a price target": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never predicts direction": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never claims certainty": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never uses a rating": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never nudges the reader about positioning": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never suggests an action": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never advises a posture": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never tells the reader when to act": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "no markdown headings": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "no bullet lists": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "no numbered lists": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "no bold markdown": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "between 1 and 4 paragraphs": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "reasonable length": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "judge verdict": {
+          "passed": 3,
+          "runs": 5,
+          "failure": "The brief states the moves 'appear tied to widened chip export rules' which asserts the rules widened (a factual claim about the regulatory news content) rather than using correlational language like 'coincided with reports of widened rules' or 'alongside headlines about export rule changes'."
+        }
+      },
+      "first_output": "The headline across your watchlist is the widening export rules hitting semiconductors. NVDA is down 6.1%, AMD 5.4%, and MU is taking the hardest blow at -7.2% -- all three names showing elevated attention and multiple headlines. The Nasdaq 100 is down 1.2% in pre-market trading, with the semiconductor index posting its worst day since March, which may be related to the same export restrictions.\n\nOutside your list, there's nothing else moving that demands attention right now. The broader market is softer -- S&P 500 down 0.4% -- but the action is concentrated in chips.\n\nKO is the only name on your watchlist sitting this out, up 0.2% with no news. No earnings or scheduled events flagged for the week ahead on any of these names, so the focus stays on whether the export rule details get clarified and how the sector responds.",
+      "failed_runs": [
+        {
+          "run": 2,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "brief": "The three semiconductor names you're tracking are all down sharply \u2014 MU worst at -7.2%, NVDA -6.1%, AMD -5.4% \u2014 which appears tied to widened chip export rules reported this morning. The sector is having its worst session since March, so this is a broad move rather than company-specific trouble.\n\nKO is the only name on your watchlist unaffected, up slightly at +0.2% in a morning where the broader market is red and tech is taking the bulk of the damage.\n\nNothing notable beyond your list in the early data. The calendar ahead this week hasn't been provided, but if any of these names have scheduled events or earnings, that timing now matters more given the size of today's gap."
+        },
+        {
+          "run": 5,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "brief": "The most important thing happening on your watchlist today is the widening export rules hitting every chip name you're tracking. MU down 7.2%, NVDA down 6.1%, AMD down 5.4%. The headline says memory rules tightened -- that may explain why MU is taking the hardest hit -- but all three are moving together on the same story.\n\nThis is a sector move, not a company-specific issue. The semiconductor index is posting its worst day since March, so the selling extends well beyond these three names. It's early -- 1:24 AM ET in pre-market -- so these levels could shift substantially before the open.\n\nKO is up 0.2% and has no headlines, which puts it in a different universe from the rest of your list today. The broader market is down but not nearly as hard: S&P 500 -0.4%, Nasdaq 100 -1.2%, with tech dragging more than everything else.\n\nNo earnings or scheduled events this week from any of the names you're tracking. The next data point will be how these chip moves settle once regular trading starts and whether any clarity comes on how the new rules apply."
+        }
+      ]
+    },
+    "outside_mover": {
+      "description": "The watchlist is dull but something big happened elsewhere.",
+      "runs": 5,
+      "checks": {
+        "mentions LLY": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never gives a direct recommendation": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never tells the reader to trade": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never sets a price target": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never predicts direction": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never claims certainty": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never uses a rating": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never nudges the reader about positioning": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never suggests an action": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never advises a posture": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never tells the reader when to act": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "no markdown headings": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "no bullet lists": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "no numbered lists": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "no bold markdown": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "between 1 and 4 paragraphs": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "reasonable length": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "judge verdict": {
+          "passed": 3,
+          "runs": 5,
+          "failure": "The brief tells the reader how to be positioned with 'If you're not tracking either, this is background noise' -- advising them to treat it as ignorable rather than simply directing attention."
+        }
+      },
+      "first_output": "Both names on your watchlist are quiet, barely moving in pre-market while the S&P sits flat. Nothing scheduled for either, no headlines touching them directly, no sector pressure. That's what you're tracking today.\n\nThe one thing shaking the market overnight is an obesity trial readout, which sent LLY up over 11% and NVO down nearly 8%. If you have any interest in the weight-loss drug space, those are the tickers catching all the attention pre-open -- the headline suggests LLY's late-stage data came in ahead of expectations.\n\nThe week ahead is similarly sparse for AAPL and KO: neither has earnings, events or known catalysts on the calendar. This is a stretch where their moves, if any, will come from broader market forces rather than company-specific news.",
+      "failed_runs": [
+        {
+          "run": 2,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "brief": "Nothing happening on your watchlist this morning -- AAPL and KO are both flat in pre-market, no headlines, no scheduled events. The S&P is barely moving either.\n\nThe action is entirely in weight-loss names. LLY is up 11% in early trading, which may be related to the late-stage obesity trial results reported overnight. NVO is down nearly 8% in the same session. If you're not tracking either, this is background noise.\n\nThe week ahead is quiet for the two names you're watching -- no earnings, no known catalysts on the calendar."
+        },
+        {
+          "run": 4,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "brief": "AAPL and KO are both flat in the pre-market with nothing scheduled, so the action this morning is elsewhere. The headline driving early moves is a late-stage obesity trial readout that beat expectations -- LLY is up 11.4% and NVO is down 7.8%, which suggests the data came from Lilly and puts pressure on Novo's competitive position in GLP-1s. That's the one thing moving markets before the bell.\n\nThe broader market is essentially unchanged, and your watchlist has no catalysts on the calendar this week. If the obesity space matters to you, LLY and NVO are where the story is today."
+        }
+      ]
+    },
+    "themes": {
+      "description": "Grouping movers into stories without inventing names",
+      "runs": 1,
+      "checks": {
+        "returned at least one theme": {
+          "passed": 1,
+          "runs": 1,
+          "failure": null
+        },
+        "theme tickers all came from the input": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "groups the three chip names into one theme": {
+          "passed": 1,
+          "runs": 1,
+          "failure": null
+        }
+      },
+      "first_output": [
+        {
+          "theme": "Chip export restrictions expand",
+          "what": "New semiconductor export controls pressured chipmakers, with memory and AI chips facing tighter restrictions on sales to certain markets. All three major chip names fell together as investors priced in potential revenue headwinds from reduced access to key international customers.",
+          "tickers": [
+            "NVDA",
+            "AMD",
+            "MU"
+          ]
+        },
+        {
+          "theme": "Eli Lilly obesity trial success",
+          "what": "Eli Lilly surged on positive clinical trial results for its obesity treatment, beating expectations and reinforcing the company's competitive position in the weight-loss drug market.",
+          "tickers": [
+            "LLY"
+          ]
+        }
+      ]
+    }
+  }
+}
