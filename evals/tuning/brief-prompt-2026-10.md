@@ -129,3 +129,31 @@ What's left, and what would address it:
 
 Spend: about $5 of the $8 budget -- baseline $2, two train rounds about
 $0.9 each, the test run about $1, judge-stability checks about $0.1.
+
+## Afterwards: the two fixes outside the prompt (97176f2, 65a8e2d)
+
+The leftovers above pointed at the harness and the brief's input rather than
+the prompt, so both were fixed and the eval rerun.
+
+- **The judge's verdict is read wherever it sits**, with room to finish
+  (max_tokens 250 -> 600). The prose replies had been cut off before any
+  verdict and charged to the brief.
+- **Each name carries next_earnings_in_days** in the brief's input, null when
+  no date is known; the prompt says how to read it.
+
+| | after tuning (485465a) | after the fixes (65a8e2d) |
+|---|---|---|
+| Train | 27/32 (84%) | 30/32 (94%) |
+| Test | 31/40 (78%) | 38/40 (95%) |
+
+The calendar failures and the judge-format failures are gone; quiet_day went
+4/8 -> 8/8 and theme_rally_policy_headline 6/8 -> 8/8. Four failures remain:
+two subtler asserted causes ("whatever drove VRT", "the only headline
+mattering to these three names"), one real slip (LLY and NVO "on your
+watchlist's radar" -- they aren't on it), and one judge misreading -- it
+called "AAPL and KO report earnings in roughly 30 days" invented when the
+data says exactly that.
+
+Strictly, the test set has now been read, so 95% is no longer an untouched
+held-out number; the honest headline for the prompt work stays 35% -> 78%,
+and this table shows what fixing the input and the harness added on top.
