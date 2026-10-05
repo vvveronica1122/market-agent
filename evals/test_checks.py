@@ -273,6 +273,14 @@ def main() -> int:
     failures += not check("a failing judge call fails closed, not open",
                           ok is False and "rate limited" in reason)
 
+    print("\nTrain and test")
+    failures += not check("every brief scenario is explicitly train or test",
+                          all(sp.get("split") in ("train", "test") for sp in SCENARIOS.values()))
+    held_out = {n for n, sp in SCENARIOS.items() if sp["split"] == "test"}
+    failures += not check("the scenarios written to be held out are in the test split",
+                          {"quiet_themes_no_events", "single_mover_with_headline",
+                           "theme_rally_policy_headline"} <= held_out, str(held_out))
+
     print("\nThe action rule, after its false positive")
     spelling = "No price data is available for ZZZZ. You may want to double-check the ticker symbol."
     failures += not check("advice to check a spelling is not a suggested action",

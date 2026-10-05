@@ -41,3 +41,26 @@ Worth separating two things that look alike: tuning the brief to meet a
 standard that is demonstrably consistent is legitimate. Loosening the
 standard so the brief passes is not. The stability run is what tells you
 which situation you are in — and here it said the standard was solid.
+
+## quiet_day_watch_not_react.txt
+
+From the first run of the expanded evals (bea95de), rule (b), for the closing
+line: *"This looks like a week to watch for whether anything develops rather
+than react to what's already in motion."*
+
+**0/5 on identical text, same reason every run.** The standard is solid; the
+sentence tells the reader how to act. That made changing the brief's prompt
+the legitimate fix.
+
+## outside_mover_headline_driving.txt
+
+Same run, rule (a). The brief hedges correctly first -- LLY's rise *"may be
+related to the late-stage obesity trial readout"* -- then, two sentences
+later: *"that's the headline driving things before the open."*
+
+**2/5 on identical text**: the judge disagreed with itself. A split verdict
+on fixed text means the standard is ambiguous, so the rubric was sharpened
+before any prompt change: a hedge in one sentence doesn't license an
+assertion in another. **After: 0/5, every run quoting the second sentence**
+-- and a hand-written brief hedged throughout still passed 3/3, so the new
+line didn't simply make the judge harsher.

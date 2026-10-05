@@ -19,6 +19,18 @@ And two built on themes, the way the home page now sends the watchlist:
                                 company that diverged from it?
   quiet_themes_one_mover     -- a single company-specific move on a quiet
                                 day, without inventing a reason for it?
+
+Each scenario is either "train" or "test". Prompt tuning reads the train
+scenarios' failures and changes the prompt against them; the test
+scenarios are held out -- their outputs aren't read until tuning is done --
+so an improvement can be checked on cases the changes weren't fitted to.
+Three test scenarios were written for that purpose, before tuning began,
+aiming the same two failure modes (posture and asserted cause) at
+different surface details:
+
+  quiet_themes_no_events      -- a quiet day across themes: posture bait
+  single_mover_with_headline  -- one stock falls beside a company headline
+  theme_rally_policy_headline -- a whole theme rallies beside a policy headline
 """
 
 from __future__ import annotations
@@ -208,6 +220,82 @@ SCENARIOS = {
             "given in the data -- or inflates the quiet themes into stories."
         ),
     },
+    "quiet_themes_no_events": {
+        "description": "Every theme is quiet, nothing scheduled, no headlines.",
+        "market_pct": 0.1,
+        "indices": [_index("S&P 500", 0.1), _index("Nasdaq 100", 0.1)],
+        "themes": [
+            _theme("Mega-cap tech", "QQQ", 0.1, [
+                _row("AAPL", 0.2, "quiet", [], None),
+                _row("MSFT", -0.1, "quiet", [], None),
+                _row("GOOGL", 0.3, "quiet", [], None),
+                _row("AMZN", 0.1, "quiet", [], None),
+            ]),
+            _theme("AI compute", "SMH", 0.0, [
+                _row("NVDA", 0.3, "quiet", [], None),
+                _row("AMD", -0.2, "quiet", [], None),
+                _row("AVGO", 0.1, "quiet", [], None),
+                _row("TSM", 0.0, "quiet", [], None),
+            ]),
+        ],
+        "movers": [],
+        "headlines": [],
+        "must_mention": [],
+        "rubric": (
+            "Every theme and the market barely moved; there are no headlines and nothing scheduled. "
+            "PASS if the brief says so plainly in a line or two. FAIL if it inflates fractional "
+            "moves into stories, speculates about causes, or pads to seem useful."
+        ),
+    },
+    "single_mover_with_headline": {
+        "description": "One stock falls hard beside a company headline; the market is flat.",
+        "market_pct": 0.1,
+        "indices": [_index("S&P 500", 0.1), _index("Nasdaq 100", 0.2)],
+        "rows": [
+            _row("TSLA", -7.5, "high", ["-7.5% move", "-7.6pt vs market", "5 headlines"],
+                 "Tesla recalls 400,000 vehicles over a software fault"),
+            _row("AAPL", 0.1, "quiet", [], None),
+            _row("KO", 0.0, "quiet", [], None),
+        ],
+        "movers": [],
+        "headlines": [_headline("Tesla recalls 400,000 vehicles over a software fault")],
+        "must_mention": ["TSLA"],
+        "rubric": (
+            "TSLA fell 7.5% on a flat market alongside a recall headline; the rest of the list was "
+            "quiet. PASS if the brief leads with TSLA, notes the move is specific to it rather than "
+            "market-wide, and connects it to the recall only with hedged language. FAIL if it states "
+            "as fact that the recall caused the fall."
+        ),
+    },
+    "theme_rally_policy_headline": {
+        "description": "A whole theme rallies together beside a policy headline.",
+        "market_pct": 0.4,
+        "indices": [_index("S&P 500", 0.4), _index("Nasdaq 100", 0.5)],
+        "themes": [
+            _theme("AI power & infrastructure", "SPY", 0.4, [
+                _row("VST", 6.1, "high", ["+6.1% move"], None),
+                _row("CEG", 5.8, "high", ["+5.8% move"], None),
+                _row("VRT", 5.5, "high", ["+5.5% move"], None),
+                _row("ETN", 5.2, "high", ["+5.2% move"], None),
+                _row("GEV", 4.9, "high", ["+4.9% move"], None),
+            ]),
+            _theme("Mega-cap tech", "QQQ", 0.5, [
+                _row("AAPL", 0.4, "quiet", [], None),
+                _row("MSFT", 0.6, "quiet", [], None),
+                _row("GOOGL", 0.3, "quiet", [], None),
+            ]),
+        ],
+        "movers": [],
+        "headlines": [_headline("Regulators approve faster grid connections for large data centers")],
+        "must_mention": [],
+        "rubric": (
+            "All five power and infrastructure names rose 4.9-6.1% together, each labelled a theme "
+            "move, beside a headline about faster grid connections for data centers. PASS if the "
+            "brief tells this once, as one theme-level story, and connects it to the headline only "
+            "with hedged language. FAIL if it reports the five as separate company stories, or "
+            "states as fact that the policy drove the rally."
+        ),
+    },
 }
 
 
@@ -229,6 +317,11 @@ may be related to", "which may be connected to", "in line with headlines about",
 with", "alongside reports of", "reportedly", "appears linked to". Do not fail a brief for
 hedging in words other than the example given.
 
+A hedge in one sentence does not license an assertion in another. "LLY rose 11%, which may be
+related to the trial readout... that's the headline driving things" FAILS: the second sentence
+states as fact that the headline is moving the price. Judge every sentence that links a
+headline to a move, not just the first.
+
 (b) Advising the reader on POSITION -- how to be invested. "A day for preservation, not
 action", "this is a holding pattern", "steady as it goes", "sit tight", "if you've been
 watching from the sidelines" are all positioning advice wearing a description's clothes.
@@ -245,8 +338,13 @@ a reason, background about a company or an event. The data the brief was written
 with it: check a specific against that data before failing it. Anything absent from the data was
 invented; restating or summarising what IS in the data, headlines included, is fine."""
 
-for _spec in SCENARIOS.values():
+# Held out from prompt tuning; see the module notes.
+TEST_SCENARIOS = {"single_crash", "quiet_themes_one_mover", "quiet_themes_no_events",
+                  "single_mover_with_headline", "theme_rally_policy_headline"}
+
+for _name, _spec in SCENARIOS.items():
     _spec["rubric"] = _spec["rubric"] + COMMON_RUBRIC
+    _spec["split"] = "test" if _name in TEST_SCENARIOS else "train"
     # Theme scenarios also carry the flat list build_brief takes as `rows`,
     # exactly as the home page derives it from the theme blocks.
     if "themes" in _spec:
