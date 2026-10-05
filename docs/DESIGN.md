@@ -9,6 +9,7 @@ behind it.
 - [Principles](#principles)
 - [Rank with rules, explain with the model](#rank-with-rules-explain-with-the-model)
 - [Themes: measuring a move against its peers](#themes-measuring-a-move-against-its-peers)
+- [Earnings reactions: the market model](#earnings-reactions-the-market-model)
 - [Two front doors, one agent](#two-front-doors-one-agent)
 - [The agent, and how a tool gets connected](#the-agent-and-how-a-tool-gets-connected)
 - [The two agent patterns, side by side](#the-two-agent-patterns-side-by-side)
@@ -73,11 +74,17 @@ memory and storage (SMH holds only MU), and power producers plus electrical
 equipment (XLU is regulated utilities, XLI is broad industrials). Their
 descriptions say so rather than pretend.
 
-**Its peers**: the equal-weighted average of the *other* companies in the
-same theme. Leaving the company out of its own average removes the
-self-comparison, and equal weighting stops one giant from being the whole
-benchmark. It needs at least two other companies with data; below that the
-"peer group" is one stock, so the comparison is withheld rather than shown.
+**Its peers**: the median move of the *other* companies in the same theme
+-- the typical peer. Leaving the company out removes the self-comparison,
+and the median stops one name from being the whole benchmark. It started as
+an equal-weighted average, and an eval fixture broke that: on a quiet day
+where VRT jumped 6% and its three peers sat flat, each flat peer's "peer
+average" became +2%, so all three were labelled as diverging from it. Over
+long windows, SNDK's 625% year-to-date run put WDC 229 points behind its
+"peers". With three or four peers, an average is decided by its most extreme
+member; the median is not. It needs at least two other companies with data;
+below that the "peer group" is one stock, so the comparison is withheld
+rather than shown.
 For the same reason each company belongs to exactly one theme: in two, it
 would have two peer groups and count twice in theme averages.
 
@@ -105,13 +112,57 @@ The rule now measures the **gap** between the company and its peers, as a
 share of the larger of the two moves: up to 40% (or under a point in
 absolute terms) it tracked its theme; 60% or more it diverged -- moved
 alone, against its peers, or held up while they fell; in between it's
-partly shared; if neither moved 1%, it's quiet. On that run the hard-disk
-pair both came out "partly shared", MU "own move".
+partly shared; if neither moved 1%, it's quiet. Measured against the peer
+median (the comparison moved from average to median, below), that day's
+four storage names all come out "own move": the theme split into a
+hard-disk pair down 10% and memory names down 1-4%, so every name sat far
+from its typical peer. The labels say there was no shared theme move, which
+is true; what they can't say is that the hard-disk pair moved together.
+That needs sub-groups inside a theme, which don't exist yet.
 
 The thresholds are judgement, not estimates, and the README says so. What
 the rewrites did establish is what the label is for: a reader scanning a
 theme should be pointed at the companies whose day differed from their
 group's, in either direction.
+
+## Earnings reactions: the market model
+
+The earnings panel used to show the raw move on the reaction session. But a
+stock that rose 6% on a day the market rose 3% didn't react 6% to its report,
+and for high-beta names the market's share is large. So each reaction is now
+measured the way event studies measure it: fit the stock's daily returns to
+SPY's by least squares over 120 sessions ending two weeks before the report
+(the gap keeps the run-up out of what "normal" looks like), and take the
+reaction session's move minus what that predicts. Dividing by the fit's
+residual standard deviation says how unusual the reaction was for that
+stock. For MU, the typical raw move was 5.9% and the typical abnormal move
+3.0%: about half of what looked like an earnings reaction was the market
+and MU's beta.
+
+The first real run broke this too. The tests -- synthetic prices with a known
+beta and a planted 5% jump -- all passed; the real data then crashed it,
+because Yahoo's dates carry New York time and pandas won't compare those with
+plain dates. Every synthetic series had been timezone-free. That's now a test
+of its own, and a failure in the model costs the abnormal figures, never the
+reaction itself.
+
+Then the numbers came out wrong in a way no test had asked about. The
+20-session run-ups before the last memory-stock reports read -24% to -46%.
+The cause was alpha: fitted over a window inside 2026's memory rally, it came
+out at 0.5-0.9% a day, and projecting that forward "expected" another 10-18%
+over 20 sessions. A stock that merely paused looked like a collapse. **A past
+drift isn't something a stock is expected to repeat**, so the expectation is
+now beta times the market's move, with alpha still estimated and reported
+but left out. A test builds a rally that stops and checks it isn't called a
+slump; with alpha put back, it fails at -14%.
+
+Across a theme, the Earnings tab asks the question the panel asks of one
+stock: does a bigger beat bring a bigger reaction? It uses a rank
+correlation (one 300% surprise would otherwise decide a Pearson correlation
+on its own), withholds it below eight reports, and says what it isn't:
+reports from four companies overlapping in time aren't independent
+observations. For memory and storage on the first run it was 0.18 across 26
+reports -- 25 beats, 15 followed by a positive abnormal reaction.
 
 ## Two front doors, one agent
 

@@ -25,9 +25,11 @@ a driver, each with a benchmark ETF. It ships with four (AI compute, Memory
 companies can be created, edited and moved from the page.
 
 Every company is measured two ways: against its theme's ETF, and against
-its **peers** — the equal-weighted average of the other companies in the
-same theme. The second matters because cap-weighted ETFs are dominated by
-the names being measured (NVDA is over a fifth of SMH). Each move is then
+its **peers** — the median move of the other companies in the same theme,
+the typical peer. The second matters because cap-weighted ETFs are
+dominated by the names being measured (NVDA is over a fifth of SMH), and
+the median because in a group of four one extreme name would decide an
+average. Each move is then
 labelled *with theme*, *partly shared* or *own move*, depending on how far
 it diverged from its peers.
 
@@ -36,15 +38,25 @@ it diverged from its peers.
   (dispersion), earnings this week, and the companies that most need
   attention. An AI brief on top tells each theme's story once and names the
   companies that diverged.
-- **Theme page** — every company against the ETF and its peers, ranked by
-  an attention score (size of move, divergence from peers, earnings
-  proximity, news), plus notes on why each is watched and the controls to
-  edit the theme.
-- **Stock page** — the company's place in its theme today (peer average,
-  gap, label), six-month chart, AI analysis, headlines with summaries, key
-  financials, and a *Going into earnings* panel: the actual next-session
-  move after each of the last eight reports, how often it beat and fell
-  anyway, and how analyst estimates have been revised.
+- **Theme page**, in four tabs:
+  - *Today* — every company against the ETF and its peers, ranked by an
+    attention score (size of move, divergence from peers, earnings
+    proximity, news), with notes and the controls to edit the theme.
+  - *Performance* — returns over 1M, 3M, 6M, YTD and 1Y, each against the
+    ETF and the peers over the same window.
+  - *Earnings* — each company's recent reports measured with an
+    event-study market model: the abnormal reaction (the move beyond what
+    beta and SPY predicted), how unusual it was in standard deviations of
+    the stock's ordinary days, and the run-up before the report. Across the
+    theme: how often beats were rewarded, and the rank correlation between
+    surprise size and reaction, shown with its sample size.
+  - *Peers* — forward P/E, EV/sales, growth, margins and the direction of
+    analyst estimates, with the theme median and flags where a figure would
+    mislead (one-off gains, near-zero earnings, base effects).
+- **Stock page**, in three tabs: *Overview* (place in its theme today,
+  six-month chart, AI analysis, headlines), *Earnings* (next report, and
+  the abnormal reaction to each of the last eight), *Fundamentals & peers*
+  (metrics with definitions, quarterly revenue, the theme's peer table).
 - **Earnings calendar** — the next two weeks by theme, then three months.
 - **Discover** — a market-wide scan of top gainers, losers and unusually
   active names (above $2B market cap and $5 a share), grouped into themes,
@@ -90,9 +102,11 @@ flowchart TB
   [More](docs/DESIGN.md#the-two-agent-patterns-side-by-side)
 - **Measure a move against its peers, not just an ETF.** Cap-weighted ETFs
   are dominated by the companies being compared with them, so each company
-  is also measured against the equal-weighted average of the *other*
-  companies in its theme. The rule for calling a move the theme's or the
-  company's own was rewritten twice after the first live run broke it.
+  is also measured against the median of the *other* companies in its
+  theme. The rule for calling a move the theme's or the company's own was
+  rewritten twice after the first live run broke it, and the average became
+  a median after an eval fixture showed one jumping peer making three flat
+  ones look like they'd diverged.
   [More](docs/DESIGN.md#themes-measuring-a-move-against-its-peers)
 - **Evidence, not predictions.** Asked whether a stock will rise after
   earnings, the agent says direction isn't knowable and shows what already
@@ -170,7 +184,7 @@ fail.
 prompt or the model.
 
 ```bash
-python3 evals/run_evals.py              # brief writing: 4 scenarios + themes
+python3 evals/run_evals.py              # brief: 6 scenarios; stock analysis: 3; themes
 python3 evals/run_agent_evals.py        # agent tool choices: 4 scenarios
 python3 evals/run_evals.py --runs 3     # repeat for pass rates, not anecdotes
 python3 evals/run_evals.py --dry-run    # exercise the harness, no API calls
@@ -202,7 +216,8 @@ tools/
   market_data.py      price, price history, company news, upcoming events
   market_scan.py      market-wide movers and market news
   fundamentals.py     earnings schedule and setup, quarterly results, key stats
-  relative.py         peer averages, theme-vs-company attribution, breadth, dispersion
+  relative.py         peer medians, theme-vs-company attribution, breadth, dispersion
+  performance.py      period returns, the event-study market model, rank correlation
   calc.py             safe arithmetic for the agent (parsed, never eval'd)
   check_sources.py    which data sources work from this network
   probe_*.py          scripts that inspect raw API payloads
@@ -226,8 +241,17 @@ docs/DESIGN.md        design decisions and lessons
 - The attention score's weights are hand-set heuristics and haven't been
   validated against outcomes. The same goes for the attribution thresholds
   (40% / 60% of the larger move, 1-point floor).
-- Theme comparisons use today's moves only; multi-period and
-  beta-adjusted comparisons are not built yet.
+- A theme that splits in two (hard-disk makers down 10%, memory makers down
+  2%) labels every company as diverging, which is true but hides that each
+  half moved together; there are no sub-groups within a theme yet.
+- Theme averages (as opposed to peer comparisons) are equal-weighted means,
+  so one extreme name still moves them -- SNDK's 2026 run dominates its
+  theme's YTD average.
+- Market-model betas estimated during a strong sector rally run high, which
+  enlarges both expected and abnormal returns; the earliest report in each
+  two-year history lacks enough prior data for a model and shows raw.
+- Earnings timestamps come from Yahoo; a report time recorded wrongly
+  (some carry a placeholder hour) puts the reaction on the wrong session.
 
 ## License
 
