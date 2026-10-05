@@ -17,21 +17,15 @@
                maxlength="12" aria-label="Search for a ticker" />
       </form>
 
-      <nav class="nav">
-        <button class="nav-item is-active" data-view="watchlist">Watchlist</button>
-        <button class="nav-item" data-view="chat">Ask</button>
-        <button class="nav-item" data-view="movers">Today's Movers</button>
-        <button class="nav-item" data-view="discover">Discover</button>
-        <button class="nav-item" data-view="earnings">Earnings</button>
-        <button class="nav-item is-disabled" disabled>Notes <span class="soon">soon</span></button>
-        <button class="nav-item is-disabled" disabled>Alerts <span class="soon">soon</span></button>
+      <nav class="nav" aria-label="Main">
+        <a class="nav-item" href="#/" data-route="home">Home</a>
+        <p class="nav-section" id="nav-themes-label">Themes</p>
+        <div class="nav-themes" id="nav-themes" aria-labelledby="nav-themes-label"></div>
+        <p class="nav-section">Tools</p>
+        <a class="nav-item" href="#/earnings" data-route="earnings">Earnings calendar</a>
+        <a class="nav-item" href="#/discover" data-route="discover">Discover</a>
+        <a class="nav-item" href="#/ask" data-route="ask">Ask</a>
       </nav>
-
-      <form id="add-form" class="add-form">
-        <input id="ticker-input" type="text" placeholder="Add to watchlist" autocomplete="off"
-               maxlength="12" aria-label="Add a ticker to your watchlist" />
-        <button type="submit" aria-label="Add">+</button>
-      </form>
 
       <p class="disclaimer">
         Delayed free market data, for research only. Nothing here is financial advice.
@@ -48,6 +42,7 @@
   </div>
 
   <div id="tooltip" class="tooltip" hidden></div>
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
   <script src="/static/app.js"></script>
 </body>
 </html>

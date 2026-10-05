@@ -21,13 +21,116 @@ const COLORS = {
   surface: "#FFFBF9",
 };
 
-const state = { view: "watchlist", rows: [], chart: null, chat: [], chatBusy: false };
+const state = {
+  view: "home",
+  themes: [],        // theme setup from /api/themes (names, benchmarks, companies)
+  chart: null,
+  chat: [],
+  chatBusy: false,
+  renderToken: 0,
+};
 
 const viewEl = document.getElementById("view");
 const stripEl = document.getElementById("market-strip");
 const tooltipEl = document.getElementById("tooltip");
+const toastEl = document.getElementById("toast");
+
+/* ---------------- routing ----------------
+
+   Every page has its own address (#/theme/ai-compute, #/stock/MU), so the
+   browser's back button works and any page can be linked to directly. */
+
+const ROUTES = [
+  [/^#\/?$/, () => showHome()],
+  [/^#\/theme\/([^/]+)$/, (m) => showTheme(decodeURIComponent(m[1]))],
+  [/^#\/stock\/([^/]+)$/, (m) => showDetail(decodeURIComponent(m[1]).toUpperCase())],
+  [/^#\/earnings$/, () => showEarnings()],
+  [/^#\/discover$/, () => showDiscover()],
+  [/^#\/ask$/, () => showChat()],
+  [/^#\/search\/([^/]+)$/, (m) => showSearch(decodeURIComponent(m[1]).toUpperCase())],
+];
+
+function route() {
+  hideTooltip();
+  closeThemeMenu();
+  const hash = location.hash || "#/";
+  for (const [pattern, handler] of ROUTES) {
+    const match = hash.match(pattern);
+    if (match) return handler(match);
+  }
+  showHome();
+}
+
+function go(hash) {
+  if (location.hash === hash) route();
+  else location.hash = hash;
+}
+
+const stockHash = (ticker) => "#/stock/" + encodeURIComponent(ticker);
+const themeHash = (id) => "#/theme/" + encodeURIComponent(id);
+
+// Each view awaits the network. If the reader clicks elsewhere meanwhile,
+// the slow response must not paint over the page they moved to -- so every
+// view takes a token and checks it is still current before rendering.
+function beginView(view, navKey) {
+  state.view = view;
+  setActiveNav(navKey === undefined ? view : navKey);
+  return ++state.renderToken;
+}
+
+const isCurrent = (token) => token === state.renderToken;
+
+async function api(method, url, body) {
+  try {
+    const res = await fetch(url, {
+      method,
+      headers: body ? { "Content-Type": "application/json" } : undefined,
+      body: body ? JSON.stringify(body) : undefined,
+    });
+    const data = await res.json().catch(() => ({}));
+    return { ok: res.ok, data };
+  } catch (err) {
+    return { ok: false, data: { error: String(err) } };
+  }
+}
+
+function toast(message) {
+  toastEl.textContent = message;
+  toastEl.hidden = false;
+  clearTimeout(toast.timer);
+  toast.timer = setTimeout(() => { toastEl.hidden = true; }, 3200);
+}
+
+/* ---------------- theme vocabulary ---------------- */
+
+// How a move lines up with its peers. The rule lives in tools/relative.py;
+// these are the words the page uses for it.
+const ATTRIBUTION = {
+  theme: { label: "With theme", note: "Tracked its peers: the gap to their average is small next to the move." },
+  mixed: { label: "Partly shared", note: "Partly tracked its peers: the gap to their average is 40-60% of the move." },
+  company: { label: "Own move", note: "Diverged from its peers: it moved alone, against them, or held up while they fell." },
+  quiet: { label: "Quiet", note: "Neither it nor its peers moved as much as 1% today." },
+};
+
+function attributionTag(attr) {
+  const info = ATTRIBUTION[attr];
+  const tag = el("span", "attr-tag " + (info ? "attr-" + attr : "attr-none"),
+                 info ? info.label : "No peer data");
+  tag.title = info ? info.note : "Fewer than two peers with a price today, so there's nothing to compare with.";
+  return tag;
+}
+
+function pts(value) {
+  if (value === null || value === undefined) return "--";
+  return (value >= 0 ? "+" : "") + Number(value).toFixed(2) + "pt";
+}
 
 /* ---------------- helpers ---------------- */
+
+// The page is written in English, so dates and numbers are too, whatever
+// language the browser runs in -- otherwise "Oct 15" sits beside
+// "2026年10月15日" on the same screen.
+const LOCALE = "en-US";
 
 function el(tag, className, text) {
   const node = document.createElement(tag);
@@ -54,19 +157,49 @@ function toneClass(value) {
 function formatLongDate(iso) {
   const d = new Date(String(iso).slice(0, 10) + "T00:00:00");
   if (Number.isNaN(d.getTime())) return String(iso).slice(0, 10);
-  return d.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+  return d.toLocaleDateString(LOCALE, { month: "short", day: "numeric", year: "numeric" });
 }
 
 function formatDate(iso) {
   const d = new Date(iso + "T00:00:00");
   if (Number.isNaN(d.getTime())) return iso;
-  return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  return d.toLocaleDateString(LOCALE, { month: "short", day: "numeric" });
 }
 
-function setActiveNav(view) {
-  document.querySelectorAll(".nav-item[data-view]").forEach((btn) => {
-    btn.classList.toggle("is-active", btn.dataset.view === view);
+function setActiveNav(key) {
+  document.querySelectorAll(".nav-item[data-route]").forEach((item) => {
+    const active = item.dataset.route === key;
+    item.classList.toggle("is-active", active);
+    if (active) item.setAttribute("aria-current", "page");
+    else item.removeAttribute("aria-current");
   });
+}
+
+/* ---------------- theme setup + sidebar ---------------- */
+
+async function loadThemes() {
+  const { ok, data } = await api("GET", "/api/themes");
+  if (ok) {
+    state.themes = data.themes || [];
+    state.limits = data.limits || {};
+  }
+  renderNavThemes();
+}
+
+function renderNavThemes() {
+  const wrap = document.getElementById("nav-themes");
+  wrap.replaceChildren();
+  state.themes.forEach((t) => {
+    const link = el("a", "nav-item nav-theme");
+    link.href = themeHash(t.id);
+    link.dataset.route = "theme:" + t.id;
+    link.appendChild(el("span", null, t.name));
+    link.appendChild(el("span", "nav-count", t.stocks.length));
+    wrap.appendChild(link);
+  });
+  // Re-apply the highlight: the links were just rebuilt.
+  const current = state.view === "theme" ? "theme:" + state.themeId : state.view;
+  setActiveNav(current);
 }
 
 /* ---------------- market strip ---------------- */
@@ -106,74 +239,292 @@ function renderStrip(data) {
   stripEl.replaceChildren(frag);
 }
 
-/* ---------------- watchlist ---------------- */
+/* ---------------- home ----------------
 
-async function showWatchlist(filterMovers) {
-  state.view = filterMovers ? "movers" : "watchlist";
-  setActiveNav(state.view);
+   The first layer: what needs looking at today. One card per theme --
+   how the theme did against its benchmark, how widely, and the few
+   companies that most need attention. Everything else is a click away on
+   the theme's own page. */
 
-  viewEl.replaceChildren(el("p", "loading-text", "Loading your watchlist..."));
+const BENCHMARK_SUGGESTIONS = [
+  ["SPY", "S&P 500"], ["QQQ", "Nasdaq-100"], ["SMH", "Semiconductors"], ["SOXX", "Semiconductors"],
+  ["XLK", "Technology"], ["XLU", "Utilities"], ["XLI", "Industrials"], ["XLF", "Financials"],
+  ["XLE", "Energy"], ["XLV", "Health care"], ["ITA", "Aerospace & defense"], ["IWM", "Small caps"],
+];
 
-  let data;
-  try {
-    const res = await fetch("/api/watchlist/data");
-    data = await res.json();
-  } catch (err) {
-    viewEl.replaceChildren(el("p", "empty", "Could not load watchlist: " + err));
+async function showHome() {
+  const token = beginView("home");
+  viewEl.replaceChildren(el("p", "loading-text", "Loading your themes..."));
+
+  const { ok, data } = await api("GET", "/api/home");
+  if (!isCurrent(token)) return;
+  if (!ok) {
+    viewEl.replaceChildren(el("p", "empty", "Could not load your themes: " + (data.error || "")));
     return;
-  }
-
-  state.rows = data.rows || [];
-  let rows = state.rows;
-  if (filterMovers) {
-    rows = rows.filter((r) => r.price && Math.abs(r.price.change_percent || 0) >= 1);
   }
 
   const frag = document.createDocumentFragment();
-
   const head = el("div", "view-head");
-  head.appendChild(el("h1", null, filterMovers ? "Today's Movers" : "Watchlist"));
+  head.appendChild(el("h1", null, "Home"));
   frag.appendChild(head);
+  frag.appendChild(el("p", "view-sub",
+    "Each theme measured against its benchmark ETF and against its own peers. " +
+    "Within a theme, companies are ordered by what needs attention today."));
 
-  const marketPct = data.market_change_percent;
-  frag.appendChild(
-    el(
-      "p",
-      "view-sub",
-      filterMovers
-        ? "Names on your list that moved at least 1% today."
-        : "Sorted by what needs attention today, not alphabetically." +
-            (marketPct !== null && marketPct !== undefined ? `  Market (SPY) ${pct(marketPct)}.` : "")
-    )
-  );
+  const blocks = data.themes || [];
+  if (!blocks.length || blocks.every((b) => !b.rows.length)) {
+    frag.appendChild(el("p", "empty", "No companies yet. Create a theme below and add some."));
+  } else {
+    // The brief loads separately so a slow model call never delays the
+    // numbers -- they're the urgent part.
+    const briefPanel = buildBriefPanel();
+    frag.appendChild(briefPanel);
+    setTimeout(() => loadBrief(briefPanel, false), 0);
+  }
 
-  if (!rows.length) {
-    frag.appendChild(
-      el("p", "empty", filterMovers ? "Nothing moved much today." : "Your watchlist is empty. Add a ticker on the left.")
-    );
-    viewEl.replaceChildren(frag);
+  const grid = el("div", "tblock-grid");
+  blocks.forEach((block) => grid.appendChild(buildThemeBlock(block)));
+  frag.appendChild(grid);
+
+  frag.appendChild(buildReadingGuide());
+  frag.appendChild(buildNewThemeForm());
+  viewEl.replaceChildren(frag);
+}
+
+function buildReadingGuide() {
+  const guide = el("details", "reading-guide");
+  guide.appendChild(el("summary", null, "How to read the theme cards"));
+  [
+    ["Theme avg", "The equal-weighted average move of the theme's companies -- each counts once, whatever its size."],
+    ["vs benchmark", "Theme average minus the benchmark ETF's move today."],
+    ["Beat", "How many companies did better than the benchmark today. Breadth: is the theme's move broad or carried by one or two names?"],
+    ["Spread", "Standard deviation of the companies' moves. Low means they moved together; high means they went their own ways."],
+    ["vs peers", "A company's move minus the average of the other companies in its theme. Cap-weighted ETFs are dominated by their largest holdings, so this is the cleaner comparison."],
+    ["With theme / Partly shared / Own move", "Compares a company's move with its peers' average. The gap " +
+      "between them, as a share of the larger move, decides: up to 40% (or under a point) it tracked its theme; " +
+      "60% or more it diverged -- moved alone, against its peers, or held up while they fell; in between is " +
+      "partly shared. If neither moved 1%, it's quiet."],
+  ].forEach(([term, text]) => {
+    const p = el("p");
+    p.appendChild(el("strong", null, term + ". "));
+    p.appendChild(document.createTextNode(text));
+    guide.appendChild(p);
+  });
+  return guide;
+}
+
+function themeStat(label, value, cls, title) {
+  const stat = el("div", "tstat");
+  stat.appendChild(el("span", "tstat-label", label));
+  stat.appendChild(el("span", "tstat-value " + (cls || ""), value));
+  if (title) stat.title = title;
+  return stat;
+}
+
+function buildThemeStats(block) {
+  const s = block.summary || {};
+  const bench = block.benchmark || {};
+  const stats = el("div", "tstats");
+  stats.appendChild(themeStat("Theme avg", pct(s.average), toneClass(s.average),
+                              "Equal-weighted average move of the theme's companies."));
+  stats.appendChild(themeStat(`vs ${bench.ticker}`, pts(s.vs_benchmark), toneClass(s.vs_benchmark),
+                              `Theme average minus ${bench.ticker}'s move today.`));
+  stats.appendChild(themeStat(`Beat ${bench.ticker}`,
+                              s.beat_count === null || s.beat_count === undefined ? "--" : `${s.beat_count} of ${s.count}`,
+                              "", `Companies that did better than ${bench.ticker} today.`));
+  stats.appendChild(themeStat("Spread", s.dispersion === null || s.dispersion === undefined ? "--" : num(s.dispersion) + "pt",
+                              "", "Standard deviation of today's moves: low means they moved together."));
+  return stats;
+}
+
+function buildThemeBlock(block) {
+  const card = el("section", "tblock");
+  card.setAttribute("aria-label", block.name);
+
+  const head = el("div", "tblock-head");
+  const name = el("a", "tblock-name", block.name);
+  name.href = themeHash(block.id);
+  head.appendChild(name);
+  const bench = block.benchmark || {};
+  const benchLine = el("span", "tblock-bench");
+  benchLine.appendChild(document.createTextNode(bench.ticker + " "));
+  benchLine.appendChild(el("span", toneClass(bench.change_percent),
+                           bench.available ? pct(bench.change_percent) : "unavailable"));
+  head.appendChild(benchLine);
+  card.appendChild(head);
+
+  if (!block.rows.length) {
+    card.appendChild(el("p", "empty-inline", "No companies yet."));
+  } else {
+    card.appendChild(buildThemeStats(block));
+
+    if (block.earnings_soon && block.earnings_soon.length) {
+      const soon = el("p", "tblock-earnings");
+      soon.appendChild(el("span", "tblock-earnings-label", "Reporting this week"));
+      block.earnings_soon.forEach((e) => {
+        const tag = el("a", "ticker-tag", e.days === 0 ? `${e.ticker} today` : `${e.ticker} · ${e.days}d`);
+        tag.href = stockHash(e.ticker);
+        soon.appendChild(tag);
+      });
+      card.appendChild(soon);
+    }
+
+    const rows = el("div", "tblock-rows");
+    block.rows.slice(0, 3).forEach((row) => rows.appendChild(buildCompactRow(row)));
+    card.appendChild(rows);
+  }
+
+  const more = el("a", "tblock-more",
+                  block.rows.length > 3 ? `All ${block.rows.length} companies →` : "Open theme →");
+  more.href = themeHash(block.id);
+  card.appendChild(more);
+  return card;
+}
+
+function buildCompactRow(row) {
+  const level = row.attention ? row.attention.level : "quiet";
+  const link = el("a", `crow level-${level}`);
+  link.href = stockHash(row.ticker);
+
+  const who = el("div", "crow-who");
+  who.appendChild(el("span", "crow-ticker", row.ticker));
+  if (row.role) who.appendChild(el("span", "crow-role", row.role));
+  link.appendChild(who);
+
+  const change = row.price ? row.price.change_percent : null;
+  link.appendChild(el("span", "crow-delta " + toneClass(change), row.price ? pct(change) : "--"));
+
+  const rel = row.relative || {};
+  const vs = el("span", "crow-vs " + toneClass(rel.vs_peers), pts(rel.vs_peers));
+  vs.title = "Move minus its peers' average";
+  link.appendChild(vs);
+  link.appendChild(attributionTag(rel.attribution));
+  return link;
+}
+
+function buildNewThemeForm() {
+  const box = el("details", "panel new-theme");
+  box.appendChild(el("summary", null, "+ New theme"));
+
+  const form = el("form", "form-grid");
+  const name = labelledInput(form, "Name", "e.g. Cybersecurity", 40);
+  const bench = labelledInput(form, "Benchmark ETF", "e.g. SPY", 12);
+  bench.value = "SPY";
+  bench.setAttribute("list", "benchmark-suggestions");
+  const desc = labelledInput(form, "What ties it together (optional)", "The shared driver", 300);
+
+  const list = el("datalist");
+  list.id = "benchmark-suggestions";
+  BENCHMARK_SUGGESTIONS.forEach(([t, label]) => {
+    const opt = el("option");
+    opt.value = t;
+    opt.label = label;
+    list.appendChild(opt);
+  });
+  form.appendChild(list);
+
+  const error = el("p", "form-error");
+  error.hidden = true;
+  const submit = el("button", "button-primary", "Create theme");
+  submit.type = "submit";
+  form.appendChild(submit);
+  form.appendChild(error);
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    submit.disabled = true;
+    const { ok, data } = await api("POST", "/api/themes",
+                                   { name: name.value, benchmark: bench.value, description: desc.value });
+    submit.disabled = false;
+    if (!ok) {
+      error.textContent = data.error || "Could not create the theme.";
+      error.hidden = false;
+      return;
+    }
+    state.themes = data.themes;
+    renderNavThemes();
+    const created = data.themes[data.themes.length - 1];
+    toast(`Created ${created.name}. Add its companies here.`);
+    go(themeHash(created.id));
+  });
+  box.appendChild(form);
+  return box;
+}
+
+function labelledInput(form, label, placeholder, maxLength) {
+  const wrap = el("label", "field");
+  wrap.appendChild(el("span", "field-label", label));
+  const input = el("input", "field-input");
+  input.type = "text";
+  input.placeholder = placeholder;
+  input.maxLength = maxLength;
+  input.autocomplete = "off";
+  wrap.appendChild(input);
+  form.appendChild(wrap);
+  return input;
+}
+
+/* ---------------- theme page ----------------
+
+   The second layer: everything about one theme. How it did against its
+   benchmark, each company against the benchmark and against its peers,
+   and the controls to change what's in it. */
+
+async function showTheme(themeId) {
+  const token = beginView("theme", "theme:" + themeId);
+  state.themeId = themeId;
+  setActiveNav("theme:" + themeId);
+  viewEl.replaceChildren(el("p", "loading-text", "Loading theme..."));
+
+  const { ok, data } = await api("GET", "/api/theme/" + encodeURIComponent(themeId));
+  if (!isCurrent(token)) return;
+  if (!ok) {
+    viewEl.replaceChildren(el("p", "empty", data.error || "Could not load this theme."));
     return;
   }
 
-  // The brief loads separately so a slow Claude call never delays the
-  // list -- the numbers are the urgent part.
-  let briefPanel = null;
-  if (!filterMovers) {
-    briefPanel = buildBriefPanel();
-    frag.appendChild(briefPanel);
+  const frag = document.createDocumentFragment();
+  const back = el("a", "back", "← Home");
+  back.href = "#/";
+  frag.appendChild(back);
+
+  const head = el("div", "view-head");
+  head.appendChild(el("h1", null, data.name));
+  frag.appendChild(head);
+  if (data.description) frag.appendChild(el("p", "view-sub", data.description));
+
+  const bench = data.benchmark || {};
+  const summary = el("div", "panel theme-summary");
+  const benchStat = themeStat("Benchmark", `${bench.ticker} ${bench.available ? pct(bench.change_percent) : "unavailable"}`,
+                              toneClass(bench.change_percent), "The theme's benchmark ETF, today.");
+  const stats = buildThemeStats(data);
+  stats.prepend(benchStat);
+  summary.appendChild(stats);
+  const minPeers = (state.limits && state.limits.stocks_for_peers) || 3;
+  if (data.rows.length && data.rows.length < minPeers) {
+    summary.appendChild(el("p", "form-hint",
+      `Add at least ${minPeers} companies: below that, a company's "peers" would be one other stock.`));
+  }
+  frag.appendChild(summary);
+
+  if (!data.rows.length) {
+    frag.appendChild(el("p", "empty", "No companies in this theme yet. Add the first one below."));
+  } else {
+    frag.appendChild(el("p", "section-heading", "Companies, by what needs attention today"));
+    const list = el("div", "rows");
+    data.rows.forEach((row) => {
+      list.appendChild(buildThemeRow(row, data));
+      list.appendChild(buildEditPanel(row, data));
+    });
+    frag.appendChild(list);
   }
 
-  const list = el("div", "rows");
-  rows.forEach((row) => list.appendChild(buildRow(row)));
-  frag.appendChild(list);
+  frag.appendChild(buildAddCompanyForm(data));
+  frag.appendChild(buildThemeSettings(data));
   viewEl.replaceChildren(frag);
 
-  if (briefPanel) loadBrief(briefPanel, false);
-
-  // Sparklines must be drawn after the canvases are in the document,
-  // otherwise clientWidth is 0 and nothing renders.
-  rows.forEach((row) => {
-    const canvas = list.querySelector(`canvas[data-ticker="${cssEscape(row.ticker)}"]`);
+  data.rows.forEach((row) => {
+    const canvas = viewEl.querySelector(`canvas[data-ticker="${cssEscape(row.ticker)}"]`);
     if (canvas) drawSparkline(canvas, row.history || []);
   });
 }
@@ -182,19 +533,22 @@ function cssEscape(value) {
   return String(value).replace(/["\\]/g, "\\$&");
 }
 
-function buildRow(row, opts) {
-  const discover = !!(opts && opts.discover);
+function buildThemeRow(row, theme) {
   const level = row.attention ? row.attention.level : "quiet";
-  const button = el("button", `row level-${level}` + (discover ? " is-discover" : ""));
-  button.type = "button";
+  const item = el("div", `row theme-row level-${level}`);
+  item.tabIndex = 0;
+  item.setAttribute("role", "link");
+  item.setAttribute("aria-label", `${row.ticker}, open details`);
+  const open = () => go(stockHash(row.ticker));
+  item.addEventListener("click", open);
+  item.addEventListener("keydown", (e) => { if (e.key === "Enter") open(); });
 
   const left = el("div");
   left.appendChild(el("div", "ticker", row.ticker));
-  const tagText = discover
-    ? "Not on your list"
-    : level === "high" ? "Needs attention" : level === "medium" ? "Worth a look" : "Quiet";
-  left.appendChild(el("span", "attention-tag", tagText));
-  button.appendChild(left);
+  left.appendChild(el("span", "attention-tag",
+                      level === "high" ? "Needs attention" : level === "medium" ? "Worth a look" : "Quiet"));
+  if (row.role) left.appendChild(el("span", "row-role", row.role));
+  item.appendChild(left);
 
   const middle = el("div");
   if (row.error) {
@@ -207,16 +561,25 @@ function buildRow(row, opts) {
     });
     middle.appendChild(factors);
   }
-  button.appendChild(middle);
+  if (row.note) middle.appendChild(el("div", "row-note", row.note));
+  item.appendChild(middle);
 
-  button.appendChild(el("div", "price", row.price ? money(row.price.price) : "--"));
+  item.appendChild(el("div", "price", row.price ? money(row.price.price) : "--"));
+  const change = row.price ? row.price.change_percent : null;
+  item.appendChild(el("div", "delta " + toneClass(change), row.price ? pct(change) : "--"));
 
-  const delta = el(
-    "div",
-    "delta " + (row.price ? toneClass(row.price.change_percent) : ""),
-    row.price ? pct(row.price.change_percent) : "--"
-  );
-  button.appendChild(delta);
+  const rel = row.relative || {};
+  const relCell = el("div", "rel-cell");
+  const peersLine = el("div", "rel-line");
+  peersLine.appendChild(el("span", "rel-label", "vs peers"));
+  peersLine.appendChild(el("span", "rel-value " + toneClass(rel.vs_peers), pts(rel.vs_peers)));
+  relCell.appendChild(peersLine);
+  const benchLine = el("div", "rel-line");
+  benchLine.appendChild(el("span", "rel-label", "vs " + theme.benchmark.ticker));
+  benchLine.appendChild(el("span", "rel-value " + toneClass(rel.vs_benchmark), pts(rel.vs_benchmark)));
+  relCell.appendChild(benchLine);
+  relCell.appendChild(attributionTag(rel.attribution));
+  item.appendChild(relCell);
 
   const sparkCell = el("div", "spark-cell");
   const canvas = el("canvas", "spark");
@@ -225,53 +588,325 @@ function buildRow(row, opts) {
   canvas.height = 30;
   sparkCell.appendChild(canvas);
   sparkCell.appendChild(el("span", "spark-label", "1 month"));
-  button.appendChild(sparkCell);
+  item.appendChild(sparkCell);
 
-  if (discover) {
-    const add = el("button", "add", "+");
-    add.type = "button";
-    add.title = `Add ${row.ticker} to watchlist`;
-    add.addEventListener("click", (e) => {
-      e.stopPropagation();
-      addTicker(row.ticker);
-    });
-    button.appendChild(add);
-  } else {
-    const remove = el("button", "remove", "×");
-    remove.type = "button";
-    remove.title = `Remove ${row.ticker}`;
-    remove.addEventListener("click", (e) => {
-      e.stopPropagation();
-      removeTicker(row.ticker);
-    });
-    button.appendChild(remove);
+  const edit = el("button", "row-edit", "Edit");
+  edit.type = "button";
+  edit.setAttribute("aria-expanded", "false");
+  edit.setAttribute("aria-label", `Edit ${row.ticker}`);
+  edit.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const panel = item.nextElementSibling;
+    panel.hidden = !panel.hidden;
+    edit.setAttribute("aria-expanded", String(!panel.hidden));
+    if (!panel.hidden) panel.querySelector("input").focus();
+  });
+  item.appendChild(edit);
+  return item;
+}
+
+// Sits after its row, not inside it: the row is itself clickable, and form
+// controls nested in a clickable element can't be used reliably.
+function buildEditPanel(row, theme) {
+  const panel = el("div", "edit-panel");
+  panel.hidden = true;
+
+  const noteForm = el("form", "edit-line");
+  const note = el("input", "field-input");
+  note.type = "text";
+  note.maxLength = 200;
+  note.value = row.note || "";
+  note.placeholder = "Why you're watching it, in your words";
+  note.setAttribute("aria-label", `Note on ${row.ticker}`);
+  const save = el("button", "button-secondary", "Save note");
+  save.type = "submit";
+  noteForm.appendChild(note);
+  noteForm.appendChild(save);
+  noteForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    await changeStock(theme.id, row.ticker, { note: note.value }, "Note saved.");
+  });
+  panel.appendChild(noteForm);
+
+  const moveLine = el("div", "edit-line");
+  const select = el("select", "field-input");
+  select.setAttribute("aria-label", `Move ${row.ticker} to another theme`);
+  const others = state.themes.filter((t) => t.id !== theme.id);
+  select.appendChild(new Option(others.length ? "Move to another theme..." : "No other themes", ""));
+  others.forEach((t) => select.appendChild(new Option(t.name, t.id)));
+  const move = el("button", "button-secondary", "Move");
+  move.type = "button";
+  move.disabled = !others.length;
+  move.addEventListener("click", async () => {
+    if (!select.value) return;
+    const target = others.find((t) => t.id === select.value);
+    await changeStock(theme.id, row.ticker, { move_to: select.value },
+                      `${row.ticker} moved to ${target ? target.name : "the other theme"}.`);
+  });
+  const remove = el("button", "button-danger", "Remove from theme");
+  remove.type = "button";
+  remove.addEventListener("click", async () => {
+    const { ok, data } = await api("DELETE",
+      `/api/themes/${encodeURIComponent(theme.id)}/stocks/${encodeURIComponent(row.ticker)}`);
+    afterThemeChange(ok, data, `${row.ticker} removed from ${theme.name}.`);
+  });
+  moveLine.appendChild(select);
+  moveLine.appendChild(move);
+  moveLine.appendChild(remove);
+  panel.appendChild(moveLine);
+  return panel;
+}
+
+async function changeStock(themeId, ticker, body, message) {
+  const { ok, data } = await api("PATCH",
+    `/api/themes/${encodeURIComponent(themeId)}/stocks/${encodeURIComponent(ticker)}`, body);
+  afterThemeChange(ok, data, message);
+}
+
+function afterThemeChange(ok, data, message) {
+  if (!ok) {
+    toast(data.error || "That change didn't save.");
+    return;
   }
+  state.themes = data.themes;
+  renderNavThemes();
+  toast(message);
+  route();
+}
 
-  button.addEventListener("click", () => showDetail(row.ticker));
-  return button;
+function buildAddCompanyForm(theme) {
+  const box = el("div", "panel");
+  box.appendChild(el("h2", null, "Add a company"));
+  const form = el("form", "form-grid");
+  const ticker = labelledInput(form, "Ticker", "e.g. LRCX", 12);
+  const note = labelledInput(form, "Why you're watching it (optional)", "In your words", 200);
+  const submit = el("button", "button-primary", "Add");
+  submit.type = "submit";
+  const error = el("p", "form-error");
+  error.hidden = true;
+  form.appendChild(submit);
+  form.appendChild(error);
+  box.appendChild(el("p", "form-hint",
+    "Each company belongs to one theme, so its peer comparison is always against a single group."));
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const symbol = ticker.value.trim().toUpperCase();
+    if (!symbol) return;
+    submit.disabled = true;
+    submit.textContent = "Checking...";
+    const { ok, data } = await api("POST", `/api/themes/${encodeURIComponent(theme.id)}/stocks`,
+                                   { ticker: symbol, note: note.value });
+    submit.disabled = false;
+    submit.textContent = "Add";
+    if (!ok) {
+      error.textContent = data.error || "Could not add that company.";
+      error.hidden = false;
+      return;
+    }
+    afterThemeChange(true, data, `${symbol} added to ${theme.name}.`);
+  });
+  box.appendChild(form);
+  return box;
+}
+
+function buildThemeSettings(theme) {
+  const box = el("details", "panel theme-settings");
+  box.appendChild(el("summary", null, "Theme settings"));
+  const form = el("form", "form-grid");
+  const name = labelledInput(form, "Name", "", 40);
+  name.value = theme.name;
+  const bench = labelledInput(form, "Benchmark ETF", "", 12);
+  bench.value = theme.benchmark.ticker;
+  bench.setAttribute("list", "benchmark-suggestions-settings");
+  const list = el("datalist");
+  list.id = "benchmark-suggestions-settings";
+  BENCHMARK_SUGGESTIONS.forEach(([t, label]) => {
+    const opt = el("option");
+    opt.value = t;
+    opt.label = label;
+    list.appendChild(opt);
+  });
+  form.appendChild(list);
+  const desc = labelledInput(form, "What ties it together", "", 300);
+  desc.value = theme.description || "";
+  const save = el("button", "button-primary", "Save changes");
+  save.type = "submit";
+  const error = el("p", "form-error");
+  error.hidden = true;
+  form.appendChild(save);
+  form.appendChild(error);
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const { ok, data } = await api("PATCH", "/api/themes/" + encodeURIComponent(theme.id),
+                                   { name: name.value, benchmark: bench.value, description: desc.value });
+    if (!ok) {
+      error.textContent = data.error || "Could not save.";
+      error.hidden = false;
+      return;
+    }
+    afterThemeChange(true, data, "Theme updated.");
+  });
+  box.appendChild(form);
+
+  const del = el("button", "button-danger", "Delete this theme");
+  del.type = "button";
+  del.addEventListener("click", async () => {
+    const count = theme.rows.length;
+    const ask = count
+      ? `Delete ${theme.name}? Its ${count} compan${count === 1 ? "y" : "ies"} will stop being tracked.`
+      : `Delete ${theme.name}?`;
+    if (!window.confirm(ask)) return;
+    const { ok, data } = await api("DELETE", "/api/themes/" + encodeURIComponent(theme.id));
+    if (!ok) {
+      toast(data.error || "Could not delete the theme.");
+      return;
+    }
+    state.themes = data.themes;
+    renderNavThemes();
+    toast(`Deleted ${theme.name}.`);
+    go("#/");
+  });
+  box.appendChild(del);
+  return box;
+}
+
+/* ---------------- add-to-theme menu ----------------
+
+   Used wherever a company not yet tracked appears -- Discover, search, a
+   stock page -- since adding now means choosing which theme it joins. */
+
+function openThemeMenu(anchor, ticker) {
+  closeThemeMenu();
+  const menu = el("div", "theme-menu");
+  menu.id = "theme-menu";
+  menu.setAttribute("role", "menu");
+  menu.appendChild(el("p", "theme-menu-title", `Add ${ticker} to`));
+  const error = el("p", "form-error");
+  error.hidden = true;
+
+  state.themes.forEach((t) => {
+    const item = el("button", "theme-menu-item", t.name);
+    item.type = "button";
+    item.setAttribute("role", "menuitem");
+    item.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      item.disabled = true;
+      const { ok, data } = await api("POST", `/api/themes/${encodeURIComponent(t.id)}/stocks`, { ticker });
+      if (!ok) {
+        item.disabled = false;
+        error.textContent = data.error || "Could not add it.";
+        error.hidden = false;
+        return;
+      }
+      closeThemeMenu();
+      afterThemeChange(true, data, `${ticker} added to ${t.name}.`);
+    });
+    menu.appendChild(item);
+  });
+  if (!state.themes.length) menu.appendChild(el("p", "form-hint", "Create a theme on the home page first."));
+  menu.appendChild(error);
+
+  document.body.appendChild(menu);
+  const rect = anchor.getBoundingClientRect();
+  const width = menu.offsetWidth;
+  menu.style.top = window.scrollY + rect.bottom + 6 + "px";
+  menu.style.left = Math.max(8, Math.min(window.scrollX + rect.right - width,
+                                         window.innerWidth - width - 8)) + "px";
+  const first = menu.querySelector("button");
+  if (first) first.focus();
+
+  setTimeout(() => document.addEventListener("click", closeOnOutside), 0);
+}
+
+function closeOnOutside(e) {
+  const menu = document.getElementById("theme-menu");
+  if (menu && !menu.contains(e.target)) closeThemeMenu();
+}
+
+function closeThemeMenu() {
+  const menu = document.getElementById("theme-menu");
+  if (menu) menu.remove();
+  document.removeEventListener("click", closeOnOutside);
+}
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") closeThemeMenu();
+});
+
+/* Rows for names outside your themes (Discover, search). */
+function buildRow(row, opts) {
+  const discover = !!(opts && opts.discover);
+  const level = row.attention ? row.attention.level : "quiet";
+  const item = el("div", `row level-${level}` + (discover ? " is-discover" : ""));
+  item.tabIndex = 0;
+  item.setAttribute("role", "link");
+  item.setAttribute("aria-label", `${row.ticker}, open details`);
+  const open = () => go(stockHash(row.ticker));
+  item.addEventListener("click", open);
+  item.addEventListener("keydown", (e) => { if (e.key === "Enter") open(); });
+
+  const left = el("div");
+  left.appendChild(el("div", "ticker", row.ticker));
+  left.appendChild(el("span", "attention-tag", "Not in your themes"));
+  item.appendChild(left);
+
+  const middle = el("div");
+  if (row.error) {
+    middle.appendChild(el("div", "row-error", row.error));
+  } else {
+    middle.appendChild(el("div", "headline", row.top_headline || "No recent headlines"));
+    const factors = el("div", "factors");
+    (row.attention ? row.attention.factors : []).forEach((f) => {
+      factors.appendChild(el("span", "chip " + (f.tone === "neutral" ? "" : f.tone), f.label));
+    });
+    middle.appendChild(factors);
+  }
+  item.appendChild(middle);
+
+  item.appendChild(el("div", "price", row.price ? money(row.price.price) : "--"));
+  const delta = el("div", "delta " + (row.price ? toneClass(row.price.change_percent) : ""),
+                   row.price ? pct(row.price.change_percent) : "--");
+  item.appendChild(delta);
+
+  const sparkCell = el("div", "spark-cell");
+  const canvas = el("canvas", "spark");
+  canvas.dataset.ticker = row.ticker;
+  canvas.width = 88;
+  canvas.height = 30;
+  sparkCell.appendChild(canvas);
+  sparkCell.appendChild(el("span", "spark-label", "1 month"));
+  item.appendChild(sparkCell);
+
+  const add = el("button", "add", "+");
+  add.type = "button";
+  add.title = `Add ${row.ticker} to a theme`;
+  add.setAttribute("aria-label", `Add ${row.ticker} to a theme`);
+  add.addEventListener("click", (e) => {
+    e.stopPropagation();
+    openThemeMenu(add, row.ticker);
+  });
+  item.appendChild(add);
+  return item;
 }
 
 /* ---------------- detail ---------------- */
 
 async function showDetail(ticker) {
-  state.view = "detail";
-  setActiveNav(null);
+  const owner = state.themes.find((t) => t.stocks.some((s) => s.ticker === ticker));
+  const token = beginView("detail", owner ? "theme:" + owner.id : null);
   viewEl.replaceChildren(el("p", "loading-text", `Loading ${ticker}...`));
 
-  let data;
-  try {
-    const res = await fetch(`/api/stock/${encodeURIComponent(ticker)}`);
-    data = await res.json();
-  } catch (err) {
-    viewEl.replaceChildren(el("p", "empty", "Could not load " + ticker + ": " + err));
+  const { ok, data } = await api("GET", `/api/stock/${encodeURIComponent(ticker)}`);
+  if (!isCurrent(token)) return;
+  if (!ok) {
+    viewEl.replaceChildren(el("p", "empty", "Could not load " + ticker + ": " + (data.error || "")));
     return;
   }
 
   const frag = document.createDocumentFragment();
 
-  const back = el("button", "back", "← Back to watchlist");
-  back.type = "button";
-  back.addEventListener("click", () => showWatchlist(false));
+  const back = el("a", "back", data.theme ? `← ${data.theme.theme_name}` : "← Home");
+  back.href = data.theme ? themeHash(data.theme.theme_id) : "#/";
   frag.appendChild(back);
 
   const head = el("div", "detail-head");
@@ -302,6 +937,8 @@ async function showDetail(ticker) {
       )
     );
   }
+
+  frag.appendChild(buildThemeContext(data));
 
   // Chart panel
   const chartPanel = el("div", "panel");
@@ -517,6 +1154,68 @@ async function showDetail(ticker) {
   }
 }
 
+// Where this company stands in its theme today -- the first question the
+// page answers: is this move the theme's, or the company's own?
+function buildThemeContext(data) {
+  const t = data.theme;
+  const panel = el("div", "panel theme-context");
+
+  if (!t) {
+    panel.appendChild(el("h2", null, "Theme"));
+    panel.appendChild(el("p", "form-hint",
+      `${data.ticker} isn't in any of your themes, so there's no peer group to compare it with.`));
+    const add = el("button", "button-secondary", "Add to a theme");
+    add.type = "button";
+    add.addEventListener("click", (e) => {
+      e.stopPropagation();
+      openThemeMenu(add, data.ticker);
+    });
+    panel.appendChild(add);
+    return panel;
+  }
+
+  const title = el("h2");
+  title.appendChild(document.createTextNode("In theme: "));
+  const link = el("a", "inline-link", t.theme_name);
+  link.href = themeHash(t.theme_id);
+  title.appendChild(link);
+  panel.appendChild(title);
+  if (t.role) panel.appendChild(el("p", "context-role", t.role));
+
+  const own = data.price ? data.price.change_percent : null;
+  const stats = el("div", "tstats");
+  stats.appendChild(themeStat(`${data.ticker} today`, pct(own), toneClass(own)));
+  stats.appendChild(themeStat(`Peers, ex-${data.ticker}`, pct(t.peer_average), toneClass(t.peer_average),
+                              "Equal-weighted average move of the other companies in the theme."));
+  stats.appendChild(themeStat("vs peers", pts(t.vs_peers), toneClass(t.vs_peers)));
+  stats.appendChild(themeStat(t.benchmark.ticker, pct(t.benchmark.change_percent),
+                              toneClass(t.benchmark.change_percent), "The theme's benchmark ETF today."));
+  stats.appendChild(themeStat(`vs ${t.benchmark.ticker}`, pts(t.vs_benchmark), toneClass(t.vs_benchmark)));
+  panel.appendChild(stats);
+
+  const verdict = el("p", "context-verdict");
+  verdict.appendChild(attributionTag(t.attribution));
+  const info = ATTRIBUTION[t.attribution];
+  verdict.appendChild(document.createTextNode(" " + (info ? info.note
+    : "Not enough peers with a price today to compare with.")));
+  panel.appendChild(verdict);
+
+  if (t.peers && t.peers.length) {
+    const peers = el("div", "context-peers");
+    peers.appendChild(el("span", "tstat-label", "Peers today"));
+    t.peers.forEach((p) => {
+      const tag = el("a", "ticker-tag peer-tag");
+      tag.href = stockHash(p.ticker);
+      tag.appendChild(document.createTextNode(p.ticker + " "));
+      tag.appendChild(el("span", toneClass(p.change_percent), pct(p.change_percent)));
+      peers.appendChild(tag);
+    });
+    panel.appendChild(peers);
+  }
+  if (t.note) panel.appendChild(el("p", "row-note", t.note));
+  return panel;
+}
+
 /* ---------------- charts ---------------- */
 
 function drawSparkline(canvas, points) {
@@ -563,7 +1262,7 @@ const PAD = { left: 64, right: 16, top: 14, bottom: 26 };
 // ranging $0.42-$0.61 needs cents, one ranging $160-$228 does not.
 function axisLabel(value, range) {
   const decimals = range < 2 ? 3 : range < 20 ? 2 : range < 200 ? 1 : 0;
-  return "$" + value.toLocaleString(undefined, {
+  return "$" + value.toLocaleString(LOCALE, {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
   });
@@ -763,7 +1462,7 @@ function bigMoney(value) {
 function periodLabel(iso) {
   const d = new Date(String(iso).slice(0, 10) + "T00:00:00");
   if (Number.isNaN(d.getTime())) return String(iso).slice(0, 7);
-  return d.toLocaleDateString(undefined, { month: "short", year: "numeric" });
+  return d.toLocaleDateString(LOCALE, { month: "short", year: "numeric" });
 }
 
 function num(value, digits) {
@@ -774,16 +1473,13 @@ function num(value, digits) {
 /* ---------------- earnings calendar ---------------- */
 
 async function showEarnings() {
-  state.view = "earnings";
-  setActiveNav("earnings");
+  const token = beginView("earnings");
   viewEl.replaceChildren(el("p", "loading-text", "Loading earnings dates..."));
 
-  let data;
-  try {
-    const res = await fetch("/api/earnings");
-    data = await res.json();
-  } catch (err) {
-    viewEl.replaceChildren(el("p", "empty", "Could not load earnings: " + err));
+  const { ok, data } = await api("GET", "/api/earnings");
+  if (!isCurrent(token)) return;
+  if (!ok) {
+    viewEl.replaceChildren(el("p", "empty", "Could not load earnings: " + (data.error || "")));
     return;
   }
 
@@ -797,7 +1493,7 @@ async function showEarnings() {
 
   if (!items.length) {
     frag.appendChild(
-      el("p", "view-sub", "No earnings dates came back for your watchlist.")
+      el("p", "view-sub", "No earnings dates came back for the companies in your themes.")
     );
     frag.appendChild(
       el("p", "note",
@@ -819,6 +1515,26 @@ async function showEarnings() {
        (next.days_away !== null && next.days_away !== undefined
          ? ` — ${next.days_away === 0 ? "today" : "in " + next.days_away + " days"}.` : "."))
   );
+
+  // The next two weeks as a list, labelled by theme: in earnings season the
+  // useful question is which themes report together, not which day a box
+  // falls on.
+  const soon = items.filter((i) => i.days_away !== null && i.days_away !== undefined && i.days_away <= 14);
+  if (soon.length) {
+    frag.appendChild(el("p", "section-heading", "Next two weeks"));
+    const list = el("div", "panel upcoming");
+    soon.forEach((item) => {
+      const line = el("a", "upcoming-line");
+      line.href = stockHash(item.ticker);
+      line.appendChild(el("span", "upcoming-date", formatDate(item.next_date)));
+      line.appendChild(el("span", "upcoming-ticker", item.ticker));
+      line.appendChild(el("span", "upcoming-theme", item.theme || ""));
+      line.appendChild(el("span", "upcoming-days",
+                          item.days_away === 0 ? "today" : `in ${item.days_away}d`));
+      list.appendChild(line);
+    });
+    frag.appendChild(list);
+  }
 
   // Index dates -> the names reporting that day.
   const byDate = new Map();
@@ -846,7 +1562,7 @@ async function showEarnings() {
       const li = el("li");
       const btn = el("button", "link-button", `${item.ticker} — ${formatLongDate(item.next_date)}`);
       btn.type = "button";
-      btn.addEventListener("click", () => showDetail(item.ticker));
+      btn.addEventListener("click", () => go(stockHash(item.ticker)));
       li.appendChild(btn);
       list.appendChild(li);
     });
@@ -866,7 +1582,7 @@ function buildTickerRow(tickers) {
   tickers.forEach((t) => {
     const tag = el("button", "ticker-tag", t);
     tag.type = "button";
-    tag.addEventListener("click", () => showDetail(t));
+    tag.addEventListener("click", () => go(stockHash(t)));
     wrap.appendChild(tag);
   });
   return wrap;
@@ -876,7 +1592,7 @@ const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 function buildMonth(year, monthIndex, byDate, todayIso) {
   const first = new Date(year, monthIndex, 1);
-  const monthName = first.toLocaleDateString(undefined, { month: "long", year: "numeric" });
+  const monthName = first.toLocaleDateString(LOCALE, { month: "long", year: "numeric" });
 
   const cal = el("div", "calendar");
   cal.appendChild(el("h3", "calendar-title", monthName));
@@ -904,7 +1620,7 @@ function buildMonth(year, monthIndex, byDate, todayIso) {
         const tag = el("button", "day-ticker", item.ticker);
         tag.type = "button";
         tag.title = `${item.ticker} reports ${formatLongDate(item.next_date)}`;
-        tag.addEventListener("click", () => showDetail(item.ticker));
+        tag.addEventListener("click", () => go(stockHash(item.ticker)));
         cell.appendChild(tag);
       });
     }
@@ -1227,12 +1943,11 @@ function showQuarterTooltip(q, clientX, clientY) {
 const STARTERS = [
   "Which of my stocks reports soonest, and how did they do last quarter?",
   "What moved most in the market today that isn't on my watchlist?",
-  "Compare the profit margins of the companies on my watchlist.",
+  "Compare the profit margins of the companies in my Memory & storage theme.",
 ];
 
 async function showChat() {
-  state.view = "chat";
-  setActiveNav("chat");
+  beginView("ask");
 
   const frag = document.createDocumentFragment();
   const head = el("div", "view-head");
@@ -1252,7 +1967,7 @@ async function showChat() {
   const input = el("input", "chat-input");
   input.type = "text";
   input.id = "chat-input";
-  input.placeholder = "Ask about your watchlist or the market";
+  input.placeholder = "Ask about your themes or the market";
   input.autocomplete = "off";
   const send = el("button", "chat-send", "Ask");
   send.type = "submit";
@@ -1366,13 +2081,13 @@ function buildBriefPanel() {
   head.appendChild(refresh);
   panel.appendChild(head);
 
-  panel.appendChild(el("div", "brief-body", "Reading your watchlist..."));
+  panel.appendChild(el("div", "brief-body", "Reading your themes..."));
   return panel;
 }
 
 async function loadBrief(panel, force) {
   const body = panel.querySelector(".brief-body");
-  body.replaceChildren(el("p", null, force ? "Rewriting..." : "Reading your watchlist..."));
+  body.replaceChildren(el("p", null, force ? "Rewriting..." : "Reading your themes..."));
 
   let data;
   try {
@@ -1399,16 +2114,13 @@ async function loadBrief(panel, force) {
 /* ---------------- discover ---------------- */
 
 async function showDiscover() {
-  state.view = "discover";
-  setActiveNav("discover");
+  const token = beginView("discover");
   viewEl.replaceChildren(el("p", "loading-text", "Scanning the market..."));
 
-  let data;
-  try {
-    const res = await fetch("/api/discover");
-    data = await res.json();
-  } catch (err) {
-    viewEl.replaceChildren(el("p", "empty", "Discover failed: " + err));
+  const { ok, data } = await api("GET", "/api/discover");
+  if (!isCurrent(token)) return;
+  if (!ok) {
+    viewEl.replaceChildren(el("p", "empty", "Discover failed: " + (data.error || "")));
     return;
   }
 
@@ -1417,7 +2129,8 @@ async function showDiscover() {
   head.appendChild(el("h1", null, "Discover"));
   frag.appendChild(head);
   frag.appendChild(
-    el("p", "view-sub", "What's moving across the market today that isn't on your list.")
+    el("p", "view-sub", "What's moving across the market today that isn't in your themes. " +
+       "Use + to add a company to one.")
   );
 
   const scanned = data.scanned || 0;
@@ -1446,7 +2159,7 @@ async function showDiscover() {
         t.tickers.forEach((sym) => {
           const tag = el("button", "ticker-tag", sym);
           tag.type = "button";
-          tag.addEventListener("click", () => showDetail(sym));
+          tag.addEventListener("click", () => go(stockHash(sym)));
           tags.appendChild(tag);
         });
         card.appendChild(tags);
@@ -1464,7 +2177,7 @@ async function showDiscover() {
     return;
   }
 
-  frag.appendChild(el("p", "section-heading", "Biggest moves outside your watchlist"));
+  frag.appendChild(el("p", "section-heading", "Biggest moves outside your themes"));
   const list = el("div", "rows");
   rows.forEach((row) => list.appendChild(buildRow(row, { discover: true })));
   frag.appendChild(list);
@@ -1500,16 +2213,13 @@ async function showDiscover() {
 /* ---------------- search ---------------- */
 
 async function showSearch(query) {
-  state.view = "search";
-  setActiveNav(null);
+  const token = beginView("search", null);
   viewEl.replaceChildren(el("p", "loading-text", `Searching for ${query}...`));
 
-  let data;
-  try {
-    const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
-    data = await res.json();
-  } catch (err) {
-    viewEl.replaceChildren(el("p", "empty", "Search failed: " + err));
+  const { ok, data } = await api("GET", `/api/search?q=${encodeURIComponent(query)}`);
+  if (!isCurrent(token)) return;
+  if (!ok) {
+    viewEl.replaceChildren(el("p", "empty", "Search failed: " + (data.error || "")));
     return;
   }
 
@@ -1524,7 +2234,7 @@ async function showSearch(query) {
     return;
   }
 
-  frag.appendChild(el("p", "view-sub", "Click to open, or add it to your watchlist."));
+  frag.appendChild(el("p", "view-sub", "Click to open, or add it to one of your themes."));
 
   const list = el("div", "rows");
   data.results.forEach((result) => {
@@ -1540,16 +2250,22 @@ async function showSearch(query) {
     row.appendChild(el("div", "delta " + toneClass(result.change_percent), pct(result.change_percent)));
     row.appendChild(el("div"));
 
-    const add = el("button", "remove", "+");
-    add.type = "button";
-    add.title = `Add ${result.ticker} to watchlist`;
-    add.addEventListener("click", (e) => {
-      e.stopPropagation();
-      addTicker(result.ticker);
-    });
-    row.appendChild(add);
+    const owner = state.themes.find((t) => t.stocks.some((s) => s.ticker === result.ticker));
+    if (owner) {
+      row.appendChild(el("span", "attr-tag attr-none", "In " + owner.name));
+    } else {
+      const add = el("button", "remove", "+");
+      add.type = "button";
+      add.title = `Add ${result.ticker} to a theme`;
+      add.setAttribute("aria-label", `Add ${result.ticker} to a theme`);
+      add.addEventListener("click", (e) => {
+        e.stopPropagation();
+        openThemeMenu(add, result.ticker);
+      });
+      row.appendChild(add);
+    }
 
-    row.addEventListener("click", () => showDetail(result.ticker));
+    row.addEventListener("click", () => go(stockHash(result.ticker)));
     list.appendChild(row);
   });
 
@@ -1557,49 +2273,20 @@ async function showSearch(query) {
   viewEl.replaceChildren(frag);
 }
 
-/* ---------------- mutations ---------------- */
-
-async function addTicker(ticker) {
-  await fetch("/api/watchlist", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ ticker }),
-  });
-  showWatchlist(false);
-}
-
-async function removeTicker(ticker) {
-  await fetch(`/api/watchlist/${encodeURIComponent(ticker)}`, { method: "DELETE" });
-  showWatchlist(state.view === "movers");
-}
-
 /* ---------------- wiring ---------------- */
-
-document.querySelectorAll(".nav-item[data-view]").forEach((btn) => {
-  btn.addEventListener("click", () => {
-    if (btn.dataset.view === "chat") showChat();
-    else if (btn.dataset.view === "discover") showDiscover();
-    else if (btn.dataset.view === "earnings") showEarnings();
-    else showWatchlist(btn.dataset.view === "movers");
-  });
-});
-
-document.getElementById("add-form").addEventListener("submit", (e) => {
-  e.preventDefault();
-  const input = document.getElementById("ticker-input");
-  const ticker = input.value.trim().toUpperCase();
-  if (!ticker) return;
-  input.value = "";
-  addTicker(ticker);
-});
 
 document.getElementById("search-form").addEventListener("submit", (e) => {
   e.preventDefault();
   const input = document.getElementById("search-input");
   const query = input.value.trim().toUpperCase();
   if (!query) return;
-  showSearch(query);
+  input.value = "";
+  go("#/search/" + encodeURIComponent(query));
 });
 
+window.addEventListener("hashchange", route);
+
 loadOverview();
-showWatchlist(false);
+// The sidebar and the add-to-theme menus need the theme setup, so load it
+// before the first page draws.
+loadThemes().then(route);

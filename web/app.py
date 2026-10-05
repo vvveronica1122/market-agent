@@ -19,9 +19,11 @@ functions (slow, costly, inconsistent between runs) and good explainers.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import sys
+import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
@@ -35,6 +37,9 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
 from config import MODEL
+import themes as theme_store
+from themes import ThemeError
+from tools.relative import relative_rows, theme_summary
 from tools.market_data import (
     get_stock_price,
     get_recent_news,
@@ -56,8 +61,6 @@ import agent as conversational_agent
 app = Flask(__name__, static_folder="static")
 client = Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
 
-WATCHLIST_FILE = Path(__file__).resolve().parent / "watchlist.json"
-DEFAULT_WATCHLIST = ["AAPL", "TSLA", "MSFT", "NVDA"]
 INDICES = [
     ("SPY", "S&P 500"),
     ("QQQ", "Nasdaq 100"),
@@ -82,18 +85,60 @@ def cached(key: str, ttl_seconds: float, producer):
     return value
 
 
-# --- watchlist storage ------------------------------------------------
+# Per-ticker pieces, each cached on its own clock. A price is stale within a
+# minute, an earnings date within hours. With four themes and ~20 names,
+# refetching everything on every page would mean ~80 Yahoo calls a load --
+# and the home page, a theme page and the brief all want the same pieces.
+TTL = {"price": 60, "history": 900, "news": 600, "events": 6 * 3600}
+
+
+def price_of(ticker: str) -> dict:
+    return cached(f"price:{ticker}", TTL["price"], lambda: get_stock_price(ticker))
+
+
+def history_of(ticker: str, period: str = "1mo") -> list:
+    return cached(f"history:{ticker}:{period}", TTL["history"],
+                  lambda: get_price_history(ticker, period=period))
+
+
+def news_of(ticker: str, limit: int = 5) -> list:
+    return cached(f"news:{ticker}:{limit}", TTL["news"], lambda: get_recent_news(ticker, limit=limit))
+
+
+def events_of(ticker: str) -> dict:
+    return cached(f"events:{ticker}", TTL["events"], lambda: get_upcoming_events(ticker))
+
+
+def safe(fn, *args, default=None):
+    try:
+        return fn(*args)
+    except Exception:
+        return default
+
+
+# --- themes -----------------------------------------------------------
+# The watchlist is a set of themes (see themes.py). These wrappers are what
+# the routes call, so tests can swap the storage out in one place.
+_themes_lock = threading.Lock()
+
+
+def load_themes() -> dict:
+    return theme_store.load()
+
+
+def save_themes(state: dict) -> None:
+    theme_store.save(state)
+
+
 def load_watchlist() -> list[str]:
-    if WATCHLIST_FILE.exists():
-        try:
-            return json.loads(WATCHLIST_FILE.read_text())
-        except (json.JSONDecodeError, OSError):
-            pass
-    return list(DEFAULT_WATCHLIST)
+    """Every tracked ticker, across all themes."""
+    return theme_store.all_tickers(load_themes())
 
 
-def save_watchlist(tickers: list[str]) -> None:
-    WATCHLIST_FILE.write_text(json.dumps(tickers, indent=2))
+def themes_key(state: dict) -> str:
+    """Fingerprint of the theme setup, for cache keys: edit a theme and
+    every cached page built from the old setup simply stops matching."""
+    return hashlib.sha1(json.dumps(state, sort_keys=True).encode()).hexdigest()[:12]
 
 
 # --- market state -----------------------------------------------------
@@ -138,7 +183,7 @@ def days_until_earnings(events: dict | None) -> int | None:
     return None
 
 
-def compute_attention(price, news, events, market_pct) -> dict:
+def compute_attention(price, news, events, market_pct, peer_pct=None) -> dict:
     score = 0.0
     factors: list[dict] = []
 
@@ -148,15 +193,19 @@ def compute_attention(price, news, events, market_pct) -> dict:
         if abs(pct) >= 2:
             factors.append({"label": f"{pct:+.1f}% today", "tone": "up" if pct > 0 else "down"})
 
-        # A move only means something relative to the market. -3% on a day
-        # the whole market is down 3% is not news; -3% on a flat day is.
-        if market_pct is not None:
-            relative = pct - market_pct
+        # A move only means something relative to what it should be measured
+        # against. Inside a theme that's the company's peers: -6% when its
+        # peers are -6% is the theme's story, told once on the theme card;
+        # -6% when they're flat is this company's. With no peer group to
+        # hand, fall back to the market: -3% on a day SPY is -3% isn't news.
+        reference, label = (peer_pct, "vs peers") if peer_pct is not None else (market_pct, "vs market")
+        if reference is not None:
+            relative = pct - reference
             if abs(relative) >= 1.5:
                 score += 12
                 factors.append(
                     {
-                        "label": f"{relative:+.1f}pt vs market",
+                        "label": f"{relative:+.1f}pt {label}",
                         "tone": "up" if relative > 0 else "down",
                     }
                 )
@@ -178,38 +227,119 @@ def compute_attention(price, news, events, market_pct) -> dict:
 
 
 # --- data assembly ----------------------------------------------------
-def fetch_row(ticker: str, market_pct) -> dict:
+def fetch_row(ticker: str, market_pct, peer_pct=None) -> dict:
     """Everything one watchlist row needs. Failures degrade, never raise."""
     row: dict = {"ticker": ticker}
     try:
-        row["price"] = get_stock_price(ticker)
+        row["price"] = price_of(ticker)
     except Exception as exc:
         row["error"] = str(exc)
-    try:
-        row["history"] = get_price_history(ticker, period="1mo")
-    except Exception:
-        row["history"] = []
-    try:
-        news = get_recent_news(ticker, limit=5)
-    except Exception:
-        news = []
-    try:
-        events = get_upcoming_events(ticker)
-    except Exception:
-        events = {}
+    row["history"] = safe(history_of, ticker, default=[])
+    news = safe(news_of, ticker, default=[])
+    events = safe(events_of, ticker, default={})
 
     row["news_count"] = len(news)
     row["top_headline"] = news[0]["title"] if news else None
     row["events"] = events
-    row["attention"] = compute_attention(row.get("price"), news, events, market_pct)
+    row["attention"] = compute_attention(row.get("price"), news, events, market_pct, peer_pct)
     return row
 
 
 def spy_change_percent():
-    try:
-        return get_stock_price("SPY").get("change_percent")
-    except Exception:
+    return (safe(price_of, "SPY") or {}).get("change_percent")
+
+
+def rounded(value, digits=2):
+    return None if value is None else round(value, digits)
+
+
+def theme_block(theme: dict, rows_by_ticker: dict, quotes: dict, market_pct) -> dict:
+    """One theme as the pages show it: its benchmark, how it did as a whole,
+    and each company measured against the benchmark and against its peers."""
+    bench = quotes.get(theme["benchmark"]) or {}
+    bench_pct = bench.get("change_percent")
+    tickers = [s["ticker"] for s in theme["stocks"]]
+    changes = {t: (rows_by_ticker[t].get("price") or {}).get("change_percent") for t in tickers}
+    relative = relative_rows(changes, bench_pct)
+
+    rows = []
+    for stock in theme["stocks"]:
+        t = stock["ticker"]
+        base = rows_by_ticker[t]
+        row = dict(base, role=stock.get("role", ""), note=stock.get("note", ""),
+                   relative={k: rounded(v) if isinstance(v, float) else v
+                             for k, v in relative[t].items()})
+        # Re-scored against peers now that the theme is known. The news is
+        # cached, so this costs nothing.
+        row["attention"] = compute_attention(base.get("price"), safe(news_of, t, default=[]),
+                                             base.get("events"), market_pct,
+                                             relative[t]["peer_average"])
+        rows.append(row)
+    rows.sort(key=lambda r: r["attention"]["score"], reverse=True)
+
+    earnings_soon = []
+    for row in rows:
+        days = days_until_earnings(row.get("events"))
+        if days is not None and 0 <= days <= 7:
+            earnings_soon.append({"ticker": row["ticker"], "days": days})
+    earnings_soon.sort(key=lambda e: e["days"])
+
+    summary = theme_summary(changes, bench_pct)
+    return {
+        "id": theme["id"],
+        "name": theme["name"],
+        "description": theme.get("description", ""),
+        "benchmark": {"ticker": theme["benchmark"], "change_percent": bench_pct,
+                      "price": bench.get("price"), "available": bool(bench)},
+        "summary": {k: rounded(v) if isinstance(v, float) else v for k, v in summary.items()},
+        "earnings_soon": earnings_soon,
+        "rows": rows,
+    }
+
+
+def compute_blocks(state: dict, selected: list[dict]) -> dict:
+    """Market data for the selected themes, fetched in parallel: one quote per
+    benchmark (and SPY), one row per company."""
+    benchmarks = sorted({t["benchmark"] for t in selected} | {"SPY"})
+    tickers = theme_store.all_tickers({"themes": selected})
+    with ThreadPoolExecutor(max_workers=12) as pool:
+        quotes = dict(zip(benchmarks, pool.map(lambda b: safe(price_of, b), benchmarks)))
+    market_pct = (quotes.get("SPY") or {}).get("change_percent")
+    with ThreadPoolExecutor(max_workers=12) as pool:
+        rows = {r["ticker"]: r for r in pool.map(lambda t: fetch_row(t, market_pct), tickers)}
+    return {
+        "market_change_percent": market_pct,
+        "themes": [theme_block(t, rows, quotes, market_pct) for t in selected],
+    }
+
+
+def home_payload(state: dict) -> dict:
+    return cached(f"home:{themes_key(state)}", 60, lambda: compute_blocks(state, state["themes"]))
+
+
+def theme_context(state: dict, ticker: str, own_change) -> dict | None:
+    """Where one company stands in its theme today, for the stock page."""
+    theme = theme_store.theme_of(state, ticker)
+    if theme is None:
         return None
+    tickers = [s["ticker"] for s in theme["stocks"]]
+    others = [t for t in tickers if t != ticker]
+    wanted = others + [theme["benchmark"]]
+    with ThreadPoolExecutor(max_workers=12) as pool:
+        quotes = dict(zip(wanted, pool.map(lambda t: safe(price_of, t), wanted)))
+    changes = {t: (quotes.get(t) or {}).get("change_percent") for t in others}
+    changes[ticker] = own_change
+    bench_pct = (quotes.get(theme["benchmark"]) or {}).get("change_percent")
+    rel = relative_rows(changes, bench_pct)[ticker]
+    return {
+        "theme_id": theme["id"],
+        "theme_name": theme["name"],
+        "role": next((s.get("role", "") for s in theme["stocks"] if s["ticker"] == ticker), ""),
+        "note": next((s.get("note", "") for s in theme["stocks"] if s["ticker"] == ticker), ""),
+        "benchmark": {"ticker": theme["benchmark"], "change_percent": rounded(bench_pct)},
+        **{k: rounded(v) if isinstance(v, float) else v for k, v in rel.items()},
+        "peers": [{"ticker": t, "change_percent": rounded(changes[t])} for t in others],
+    }
 
 
 ANALYSIS_SYSTEM = """You are a market research assistant writing a short briefing on one \
@@ -225,6 +355,14 @@ different reasons, and that difference is usually the most useful thing on the p
 Write 3-4 sentences covering: how the move looks in context (including versus the market, \
 if that figure is provided), what the coverage says may be driving it, and what is coming \
 up that's worth watching.
+
+If theme_comparison is present, use it for the context: it gives the theme's benchmark ETF, \
+the average move of the company's peers in the same theme (excluding the company), and an \
+attribution -- "theme" when it tracked its peers, "company" when it diverged from them \
+(moved alone, against them, or held up while they fell), "mixed" in between, "quiet" when \
+neither it nor its peers moved much. Say plainly whether the move looks shared with the \
+theme or specific to this company, using those figures; don't recompute them. The label says \
+how the moves line up, not why, so it changes nothing about the causation rule below.
 
 Some items are videos rather than articles; their summaries are still fine to use, but \
 don't describe a video as something the reader can read.
@@ -257,6 +395,17 @@ def analyze(ticker: str, data: dict) -> str:
         "events": data.get("events"),
         "earnings_setup": data.get("setup"),
     }
+    theme = data.get("theme")
+    if theme:
+        payload["theme_comparison"] = {
+            "theme": theme["theme_name"],
+            "benchmark": theme["benchmark"],
+            "peer_average_change_percent": theme["peer_average"],
+            "vs_peers": theme["vs_peers"],
+            "vs_benchmark": theme["vs_benchmark"],
+            "attribution": theme["attribution"],
+            "peers": theme["peers"],
+        }
     try:
         response = client.messages.create(
             model=MODEL,
@@ -298,46 +447,108 @@ def index_quote(ticker: str, label: str) -> dict:
         return {"ticker": ticker, "label": label, "error": str(exc)}
 
 
-@app.route("/api/watchlist", methods=["GET"])
-def get_watchlist_route():
-    return jsonify(load_watchlist())
+@app.route("/api/home")
+def home_route():
+    return jsonify(home_payload(load_themes()))
 
 
-@app.route("/api/watchlist", methods=["POST"])
-def add_to_watchlist():
+@app.route("/api/theme/<theme_id>")
+def theme_route(theme_id: str):
+    state = load_themes()
+    try:
+        theme = theme_store.find_theme(state, theme_id)
+    except ThemeError as exc:
+        return jsonify({"error": str(exc)}), 404
+    payload = cached(f"theme:{theme_id}:{themes_key(state)}", 60,
+                     lambda: compute_blocks(state, [theme]))
+    return jsonify({"market_change_percent": payload["market_change_percent"],
+                    **payload["themes"][0]})
+
+
+# --- theme management -------------------------------------------------
+def themes_config(state: dict) -> dict:
+    return {
+        "themes": state["themes"],
+        "limits": {"themes": theme_store.MAX_THEMES,
+                   "stocks_per_theme": theme_store.MAX_STOCKS_PER_THEME,
+                   "stocks_for_peers": theme_store.MIN_STOCKS_FOR_PEERS},
+    }
+
+
+def resolves(ticker: str) -> bool:
+    """Whether Yahoo has a price for this ticker -- checked before saving,
+    so a typo never becomes a permanently empty row."""
+    return safe(price_of, ticker) is not None
+
+
+def change_themes(apply) -> tuple:
+    """Load, apply one change, save -- under a lock, so two quick edits
+    from the page can't overwrite each other."""
+    with _themes_lock:
+        state = load_themes()
+        try:
+            apply(state)
+        except ThemeError as exc:
+            return jsonify({"error": str(exc)}), 400
+        save_themes(state)
+        return jsonify(themes_config(state)), 200
+
+
+@app.route("/api/themes", methods=["GET"])
+def list_themes_route():
+    return jsonify(themes_config(load_themes()))
+
+
+@app.route("/api/themes", methods=["POST"])
+def create_theme_route():
     body = request.get_json(force=True, silent=True) or {}
-    ticker = (body.get("ticker") or "").strip().upper()
-    if not ticker:
-        return jsonify({"error": "ticker is required"}), 400
-
-    watchlist = load_watchlist()
-    if ticker not in watchlist:
-        watchlist.append(ticker)
-        save_watchlist(watchlist)
-    return jsonify(watchlist)
+    benchmark = (body.get("benchmark") or "SPY").strip().upper()
+    if not resolves(benchmark):
+        return jsonify({"error": f"No market data for benchmark '{benchmark}'. Use an ETF "
+                                 f"ticker, e.g. SMH or QQQ."}), 400
+    return change_themes(lambda s: theme_store.create_theme(
+        s, body.get("name"), benchmark, body.get("description", "")))
 
 
-@app.route("/api/watchlist/<ticker>", methods=["DELETE"])
-def remove_from_watchlist(ticker: str):
-    ticker = ticker.strip().upper()
-    save_watchlist([t for t in load_watchlist() if t != ticker])
-    return jsonify(load_watchlist())
+@app.route("/api/themes/<theme_id>", methods=["PATCH"])
+def update_theme_route(theme_id: str):
+    body = request.get_json(force=True, silent=True) or {}
+    benchmark = body.get("benchmark")
+    if benchmark is not None and not resolves(str(benchmark).strip().upper()):
+        return jsonify({"error": f"No market data for benchmark '{benchmark}'."}), 400
+    return change_themes(lambda s: theme_store.update_theme(
+        s, theme_id, name=body.get("name"), benchmark=benchmark,
+        description=body.get("description")))
 
 
-@app.route("/api/watchlist/data")
-def watchlist_data():
-    tickers = load_watchlist()
-    if not tickers:
-        return jsonify({"rows": [], "market_change_percent": None})
+@app.route("/api/themes/<theme_id>", methods=["DELETE"])
+def delete_theme_route(theme_id: str):
+    return change_themes(lambda s: theme_store.delete_theme(s, theme_id))
 
-    def produce():
-        market_pct = spy_change_percent()
-        with ThreadPoolExecutor(max_workers=6) as pool:
-            rows = list(pool.map(lambda t: fetch_row(t, market_pct), tickers))
-        rows.sort(key=lambda r: r["attention"]["score"], reverse=True)
-        return {"rows": rows, "market_change_percent": market_pct}
 
-    return jsonify(cached("watchlist:" + ",".join(tickers), 60, produce))
+@app.route("/api/themes/<theme_id>/stocks", methods=["POST"])
+def add_stock_route(theme_id: str):
+    body = request.get_json(force=True, silent=True) or {}
+    ticker = str(body.get("ticker") or "").strip().upper()
+    try:
+        ticker = theme_store.clean_ticker(ticker)
+    except ThemeError as exc:
+        return jsonify({"error": str(exc)}), 400
+    if not resolves(ticker):
+        return jsonify({"error": f"No market data for '{ticker}'. Check the symbol."}), 400
+    return change_themes(lambda s: theme_store.add_stock(s, theme_id, ticker, body.get("note", "")))
+
+
+@app.route("/api/themes/<theme_id>/stocks/<ticker>", methods=["PATCH"])
+def update_stock_route(theme_id: str, ticker: str):
+    body = request.get_json(force=True, silent=True) or {}
+    return change_themes(lambda s: theme_store.update_stock(
+        s, theme_id, ticker, note=body.get("note"), move_to=body.get("move_to")))
+
+
+@app.route("/api/themes/<theme_id>/stocks/<ticker>", methods=["DELETE"])
+def remove_stock_route(theme_id: str, ticker: str):
+    return change_themes(lambda s: theme_store.remove_stock(s, theme_id, ticker))
 
 
 @app.route("/api/stock/<ticker>")
@@ -384,13 +595,17 @@ def stock_detail(ticker: str):
 
         market_pct = data.pop("spy", None)
         data["market"] = {"ticker": "SPY", "change_percent": market_pct} if market_pct is not None else None
+        own = (data.get("price") or {}).get("change_percent")
+        data["theme"] = safe(theme_context, state, ticker, own)
         data["attention"] = compute_attention(
-            data.get("price"), data.get("news"), data.get("events"), market_pct
+            data.get("price"), data.get("news"), data.get("events"), market_pct,
+            (data["theme"] or {}).get("peer_average"),
         )
         data["analysis"] = analyze(ticker, data)
         return data
 
-    return jsonify(cached(f"stock:{ticker}", 120, produce))
+    state = load_themes()
+    return jsonify(cached(f"stock:{ticker}:{themes_key(state)}", 120, produce))
 
 
 @app.route("/api/search")
@@ -632,6 +847,16 @@ The watchlist is a list of names the reader is TRACKING. It is not a portfolio a
 has no holdings data, so never write "you own", "your holdings" or "your position" -- write
 "on your watchlist" or "you're tracking".
 
+If the watchlist arrives grouped into themes, each theme is a set of companies sharing a \
+driver, with a benchmark ETF. Every name carries its peers' average move -- the other \
+companies in the same theme, excluding itself -- and a move_type: "theme" when it tracked its \
+peers, "company" when it diverged from them (moved alone, against them, or held up while they \
+fell), "mixed" in between, "quiet" when neither it nor its peers moved much. Use \
+these figures; don't recompute them. A name moving with its whole theme is part of one theme \
+story, so tell that story once, at the theme level. A name moving against its peers or well \
+beyond them is a company-specific story worth naming. These labels say how moves line up, \
+not why -- the rule on causation below still applies.
+
 If it's a quiet day, say so in a line rather than inflating it -- that's useful too.
 
 Three or four short paragraphs. No headings, no bullet points, no preamble.
@@ -669,9 +894,23 @@ Stick to the data you were handed. Don't add specifics about the event from your
 memory: your training data is old, and an invented detail is worse than a missing one."""
 
 
+def _brief_name(r: dict) -> dict:
+    return {
+        "ticker": r["ticker"],
+        "change_percent": rounded((r.get("price") or {}).get("change_percent")),
+        "attention": (r.get("attention") or {}).get("level"),
+        "reasons": [f["label"] for f in (r.get("attention") or {}).get("factors", [])],
+        "top_headline": r.get("top_headline"),
+    }
+
+
 def build_brief(rows: list[dict], market_pct, indices: list[dict],
-                movers: list[dict], headlines: list[dict]) -> str:
+                movers: list[dict], headlines: list[dict], themes: list[dict] | None = None) -> str:
     """One Claude call covering the watchlist AND the wider market.
+
+    With `themes` (the home page's theme blocks), the watchlist goes in
+    grouped by theme, each name carrying its peer comparison. Without it --
+    as in the evals' fixed scenarios -- it goes in as one flat list.
 
     The payload is deliberately compacted -- sending full news bodies for
     every name would be slow and expensive without making the brief better.
@@ -688,16 +927,29 @@ def build_brief(rows: list[dict], market_pct, indices: list[dict],
             ],
             "session": market_status(),
         },
-        "watchlist": [
+    }
+    if themes:
+        payload["watchlist_themes"] = [
             {
-                "ticker": r["ticker"],
-                "change_percent": (r.get("price") or {}).get("change_percent"),
-                "attention": (r.get("attention") or {}).get("level"),
-                "reasons": [f["label"] for f in (r.get("attention") or {}).get("factors", [])],
-                "top_headline": r.get("top_headline"),
+                "theme": b["name"],
+                "benchmark": {"ticker": b["benchmark"]["ticker"],
+                              "change_percent": rounded(b["benchmark"]["change_percent"])},
+                "theme_average_change_percent": b["summary"]["average"],
+                "names_beating_benchmark": (
+                    f"{b['summary']['beat_count']} of {b['summary']['count']}"
+                    if b["summary"]["beat_count"] is not None else None),
+                "names": [
+                    dict(_brief_name(r),
+                         peer_average_change_percent=r["relative"]["peer_average"],
+                         move_type=r["relative"]["attribution"])
+                    for r in b["rows"]
+                ],
             }
-            for r in rows
-        ],
+            for b in themes
+        ]
+    else:
+        payload["watchlist"] = [_brief_name(r) for r in rows]
+    payload.update({
         "market_wide_movers_not_on_watchlist": [
             {
                 "ticker": m["ticker"],
@@ -708,7 +960,7 @@ def build_brief(rows: list[dict], market_pct, indices: list[dict],
             for m in movers[:15]
         ],
         "market_headlines": [h["title"] for h in headlines[:10]],
-    }
+    })
 
     try:
         response = client.messages.create(
@@ -779,11 +1031,15 @@ def chat_route():
 
 @app.route("/api/earnings")
 def earnings_route():
-    tickers = load_watchlist()
+    state = load_themes()
+    tickers = theme_store.all_tickers(state)
+    theme_names = {s["ticker"]: t["name"] for t in state["themes"] for s in t["stocks"]}
 
     def produce():
-        with ThreadPoolExecutor(max_workers=6) as pool:
+        with ThreadPoolExecutor(max_workers=12) as pool:
             items = list(pool.map(get_earnings_schedule, tickers))
+        for item in items:
+            item["theme"] = theme_names.get(item.get("ticker"))
 
         scheduled = [i for i in items if i.get("next_date")]
         scheduled.sort(key=lambda i: i["next_date"])
@@ -806,14 +1062,16 @@ def earnings_route():
 
 @app.route("/api/brief")
 def brief_route():
-    tickers = load_watchlist()
+    state = load_themes()
+    tickers = theme_store.all_tickers(state)
 
     def produce():
-        market_pct = spy_change_percent()
-
-        with ThreadPoolExecutor(max_workers=6) as pool:
-            rows = list(pool.map(lambda t: fetch_row(t, market_pct), tickers))
-        rows.sort(key=lambda r: r["attention"]["score"], reverse=True)
+        # The same theme blocks the home page shows, so the brief and the
+        # cards beneath it are written from identical numbers.
+        home = home_payload(state)
+        market_pct = home["market_change_percent"]
+        blocks = home["themes"]
+        rows = [r for b in blocks for r in b["rows"]]
 
         with ThreadPoolExecutor(max_workers=4) as pool:
             indices = list(pool.map(lambda pair: index_quote(*pair), INDICES))
@@ -831,14 +1089,19 @@ def brief_route():
             headlines = []
 
         return {
-            "brief": build_brief(rows, market_pct, indices, movers, headlines),
+            "brief": build_brief(rows, market_pct, indices, movers, headlines, themes=blocks),
             "generated_at": datetime.now(ZoneInfo("America/New_York")).strftime("%I:%M %p ET").lstrip("0"),
             "scanned_market": len(movers),
         }
 
-    # 15 minutes: regenerating on every refresh burns tokens to say the
-    # same thing.
-    return jsonify(cached("brief:" + ",".join(tickers), 900, produce))
+    # 15 minutes: regenerating on every page load burns tokens to say the
+    # same thing. The Refresh button sends ?t=..., which drops the cached
+    # brief -- before, it only defeated the browser's cache, so the button
+    # returned the same brief for up to 15 minutes.
+    key = f"brief:{themes_key(state)}"
+    if request.args.get("t"):
+        _cache.pop(key, None)
+    return jsonify(cached(key, 900, produce))
 
 
 @app.route("/api/discover")

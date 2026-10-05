@@ -16,6 +16,7 @@ Nothing here calls Anthropic or the network. Run it with:
 
 from __future__ import annotations
 
+import json
 import sys
 from pathlib import Path
 
@@ -38,13 +39,41 @@ def fake_price(ticker):
                   "previous_close": 82.2, "change": 5.8, "change_percent": 7.1},
         "SPY": {"ticker": "SPY", "price": 500.0, "currency": "USD",
                 "previous_close": 499.0, "change": 1.0, "change_percent": 0.2},
+        # CRASH's theme: every name falls about as far, so CRASH's drop is
+        # the theme's move, not its own.
+        "PEER1": {"ticker": "PEER1", "price": 94.5, "currency": "USD",
+                  "previous_close": 100.0, "change": -5.5, "change_percent": -5.5},
+        "PEER2": {"ticker": "PEER2", "price": 93.5, "currency": "USD",
+                  "previous_close": 100.0, "change": -6.5, "change_percent": -6.5},
+        "CHIPETF": {"ticker": "CHIPETF", "price": 95.0, "currency": "USD",
+                    "previous_close": 100.0, "change": -5.0, "change_percent": -5.0},
+        # QUIET's theme: SOLO jumps while its peers sit still -- a move of
+        # its own.
+        "SOLO": {"ticker": "SOLO", "price": 104.0, "currency": "USD",
+                 "previous_close": 100.0, "change": 4.0, "change_percent": 4.0},
+        "CALM": {"ticker": "CALM", "price": 99.7, "currency": "USD",
+                 "previous_close": 100.0, "change": -0.3, "change_percent": -0.3},
     }
     if ticker not in table:
         raise ValueError(f"No price data found for ticker '{ticker}'.")
     return table[ticker]
 
 
-KNOWN = {"CRASH", "QUIET", "SPY", "SURGE"}
+KNOWN = {"CRASH", "QUIET", "SPY", "SURGE", "PEER1", "PEER2", "CHIPETF", "SOLO", "CALM"}
+
+
+def fake_themes():
+    return {"version": 1, "themes": [
+        {"id": "chips", "name": "Chips", "benchmark": "CHIPETF", "description": "Test theme.",
+         "stocks": [{"ticker": t, "role": "", "note": ""} for t in ("CRASH", "PEER1", "PEER2")]},
+        {"id": "other", "name": "Other", "benchmark": "SPY", "description": "",
+         "stocks": [{"ticker": t, "role": "", "note": ""} for t in ("QUIET", "SOLO", "CALM")]},
+    ]}
+
+
+# In-memory theme storage, so route tests can change themes and read back
+# what was saved without touching a file.
+STORE = {"state": fake_themes()}
 
 
 def fake_history(ticker, period="1mo"):
@@ -205,8 +234,9 @@ def install_stubs():
     server.get_recent_news = fake_news
     server.get_upcoming_events = fake_events
     server.analyze = lambda ticker, data: "Stubbed analysis."
-    server.load_watchlist = lambda: ["QUIET", "CRASH"]
-    server.save_watchlist = lambda tickers: None
+    STORE["state"] = fake_themes()
+    server.load_themes = lambda: json.loads(json.dumps(STORE["state"]))
+    server.save_themes = lambda state: STORE.update(state=json.loads(json.dumps(state)))
     server.client = FakeClient()
     server.get_market_movers = fake_movers
     server.get_market_news = fake_market_news
@@ -244,15 +274,83 @@ def main() -> int:
                           any("earnings" in f["label"] for f in crash["factors"]),
                           str(crash["factors"]))
 
-    print("\nRanking")
+    print("\nAttention against peers")
+    vs_peers = server.compute_attention(fake_price("CRASH"), [], {}, 0.2, peer_pct=-6.0)
+    failures += not check("with peers, a move shared with them earns no relative-move points",
+                          not any("vs" in f["label"] for f in vs_peers["factors"]), str(vs_peers["factors"]))
+    alone = server.compute_attention(fake_price("SOLO"), [], {}, 0.2, peer_pct=-0.1)
+    failures += not check("a move its peers didn't make is flagged against peers, not the market",
+                          any(f["label"].endswith("vs peers") for f in alone["factors"]), str(alone["factors"]))
+
+    print("\nHome page -- themes")
     server._cache.clear()
-    rows = client.get("/api/watchlist/data").get_json()["rows"]
-    failures += not check("watchlist is sorted by attention, not alphabetically",
-                          [r["ticker"] for r in rows] == ["CRASH", "QUIET"],
-                          str([r["ticker"] for r in rows]))
+    server.client = FakeClient()
+    home = client.get("/api/home").get_json()
+    blocks = {b["id"]: b for b in home["themes"]}
+    failures += not check("themes come back in their configured order",
+                          [b["id"] for b in home["themes"]] == ["chips", "other"])
+    failures += not check("each theme carries its benchmark's move",
+                          blocks["chips"]["benchmark"]["change_percent"] == -5.0)
+    chips = blocks["chips"]["summary"]
+    failures += not check("theme average is equal-weighted",
+                          chips["average"] == -6.0, str(chips))
+    failures += not check("breadth counts names that beat the benchmark (none did)",
+                          chips["beat_count"] == 0 and chips["count"] == 3, str(chips))
+    crash = next(r for r in blocks["chips"]["rows"] if r["ticker"] == "CRASH")
+    failures += not check("a company's peer average leaves the company out",
+                          crash["relative"]["peer_average"] == -6.0, str(crash["relative"]))
+    failures += not check("falling with its whole theme is labelled a theme move",
+                          crash["relative"]["attribution"] == "theme")
+    solo = next(r for r in blocks["other"]["rows"] if r["ticker"] == "SOLO")
+    failures += not check("jumping while its peers sit still is labelled a company move",
+                          solo["relative"]["attribution"] == "company", str(solo["relative"]))
+    failures += not check("rows within a theme are ranked by attention",
+                          blocks["chips"]["rows"][0]["ticker"] == "CRASH",
+                          str([r["ticker"] for r in blocks["chips"]["rows"]]))
+    failures += not check("earnings within a week are surfaced on the theme",
+                          blocks["chips"]["earnings_soon"] == [{"ticker": "CRASH", "days": 3}],
+                          str(blocks["chips"]["earnings_soon"]))
+    failures += not check("the home page costs no model calls",
+                          len(server.client.messages.calls) == 0,
+                          f"{len(server.client.messages.calls)} calls")
+
+    theme_page = client.get("/api/theme/chips").get_json()
+    failures += not check("a theme page returns that theme's block",
+                          theme_page["id"] == "chips" and len(theme_page["rows"]) == 3)
+    failures += not check("an unknown theme is a 404, not a crash",
+                          client.get("/api/theme/nope").status_code == 404)
+
+    print("\nManaging themes")
+    created = client.post("/api/themes", json={"name": "Power", "benchmark": "spy"})
+    failures += not check("a theme can be created",
+                          created.status_code == 200 and STORE["state"]["themes"][-1]["id"] == "power",
+                          str(created.get_json()))
+    bad_bench = client.post("/api/themes", json={"name": "Nope", "benchmark": "NOSUCH"})
+    failures += not check("a benchmark with no market data is refused",
+                          bad_bench.status_code == 400 and "NOSUCH" in bad_bench.get_json()["error"])
+    typo = client.post("/api/themes/power/stocks", json={"ticker": "NOSUCH"})
+    failures += not check("a ticker with no market data is refused, so typos don't become empty rows",
+                          typo.status_code == 400, str(typo.get_json()))
+    dup = client.post("/api/themes/power/stocks", json={"ticker": "crash"})
+    failures += not check("a company already in another theme is refused with where it is",
+                          dup.status_code == 400 and "Chips" in dup.get_json()["error"],
+                          str(dup.get_json()))
+    added = client.post("/api/themes/power/stocks", json={"ticker": "surge", "note": "Watching orders."})
+    failures += not check("a company is added with a note",
+                          added.status_code == 200 and
+                          STORE["state"]["themes"][-1]["stocks"][0] ==
+                          {"ticker": "SURGE", "role": "", "note": "Watching orders."},
+                          str(added.get_json()))
+    client.patch("/api/themes/power/stocks/SURGE", json={"move_to": "other"})
+    failures += not check("a company can be moved to another theme",
+                          any(s["ticker"] == "SURGE" for s in STORE["state"]["themes"][1]["stocks"]))
+    client.delete("/api/themes/power")
+    failures += not check("a theme can be deleted",
+                          all(t["id"] != "power" for t in STORE["state"]["themes"]))
+    STORE["state"] = fake_themes()
 
     print("\nRoutes")
-    for path in ["/", "/static/style.css", "/static/app.js", "/api/overview", "/api/watchlist"]:
+    for path in ["/", "/static/style.css", "/static/app.js", "/api/overview", "/api/themes"]:
         res = client.get(path)
         failures += not check(f"GET {path} returns 200", res.status_code == 200, str(res.status_code))
 
@@ -263,6 +361,12 @@ def main() -> int:
                           str(list(detail)))
     failures += not check("detail view includes market comparison",
                           detail.get("market") is not None)
+    theme = detail.get("theme") or {}
+    failures += not check("detail view places the company in its theme",
+                          theme.get("theme_id") == "chips" and theme.get("peer_average") == -6.0
+                          and theme.get("attribution") == "theme", str(theme))
+    failures += not check("a name in no theme simply has no theme context",
+                          client.get("/api/stock/SURGE").get_json().get("theme") is None)
 
     print("\nFailure handling")
     server._cache.clear()
@@ -342,16 +446,42 @@ def main() -> int:
                           len(server.client.messages.calls) == 1,
                           f"{len(server.client.messages.calls)} calls")
 
+    print("\nBrief by theme")
+    failures += not check("the watchlist reaches the brief grouped by theme",
+                          '"watchlist_themes"' in sent_brief and '"theme": "Chips"' in sent_brief)
+    failures += not check("each name carries its peer comparison and move type",
+                          '"move_type": "theme"' in sent_brief and '"move_type": "company"' in sent_brief)
+    server.client = FakeClient()
+    server.build_brief([{"ticker": "CRASH", "price": fake_price("CRASH")}], 0.2, [], [], [])
+    flat = server.client.messages.calls[0]["messages"][0]["content"]
+    failures += not check("without themes the brief falls back to a flat list (the evals' path)",
+                          '"watchlist"' in flat and "watchlist_themes" not in flat)
+
+    print("\nBrief refresh")
+    server._cache.clear()
+    server.client = FakeClient()
+    client.get("/api/brief")
+    client.get("/api/brief")
+    cached_calls = len(server.client.messages.calls)
+    client.get("/api/brief?t=123")
+    failures += not check("a repeat load reuses the cached brief",
+                          cached_calls == 1, f"{cached_calls} calls")
+    failures += not check("Refresh actually writes a new brief",
+                          len(server.client.messages.calls) == 2,
+                          f"{len(server.client.messages.calls)} calls")
+
     print("\nEarnings calendar")
     server._cache.clear()
     cal = client.get("/api/earnings").get_json()
     tickers_in_order = [i["ticker"] for i in cal["items"]]
     failures += not check("scheduled names come back in date order",
-                          tickers_in_order == ["CRASH", "QUIET"], str(tickers_in_order))
+                          tickers_in_order[:2] == ["CRASH", "QUIET"], str(tickers_in_order))
     failures += not check("names with no date are listed separately, not dropped",
                           cal["unscheduled"] == [], str(cal["unscheduled"]))
-    failures += not check("every watchlist name is accounted for",
-                          cal["count"] == 2, str(cal["count"]))
+    failures += not check("every name in every theme is accounted for",
+                          cal["count"] == 6, str(cal["count"]))
+    failures += not check("each calendar entry says which theme it belongs to",
+                          cal["items"][0].get("theme") == "Chips", str(cal["items"][0].get("theme")))
     failures += not check("last quarter's surprise survives to the client",
                           cal["items"][0]["last_report"]["surprise_percent"] == 7.9)
     failures += not check("today's date is sent so the calendar can mark it",

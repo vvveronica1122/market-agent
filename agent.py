@@ -42,6 +42,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
 from config import MODEL
+import themes as theme_store
 from tools.market_data import (
     get_stock_price,
     get_recent_news,
@@ -61,7 +62,6 @@ from tools.calc import calculate
 # tools and never answers, burning tokens until you kill it. Cap it.
 MAX_STEPS = 12
 
-WATCHLIST_FILE = PROJECT_ROOT / "web" / "watchlist.json"
 
 SYSTEM_PROMPT = """You are a market research assistant with tools for live prices, news,
 earnings schedules, company financials, and a market-wide scanner.
@@ -123,15 +123,18 @@ now. That is analysis. Naming a direction would be invention with a confident to
 the reader cannot tell the two apart."""
 
 
-def read_watchlist() -> list[str]:
-    """The watchlist the web dashboard maintains -- shared state between
-    the two halves of this project."""
-    if WATCHLIST_FILE.exists():
-        try:
-            return json.loads(WATCHLIST_FILE.read_text())
-        except (json.JSONDecodeError, OSError):
-            pass
-    return ["AAPL", "TSLA", "MSFT", "NVDA"]
+def read_watchlist() -> dict:
+    """The themes the web dashboard maintains -- shared state between the
+    two halves of this project -- reduced to what the agent needs."""
+    state = theme_store.load()
+    return {
+        "themes": [
+            {"theme": t["name"], "benchmark": t["benchmark"],
+             "tickers": [s["ticker"] for s in t["stocks"]]}
+            for t in state["themes"]
+        ],
+        "all_tickers": theme_store.all_tickers(state),
+    }
 
 
 def scan_market(limit: int = 10) -> list[dict]:
@@ -154,8 +157,9 @@ TOOLS = [
     {
         "name": "get_watchlist",
         "description": (
-            "Get the list of ticker symbols the user is currently watching. Call this first "
-            "whenever the question refers to 'my stocks', 'my watchlist', or 'the ones I follow'."
+            "Get the ticker symbols the user is watching, grouped into themes (companies that "
+            "share a driver), each with its benchmark ETF. Call this first whenever the question "
+            "refers to 'my stocks', 'my watchlist', a theme, or 'the ones I follow'."
         ),
         "input_schema": {"type": "object", "properties": {}},
         "handler": lambda: read_watchlist(),

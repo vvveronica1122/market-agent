@@ -23,6 +23,8 @@ ROOT = Path(__file__).resolve().parent
 SUITES = [
     ("dashboard", "web/test_app.py"),
     ("agent loop", "test_agent.py"),
+    ("themes", "test_themes.py"),
+    ("relative performance", "tools/test_relative.py"),
     ("calculator", "tools/test_calc.py"),
     ("eval checks", "evals/test_checks.py"),
     ("eval results", "evals/test_results.py"),
