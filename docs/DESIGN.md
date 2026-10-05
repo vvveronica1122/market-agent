@@ -587,7 +587,18 @@ made the causation rule about meaning rather than the word "because"; round
 2 moved the ending onto a fact and off the reader.
 
 Train went 41% -> 59% -> 84%. The held-out test set, run once at the end,
-went **35% -> 78%**. What's left mostly sits outside the prompt: the brief's
-input has no explicit report dates, so "nothing scheduled this week" can't be
-checked whatever the prompt says.
+went **35% -> 78%**. What was left mostly sat outside the prompt: the brief's
+input had no explicit report dates, so "nothing scheduled this week" couldn't
+be checked whatever the prompt said, and a judge that reasoned in prose was
+cut off before its verdict. Fixing both took the test set to 95% -- by then
+no longer untouched, so the prompt's own result stays 35% -> 78%.
+
+The same method on the stock-page analysis
+([log](../evals/tuning/analysis-prompt-2026-10.md)) found the same disease in a
+different form: the model explained moves through what investors supposedly
+think ("suggests investors are concerned about..."), and the prompt's
+outline asked for "what the coverage says may be driving it". One round took
+train from 71% to 92% and the held-out test from 75% to 94% -- a gain the
+size of the noise interval, because the baseline left little headroom, which
+the log said before the run rather than after it.
 

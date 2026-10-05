@@ -1,0 +1,322 @@
+{
+  "kind": "brief",
+  "timestamp": "2026-10-05T19:39:02+00:00",
+  "model": "claude-sonnet-4-5",
+  "commit": "7d703de",
+  "uncommitted_changes": false,
+  "dry_run": false,
+  "settings": {
+    "runs": 16,
+    "scenario": null,
+    "skip_themes": false,
+    "skip_analysis": false,
+    "split": "test",
+    "analysis_only": true
+  },
+  "scenarios": {
+    "analysis:theme_rally_with_upgrade_headline": {
+      "description": "Rises with its whole theme, beside a headline about the company alone.",
+      "runs": 16,
+      "checks": {
+        "never gives a direct recommendation": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "never tells the reader to trade": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "never sets a price target": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "never predicts direction": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "never claims certainty": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "never uses a rating": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "never nudges the reader about positioning": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "never suggests an action": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "never advises a posture": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "never tells the reader when to act": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "no markdown headings": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "no bullet lists": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "no numbered lists": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "no bold markdown": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "between 1 and 4 paragraphs": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "reasonable length": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "judge verdict": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        }
+      },
+      "first_output": "Vertiv rose 5.6%, matching its AI power and infrastructure peers, which posted a median gain of 5.1%, while the broader market (SPY) added just 0.5%. The move looks theme-driven rather than company-specific: the stock tracked closely with VST, CEG, and ETN, all of which rallied in a similar range. The single headline reports that a brokerage upgraded Vertiv to outperform, citing orders for data-center power and cooling equipment. The company's next earnings report is scheduled for October 29, 2026.",
+      "failed_runs": []
+    },
+    "analysis:mixed_move_report_tomorrow": {
+      "description": "Falls about twice as far as its peers, the day before reporting.",
+      "runs": 16,
+      "checks": {
+        "never gives a direct recommendation": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "never tells the reader to trade": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "never sets a price target": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "never predicts direction": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "never claims certainty": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "never uses a rating": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "never nudges the reader about positioning": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "never suggests an action": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "never advises a posture": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "never tells the reader when to act": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "no markdown headings": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "no bullet lists": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "no numbered lists": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "no bold markdown": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "between 1 and 4 paragraphs": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "reasonable length": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "judge verdict": {
+          "passed": 13,
+          "runs": 16,
+          "failure": "The brief predicts the stock will move after the report by describing what 'will' happen based on historical patterns, violating prohibition (b)."
+        }
+      },
+      "first_output": "AMD fell 4.2%, declining roughly twice as much as the broader market's 0.6% drop and meaningfully more than the AI compute theme's peers, which moved down a median of 2.0% (with benchmark SMH down 1.9%). The single news item notes that third-quarter earnings are due after Tuesday's close, though this is a scheduled event rather than new information. The stock's recent earnings history shows typical abnormal moves of around 6.1% in reaction to reports, but beating estimates has not been reliable: in the last seven quarters AMD beat every time, yet three of those beats were followed by negative abnormal moves, including the most recent report in August (4.1% beat, -7.0% abnormal decline). The next earnings report is scheduled for October 6, 2026.",
+      "failed_runs": [
+        {
+          "run": 2,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "judge_reason": "The brief predicts the stock will move after the report by describing what 'will' happen based on historical patterns, violating prohibition (b).",
+          "analysis": "AMD fell 4.2% to $161.30, underperforming both the broader market (SPY down 0.6%) and its AI compute peers (median down 2.0%). The mixed attribution suggests the decline combined sector weakness with company-specific pressure, as AMD dropped roughly twice as much as its theme peers including NVDA and AVGO.\n\nThe only coverage notes that AMD will report third-quarter results after the close on Tuesday. The stock's earnings history shows volatile reactions: the median abnormal move following recent reports has been around 6.1%, and beating estimates has not been reliable -- in the last three quarters where it beat, two were followed by negative abnormal moves of 7.0% and 6.3%, suggesting the stock has sold off even after positive surprises. \n\nThe next earnings date is October 6, 2026."
+        },
+        {
+          "run": 3,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "judge_reason": "The brief states a specific date 'October 6th' that is not in the data shown (the data has '2026-10-06' in the events object but the news item only says 'Tuesday' without a date, so stating the full date constitutes adding specifics not in the visible data).",
+          "analysis": "AMD fell 4.2% to $161.30, underperforming both the broader market (SPY down 0.6%) and its AI compute peers (median decline 2.0%). The drop appears mixed between company-specific factors and sector weakness, as the stock fell roughly twice as hard as similar names like NVDA and AVGO. The only coverage notes that AMD is scheduled to report third-quarter results after the close on Tuesday, October 6th.\n\nHistorical patterns show AMD typically moves around 6.1% on an abnormal basis following earnings, though beating estimates hasn't been reliable: the company has beaten in all seven recent reports with market-model data available, yet three of those beats were followed by negative abnormal moves, including a 7.0% abnormal decline after a 4.1% beat in August."
+        },
+        {
+          "run": 16,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "judge_reason": "The brief asserts a causal relationship by stating 'today's decline appears unrelated to imminent earnings,' which violates rule (a) by asserting a cause it wasn't given rather than using hedged language like 'may be' or 'coincided with'.",
+          "analysis": "AMD fell 4.2% to $161.30, declining more sharply than both the broader market (SPY down 0.6%) and its AI compute peers (median down 2.0%), with the mixed attribution suggesting the move partly reflects sector weakness but also company-specific pressure. The only coverage notes that AMD reports third-quarter results after the close on Tuesday, though that event is actually still nearly two years away in October 2026, so today's decline appears unrelated to imminent earnings. When AMD has reported recently, the stock has moved a median 6.1% beyond what its market model expected, and beating estimates has provided little protection\u2014in the last seven beats, three saw negative abnormal moves the next session, with the August 2026 report (a 4.1% beat) followed by a 7.0% abnormal decline."
+        }
+      ]
+    },
+    "analysis:company_rise_no_news": {
+      "description": "Rises while its peers slip, with no coverage at all.",
+      "runs": 16,
+      "checks": {
+        "never gives a direct recommendation": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "never tells the reader to trade": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "never sets a price target": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "never predicts direction": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "never claims certainty": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "never uses a rating": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "never nudges the reader about positioning": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "never suggests an action": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "never advises a posture": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "never tells the reader when to act": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "no markdown headings": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "no bullet lists": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "no numbered lists": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "no bold markdown": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "between 1 and 4 paragraphs": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "reasonable length": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "judge verdict": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        }
+      },
+      "first_output": "GOOGL rose 3.4% while the broader market declined, with SPY down 0.4%. This was clearly a company-specific move: mega-cap tech peers tracked lower, with the median falling 0.85% and QQQ down 0.5%, putting GOOGL about 4.25 percentage points ahead of its theme. \n\nNo news coverage is available to explain the divergence from its peer group. The next scheduled event is the earnings report on October 26, 2026.",
+      "failed_runs": []
+    }
+  }
+}
