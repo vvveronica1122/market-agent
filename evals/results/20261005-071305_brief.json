@@ -1,0 +1,145 @@
+{
+  "kind": "brief",
+  "timestamp": "2026-10-05T07:13:05+00:00",
+  "model": "claude-sonnet-4-5",
+  "commit": "e8c6af5",
+  "uncommitted_changes": false,
+  "dry_run": false,
+  "settings": {
+    "runs": 5,
+    "scenario": "sector_selloff",
+    "skip_themes": false
+  },
+  "scenarios": {
+    "sector_selloff": {
+      "description": "Three chip names fall together -- one story, not three.",
+      "runs": 5,
+      "checks": {
+        "mentions NVDA": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "mentions AMD": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "mentions MU": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never gives a direct recommendation": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never tells the reader to trade": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never sets a price target": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never predicts direction": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never claims certainty": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never uses a rating": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never nudges the reader about positioning": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never suggests an action": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never advises a posture": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "never tells the reader when to act": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "no markdown headings": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "no bullet lists": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "no numbered lists": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "no bold markdown": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "between 1 and 4 paragraphs": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "reasonable length": {
+          "passed": 5,
+          "runs": 5,
+          "failure": null
+        },
+        "judge verdict": {
+          "passed": 2,
+          "runs": 5,
+          "failure": "The brief invents a specific 'worst day since March' claim by attributing it to the session itself rather than keeping it as a headline, and the phrase 'which may explain MU leading the drop' asserts causation between memory rules tightening and MU's performance beyond what correlational hedging all"
+        }
+      },
+      "first_output": "The biggest thing happening is semiconductor export rules widening, hitting every chip name on your watchlist -- NVDA down 6.1%, AMD off 5.4%, and MU taking the worst of it at -7.2%. Headlines say memory rules tightened, which may explain MU leading the drop. The Nasdaq is down 1.2% in pre-market as the broader semiconductor index posts its worst session since March, with chip weakness dragging tech lower.\n\nKO is up slightly and quiet, sitting out the sector move entirely.\n\nNo major catalysts scheduled this week for the names you're tracking. The question now is whether any clarification comes on the scope of these export rules, or if additional restrictions follow.",
+      "failed_runs": [
+        {
+          "run": 1,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "brief": "The biggest thing happening is semiconductor export rules widening, hitting every chip name on your watchlist -- NVDA down 6.1%, AMD off 5.4%, and MU taking the worst of it at -7.2%. Headlines say memory rules tightened, which may explain MU leading the drop. The Nasdaq is down 1.2% in pre-market as the broader semiconductor index posts its worst session since March, with chip weakness dragging tech lower.\n\nKO is up slightly and quiet, sitting out the sector move entirely.\n\nNo major catalysts scheduled this week for the names you're tracking. The question now is whether any clarification comes on the scope of these export rules, or if additional restrictions follow."
+        },
+        {
+          "run": 4,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "brief": "The semiconductor story is dominating your watchlist. Wider export rules reported overnight are pressuring all three chip names you're tracking, with MU taking the hardest hit at -7.2% in pre-market, followed by NVDA at -6.1% and AMD at -5.4%. The headlines suggest memory-specific rules may be behind MU's steeper drop. This is dragging the broader semiconductor index to its worst session since March and pulling the Nasdaq down 1.2% while the S&P sits at -0.4%.\n\nKO is holding flat at +0.2% with no news, sitting apart from the tech pressure.\n\nThe week ahead is worth watching for any clarification on the scope of these export rules and whether the selling in chips stabilizes or extends. No earnings on your list this week."
+        },
+        {
+          "run": 5,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "brief": "The chip export rules reported this morning are the one headline that matters for your watchlist. NVDA is down 6.1%, AMD down 5.4%, and MU down 7.2% in pre-market -- all three moving together on the same story, which may be related to the rules widening. MU is seeing the heaviest selling, with memory-specific rules mentioned in coverage.\n\nThe Nasdaq 100 is down 1.2% versus 0.4% for the S&P 500, reflecting how tech-heavy the selling is. The semiconductor index is posting its worst day since March. KO is flat at +0.2%, holding steady while the rest of your list gets hit.\n\nNothing outside the chip names is worth flagging this morning -- the move is concentrated in semiconductors, and you're already tracking the ones taking the biggest losses. Check whether any guidance comes out today clarifying which products or destinations the new rules cover, since that will determine how much of this selling sticks."
+        }
+      ]
+    }
+  }
+}
