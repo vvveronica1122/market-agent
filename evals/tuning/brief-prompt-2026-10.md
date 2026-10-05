@@ -43,3 +43,30 @@ The prompt itself invites both. Its causation rule names only
 "as/after/because", and its outline ends with "What's coming this week they
 should prepare for" -- an instruction to tell the reader how to approach the
 week.
+
+## Round 1 -- the causation rule is about meaning (ec3e672)
+
+Change: the rule now says any wording that makes a headline the thing moving
+prices states the cause, with generic examples ("on news that...", "is
+driving...", "weighing on"), and requires a correlational link in every
+sentence that pairs a headline with a move.
+
+| | baseline | round 1 |
+|---|---|---|
+| sector_selloff | 4/8 | 6/8 |
+| theme_selloff_one_holds_up | 4/8 | 7/8 |
+| outside_mover | 4/8 | 5/8 |
+| quiet_day | 1/8 | 1/8 |
+| **Train** | **13/32 (41%)** | **19/32 (59%)** |
+
+Asserted-cause failures fell from 8 to 3, and the two scenarios the change
+aimed at went from 8/16 to 13/16 -- beyond the noise floor on their own,
+though the train total's +18 points is just under it. quiet_day, which the
+change didn't address, didn't move.
+
+Reading quiet_day's 7 failures turned up a conflict inside the prompt. Five
+are closing verdicts ("A day to check in briefly rather than scrutinize").
+Two failed rule (c) for "AAPL, MSFT and KO have nothing scheduled this week"
+-- the scenario carries no calendar data at all -- and that sentence is,
+word for word, the prompt's own example of how to state calendar facts.
+The prompt was teaching an ungrounded claim.

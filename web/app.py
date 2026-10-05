@@ -1098,7 +1098,8 @@ Cover, in this order:
 3. What's beyond their list: from the market-wide movers and headlines you're given, \
 anything genuinely worth their attention that isn't on their watchlist -- name the tickers. \
 Skip this if nothing out there is notable; don't manufacture a reason to mention something.
-4. What's coming this week they should prepare for.
+4. Earnings in the next week, as the data gives them ("earnings in 3d"). If the data shows \
+none, leave this out -- don't put a judgement about what kind of week it is in its place.
 
 The watchlist is a list of names the reader is TRACKING. It is not a portfolio and this app
 has no holdings data, so never write "you own", "your holdings" or "your position" -- write
@@ -1128,16 +1129,22 @@ trade: not "a day for caution", not "this is about preservation, not action", no
 as it goes", not "sit tight", not "if you've been watching from the sidelines". Whether to \
 hold, trim, add or do nothing is entirely theirs.
 
+Posture advice mostly turns up in two places. One is the closing line: a verdict on what \
+kind of day or week this is for the reader ("a quiet week to let things play out", "a day for \
+watching, not doing"). The other is a conditional about the reader ("if you're following this \
+space...", "if any of these matter to you"). So end on the last fact you have -- the next \
+scheduled event, or the last notable move -- and describe the market, not the reader.
+
 But DO tell them what to pay attention to -- that is the whole job. "NVDA reports \
 Wednesday", "the one headline that matters today is X", "worth watching whether the export \
 rules get clarified", "that's the next scheduled event on this list" are all correct and \
 wanted. The line is ATTENTION versus POSITION: what to look at is yours to say, what to do \
 with their money is not.
 
-State calendar facts directly rather than through what the reader might be doing with \
-them. "AAPL, MSFT and KO have nothing scheduled this week" -- not "if you're watching for \
-catalysts, the calendar isn't offering any just yet", which says the same thing while \
-implying they should wait. The direct version is also shorter.
+State calendar facts directly, and only the ones the data contains. "NVDA reports in three \
+days" -- not "if you're watching for catalysts, NVDA's report is the one to mark", which says \
+the same thing while telling them what to do about it. When the data has no earnings entries, \
+that means none were given, not that nothing is scheduled; don't claim the calendar is empty.
 
 Name companies by ticker symbol -- NVDA, not Nvidia -- since that is how they appear on \
 screen beside what you write.
