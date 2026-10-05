@@ -1011,3 +1011,53 @@ div.row:focus-visible { outline: 2px solid var(--series-1); outline-offset: 2px;
 .legend { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 8px; font-size: 12px; color: var(--ink-secondary); }
 .legend-item { display: inline-flex; align-items: center; gap: 5px; }
 .legend-swatch { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+
+/* ---------- which session ---------- */
+.session-note {
+  font-size: 12.5px; color: var(--attention); margin: -10px 0 16px;
+}
+.theme-summary .session-note { margin: 10px 0 0; }
+
+/* ---------- warnings beside a figure ---------- */
+.flag-note {
+  font-size: 12.5px; color: var(--ink-secondary); margin: 10px 0 0;
+  border-left: 2px solid var(--attention); padding-left: 8px;
+}
+
+.attention-tag[title] { cursor: help; }
+
+/* ---------- phones ----------
+   The sidebar becomes a strip of links across the top, and wide tables
+   scroll inside their panels instead of pushing the page sideways. */
+@media (max-width: 760px) {
+  .app { flex-direction: column; }
+  .sidebar {
+    width: auto; height: auto; position: static; overflow: visible;
+    border-right: none; border-bottom: 1px solid var(--border);
+    padding: 12px 16px; gap: 10px;
+  }
+  /* One row of links that scrolls sideways, not three rows of them. */
+  .nav, .nav-themes { flex-direction: row; flex-wrap: nowrap; gap: 4px; }
+  .nav { overflow-x: auto; scrollbar-width: none; margin: 0 -16px; padding: 0 16px; }
+  .nav::-webkit-scrollbar { display: none; }
+  .nav-section, .nav-count, .disclaimer { display: none; }
+  .nav-item { padding: 6px 10px; font-size: 13px; background: var(--surface); white-space: nowrap; flex: none; }
+  /* Index levels drop out; the day's change is what the strip is for. */
+  .strip { padding: 10px 16px; gap: 6px 14px; font-size: 12.5px; }
+  .index .value { display: none; }
+  .session { margin-left: 0; }
+  .view { padding: 16px 16px 40px; }
+  .tblock { padding: 14px; }
+  .crow { grid-template-columns: 1fr 64px 84px; }
+  .crow .crow-vs { display: none; }
+  .tstats { gap: 12px 18px; }
+  .detail-head h1 { font-size: 22px; }
+  .detail-price { font-size: 24px; }
+  .tabs { overflow-x: auto; flex-wrap: nowrap; }
+  .tab { white-space: nowrap; }
+  .row:not(.theme-row) { grid-template-columns: 1fr 80px 28px; }
+  .row:not(.theme-row) > div:nth-child(2), .row:not(.theme-row) .price { display: none; }
+  .upcoming-line { grid-template-columns: 60px 60px 1fr; }
+  .upcoming-days { display: none; }
+  .theme-menu { max-width: calc(100vw - 16px); }
+}

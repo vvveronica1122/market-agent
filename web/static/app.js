@@ -28,6 +28,9 @@ const state = {
   chat: [],
   chatBusy: false,
   renderToken: 0,
+  market: null,       // session state from /api/overview
+  lastSession: null,  // date of the session the latest prices come from
+  sessionToday: null, // today's date in New York
 };
 
 const viewEl = document.getElementById("view");
@@ -125,6 +128,54 @@ function pts(value) {
   return (value >= 0 ? "+" : "") + Number(value).toFixed(2) + "pt";
 }
 
+/* ---------------- which session ----------------
+
+   Outside market hours the latest prices are a past session's. On a Monday
+   morning, "down 10% today" would be Friday's move; the page says which
+   session it is instead. */
+
+function sessionIsToday() {
+  return !state.lastSession || !state.sessionToday || state.lastSession === state.sessionToday;
+}
+
+function formatSession(iso) {
+  const d = new Date(iso + "T00:00:00");
+  if (Number.isNaN(d.getTime())) return iso;
+  return d.toLocaleDateString(LOCALE, { weekday: "short", month: "short", day: "numeric" });
+}
+
+// "today" or "on Fri, Oct 2" -- for sentences.
+function sessionPhrase() {
+  return sessionIsToday() ? "today" : "on " + formatSession(state.lastSession);
+}
+
+// "today" or "Fri, Oct 2" -- for labels.
+function sessionShort() {
+  return sessionIsToday() ? "today" : formatSession(state.lastSession);
+}
+
+function sessionNote() {
+  if (sessionIsToday()) return null;
+  const now = state.market ? ` -- the US market is ${state.market.state} now` : "";
+  return el("p", "session-note",
+    `Prices and moves are from the ${formatSession(state.lastSession)} session${now}.`);
+}
+
+/* ---------------- attention score, explained ---------------- */
+
+function attentionTitle(att) {
+  if (!att || !att.parts) return "";
+  const p = att.parts;
+  return `Attention score ${num(att.score, 0)} = size of move ${num(p.move, 0)} (8 a point, up to 45)` +
+    ` + gap vs ${att.reference === "peers" ? "peers" : "the market"} ${num(p.relative, 0)} (12 if 1.5pt or more)` +
+    ` + earnings ${num(p.earnings, 0)} (25 within a week, 12 within two)` +
+    ` + news ${num(p.news, 0)} (3 a headline, up to 12). 45 or more needs attention; 20 or more is worth a look.`;
+}
+
+function setTitle(name) {
+  document.title = name ? `${name} · Market Agent` : "Market Agent";
+}
+
 /* ---------------- helpers ---------------- */
 
 // The page is written in English, so dates and numbers are too, whatever
@@ -208,6 +259,9 @@ async function loadOverview() {
   try {
     const res = await fetch("/api/overview");
     const data = await res.json();
+    state.market = data.market || null;
+    state.lastSession = data.last_session || null;
+    state.sessionToday = data.today || null;
     renderStrip(data);
   } catch (err) {
     stripEl.replaceChildren(el("div", "strip-loading", "Market data unavailable"));
@@ -254,6 +308,7 @@ const BENCHMARK_SUGGESTIONS = [
 
 async function showHome() {
   const token = beginView("home");
+  setTitle("Home");
   viewEl.replaceChildren(el("p", "loading-text", "Loading your themes..."));
 
   const { ok, data } = await api("GET", "/api/home");
@@ -270,6 +325,8 @@ async function showHome() {
   frag.appendChild(el("p", "view-sub",
     "Each theme measured against its benchmark ETF and against its own peers. " +
     "Within a theme, companies are ordered by what needs attention today."));
+  const note = sessionNote();
+  if (note) frag.appendChild(note);
 
   const blocks = data.themes || [];
   if (!blocks.length || blocks.every((b) => !b.rows.length)) {
@@ -300,6 +357,10 @@ function buildReadingGuide() {
     ["Beat", "How many companies did better than the benchmark today. Breadth: is the theme's move broad or carried by one or two names?"],
     ["Spread", "Standard deviation of the companies' moves. Low means they moved together; high means they went their own ways."],
     ["vs peers", "A company's move minus the median move of the other companies in its theme -- the typical peer. Cap-weighted ETFs are dominated by their largest holdings, and in a small group one extreme name would decide an average, so this is the cleaner comparison."],
+    ["Attention", "Each company's rank within its theme: points for the size of the move (8 a point, " +
+      "up to 45), 12 if it moved 1.5 points or more away from its peers, 25 if it reports within a " +
+      "week (12 within two), and 3 a headline up to 12. 45 or more needs attention; 20 or more is " +
+      "worth a look. Hover a company's tag for its breakdown."],
     ["With theme / Partly shared / Own move", "Compares a company's move with its peers' median. The gap " +
       "between them, as a share of the larger move, decides: up to 40% (or under a point) it tracked its theme; " +
       "60% or more it diverged -- moved alone, against its peers, or held up while they fell; in between is " +
@@ -385,6 +446,7 @@ function buildCompactRow(row) {
   const level = row.attention ? row.attention.level : "quiet";
   const link = el("a", `crow level-${level}`);
   link.href = stockHash(row.ticker);
+  link.title = attentionTitle(row.attention);
 
   const who = el("div", "crow-who");
   who.appendChild(el("span", "crow-ticker", row.ticker));
@@ -485,9 +547,11 @@ async function showTheme(themeId, tab) {
 
   const config = state.themes.find((t) => t.id === themeId);
   if (!config) {
+    setTitle("Theme not found");
     viewEl.replaceChildren(el("p", "empty", `There is no theme '${themeId}'.`));
     return;
   }
+  setTitle(config.name);
 
   const frag = document.createDocumentFragment();
   const back = el("a", "back", "← Home");
@@ -526,6 +590,8 @@ function renderThemeToday(holder, data) {
   const stats = buildThemeStats(data);
   stats.prepend(benchStat);
   summary.appendChild(stats);
+  const note = sessionNote();
+  if (note) summary.appendChild(note);
   const minPeers = (state.limits && state.limits.stocks_for_peers) || 3;
   if (data.rows.length && data.rows.length < minPeers) {
     summary.appendChild(el("p", "form-hint",
@@ -1017,8 +1083,10 @@ function buildThemeRow(row, theme) {
 
   const left = el("div");
   left.appendChild(el("div", "ticker", row.ticker));
-  left.appendChild(el("span", "attention-tag",
-                      level === "high" ? "Needs attention" : level === "medium" ? "Worth a look" : "Quiet"));
+  const tag = el("span", "attention-tag",
+                 level === "high" ? "Needs attention" : level === "medium" ? "Worth a look" : "Quiet");
+  tag.title = attentionTitle(row.attention);
+  left.appendChild(tag);
   if (row.role) left.appendChild(el("span", "row-role", row.role));
   item.appendChild(left);
 
@@ -1380,6 +1448,7 @@ const DETAIL_REUSE_MS = 60 * 1000;
 
 async function showDetail(ticker, tab) {
   tab = STOCK_TABS.some(([key]) => key === tab) ? tab : "overview";
+  setTitle(ticker);
   const owner = state.themes.find((t) => t.stocks.some((s) => s.ticker === ticker));
   const token = beginView("detail", owner ? "theme:" + owner.id : null);
 
@@ -1410,7 +1479,7 @@ async function showDetail(ticker, tab) {
     head.appendChild(el("div", "detail-price", money(data.price.price)));
     head.appendChild(
       el("div", "detail-delta " + toneClass(data.price.change_percent),
-         `${pct(data.price.change_percent)} today`)
+         `${pct(data.price.change_percent)} ${sessionPhrase()}`)
     );
   } else if (data.price_error) {
     head.appendChild(el("div", "row-error", data.price_error));
@@ -1426,7 +1495,7 @@ async function showDetail(ticker, tab) {
       el(
         "p",
         "view-sub",
-        `SPY ${pct(data.market.change_percent)} today — ${data.ticker} is ${
+        `SPY ${pct(data.market.change_percent)} ${sessionPhrase()} — ${data.ticker} is ${
           rel >= 0 ? "outperforming" : "underperforming"
         } the market by ${Math.abs(rel).toFixed(2)} points.`
       )
@@ -1567,7 +1636,8 @@ function buildAnalysisNews(data) {
     });
     newsPanel.appendChild(list);
   } else {
-    newsPanel.appendChild(el("p", "empty", "No recent headlines found."));
+    newsPanel.appendChild(el("p", "empty",
+      `No headlines came back from Yahoo for ${data.ticker}. That's the data source, not a quiet day.`));
   }
   grid.appendChild(newsPanel);
   return grid;
@@ -1669,6 +1739,9 @@ function buildFundamentalsPanel(data) {
     metrics.appendChild(metric);
   });
   if (defs.length) panel.appendChild(metrics);
+  // The same warnings as the peer table: a figure that misleads on its own
+  // says so where it's shown.
+  (data.flags || []).forEach((flag) => panel.appendChild(el("p", "flag-note", flag)));
 
   let barCanvas = null;
   if (quarters.length) {
@@ -1754,7 +1827,7 @@ function buildThemeContext(data) {
 
   const own = data.price ? data.price.change_percent : null;
   const stats = el("div", "tstats");
-  stats.appendChild(themeStat(`${data.ticker} today`, pct(own), toneClass(own)));
+  stats.appendChild(themeStat(`${data.ticker}, ${sessionShort()}`, pct(own), toneClass(own)));
   stats.appendChild(themeStat(`Peer median, ex-${data.ticker}`, pct(t.peer_median), toneClass(t.peer_median),
                               "Median move of the other companies in the theme -- the typical peer."));
   stats.appendChild(themeStat("vs peers", pts(t.vs_peers), toneClass(t.vs_peers)));
@@ -1772,7 +1845,7 @@ function buildThemeContext(data) {
 
   if (t.peers && t.peers.length) {
     const peers = el("div", "context-peers");
-    peers.appendChild(el("span", "tstat-label", "Peers today"));
+    peers.appendChild(el("span", "tstat-label", `Peers, ${sessionShort()}`));
     t.peers.forEach((p) => {
       const tag = el("a", "ticker-tag peer-tag");
       tag.href = stockHash(p.ticker);
@@ -2044,6 +2117,7 @@ function num(value, digits) {
 
 async function showEarnings() {
   const token = beginView("earnings");
+  setTitle("Earnings calendar");
   viewEl.replaceChildren(el("p", "loading-text", "Loading earnings dates..."));
 
   const { ok, data } = await api("GET", "/api/earnings");
@@ -2571,6 +2645,7 @@ const STARTERS = [
 
 async function showChat() {
   beginView("ask");
+  setTitle("Ask");
 
   const frag = document.createDocumentFragment();
   const head = el("div", "view-head");
@@ -2738,6 +2813,7 @@ async function loadBrief(panel, force) {
 
 async function showDiscover() {
   const token = beginView("discover");
+  setTitle("Discover");
   viewEl.replaceChildren(el("p", "loading-text", "Scanning the market..."));
 
   const { ok, data } = await api("GET", "/api/discover");
@@ -2837,6 +2913,7 @@ async function showDiscover() {
 
 async function showSearch(query) {
   const token = beginView("search", null);
+  setTitle("Search");
   viewEl.replaceChildren(el("p", "loading-text", `Searching for ${query}...`));
 
   const { ok, data } = await api("GET", `/api/search?q=${encodeURIComponent(query)}`);
@@ -2909,7 +2986,7 @@ document.getElementById("search-form").addEventListener("submit", (e) => {
 
 window.addEventListener("hashchange", route);
 
-loadOverview();
-// The sidebar and the add-to-theme menus need the theme setup, so load it
-// before the first page draws.
-loadThemes().then(route);
+// The sidebar and add-to-theme menus need the theme setup, and the pages
+// need to know which session the prices are from, so both load before the
+// first page draws.
+Promise.all([loadOverview(), loadThemes()]).then(route);
