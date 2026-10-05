@@ -27,13 +27,13 @@ from datetime import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-from dotenv import load_dotenv
 from flask import Flask, jsonify, request, send_from_directory
 from anthropic import Anthropic
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
+from config import MODEL
 from tools.market_data import (
     get_stock_price,
     get_recent_news,
@@ -52,12 +52,9 @@ from tools.fundamentals import (
 # are now two front doors onto one implementation rather than two codebases.
 import agent as conversational_agent
 
-load_dotenv(PROJECT_ROOT / ".env")
-
 app = Flask(__name__, static_folder="static")
 client = Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
 
-MODEL = "claude-sonnet-4-5"
 WATCHLIST_FILE = Path(__file__).resolve().parent / "watchlist.json"
 DEFAULT_WATCHLIST = ["AAPL", "TSLA", "MSFT", "NVDA"]
 INDICES = [

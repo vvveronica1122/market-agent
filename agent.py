@@ -36,12 +36,12 @@ import os
 import sys
 from pathlib import Path
 
-from dotenv import load_dotenv
 from anthropic import Anthropic
 
 PROJECT_ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
+from config import MODEL
 from tools.market_data import (
     get_stock_price,
     get_recent_news,
@@ -56,10 +56,6 @@ from tools.fundamentals import (
     get_earnings_setup,
 )
 from tools.calc import calculate
-
-load_dotenv(PROJECT_ROOT / ".env")
-
-MODEL = "claude-sonnet-4-5"
 
 # A runaway tool loop is a real failure mode: the model keeps calling
 # tools and never answers, burning tokens until you kill it. Cap it.
