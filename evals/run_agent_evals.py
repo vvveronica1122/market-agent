@@ -14,6 +14,7 @@ be exact). Costs money.
     python3 evals/run_agent_evals.py --runs 3
     python3 evals/run_agent_evals.py --scenario needs_math
     python3 evals/run_agent_evals.py --dry-run
+    python3 evals/run_agent_evals.py --runs 5 --save   # keep the result in evals/results/
 """
 
 from __future__ import annotations
@@ -38,6 +39,7 @@ from checks import (  # noqa: E402
     check_tools_called,
     judge,
 )
+from results import save_run, summarize  # noqa: E402
 
 GREEN, RED, DIM, RESET = "\033[32m", "\033[31m", "\033[2m", "\033[0m"
 
@@ -85,6 +87,7 @@ def run_scenario(name: str, spec: dict, runs: int) -> dict:
     print(f"{DIM}Q: {spec['question']}{RESET}")
 
     totals: dict[str, list[tuple[bool, str]]] = {}
+    first_output: dict = {}
 
     for attempt in range(runs):
         trace: list[dict] = []
@@ -95,6 +98,9 @@ def run_scenario(name: str, spec: dict, runs: int) -> dict:
             answer = f"(agent raised {type(exc).__name__}: {exc})"
 
         if attempt == 0:
+            # The trace is saved with the answer: it's half of what's being
+            # evaluated, and the half the answer alone can't show.
+            first_output = {"tool_calls": trace, "answer": answer}
             print(f"\n{DIM}--- tools it chose ---{RESET}")
             for call in trace:
                 args = ", ".join(f"{k}={v!r}" for k, v in (call.get("input") or {}).items())
@@ -135,7 +141,9 @@ def run_scenario(name: str, spec: dict, runs: int) -> dict:
             print(f"        {DIM}{detail}{RESET}")
 
     failed = sum(1 for outcomes in totals.values() if not all(ok for ok, _ in outcomes))
-    return {"checks": len(totals), "failed": failed}
+    record = {"description": spec["description"], "question": spec["question"], "runs": runs,
+              "checks": summarize(totals), "first_output": first_output}
+    return {"checks": len(totals), "failed": failed, "record": record}
 
 
 def main() -> int:
@@ -143,6 +151,8 @@ def main() -> int:
     parser.add_argument("--runs", type=int, default=1)
     parser.add_argument("--scenario")
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--save", action="store_true",
+                        help="write the result, with model and commit, to evals/results/")
     args = parser.parse_args()
 
     if args.scenario and args.scenario not in SCENARIOS:
@@ -166,10 +176,17 @@ def main() -> int:
 
     chosen = {args.scenario: SCENARIOS[args.scenario]} if args.scenario else SCENARIOS
     checks = failed = 0
+    records = {}
     for name, spec in chosen.items():
         outcome = run_scenario(name, spec, args.runs)
         checks += outcome["checks"]
         failed += outcome["failed"]
+        records[name] = outcome["record"]
+
+    if args.save:
+        settings = {"runs": args.runs, "scenario": args.scenario}
+        path = save_run("agent", agent.MODEL, settings, records, args.dry_run)
+        print(f"\nSaved to {path.relative_to(PROJECT_ROOT)}")
 
     print(f"\n{'=' * 74}")
     if args.dry_run:

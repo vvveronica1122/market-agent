@@ -12,6 +12,7 @@ Usage:
     python3 evals/run_evals.py --runs 3         # three times each, for variance
     python3 evals/run_evals.py --scenario quiet_day
     python3 evals/run_evals.py --dry-run        # exercise the harness, no API calls
+    python3 evals/run_evals.py --runs 5 --save  # keep the result in evals/results/
 
 On variance: a single run is an anecdote, not a measurement. The same
 prompt can pass on one attempt and fail on the next, so when you change a
@@ -38,6 +39,7 @@ from checks import (  # noqa: E402
     check_no_invented_tickers,
     judge,
 )
+from results import save_run, summarize  # noqa: E402
 from scenarios import SCENARIOS  # noqa: E402
 
 GREEN, RED, DIM, RESET = "\033[32m", "\033[31m", "\033[2m", "\033[0m"
@@ -78,12 +80,14 @@ def run_scenario(name: str, spec: dict, runs: int) -> dict:
     print(f"\n{'=' * 74}\n{name}  {DIM}{spec['description']}{RESET}\n{'=' * 74}")
 
     totals: dict[str, list[bool]] = {}
+    first_brief = ""
     for attempt in range(runs):
         brief = server.build_brief(
             spec["rows"], spec["market_pct"], spec["indices"], spec["movers"], spec["headlines"]
         )
 
         if attempt == 0:
+            first_brief = brief
             print(f"\n{DIM}--- what the model wrote ---{RESET}")
             for line in brief.split("\n"):
                 print(f"  {line}")
@@ -111,7 +115,9 @@ def run_scenario(name: str, spec: dict, runs: int) -> dict:
             print(f"        {DIM}{detail}{RESET}")
 
     failed = sum(1 for outcomes in totals.values() if not all(ok for ok, _ in outcomes))
-    return {"checks": len(totals), "failed": failed}
+    record = {"description": spec["description"], "runs": runs,
+              "checks": summarize(totals), "first_output": first_brief}
+    return {"checks": len(totals), "failed": failed, "record": record}
 
 
 def run_theme_eval() -> dict:
@@ -145,10 +151,14 @@ def run_theme_eval() -> dict:
         if detail and not ok:
             print(f"        {DIM}{detail}{RESET}")
 
-    return {"checks": len(results), "failed": sum(1 for ok, _, _ in results if not ok)}
+    record = {"description": "Grouping movers into stories without inventing names", "runs": 1,
+              "checks": summarize({label: [(ok, detail)] for ok, label, detail in results}),
+              "first_output": themes}
+    return {"checks": len(results), "failed": sum(1 for ok, _, _ in results if not ok),
+            "record": record}
 
 
-def judge_stability(name: str, times: int, text_path: str | None = None) -> int:
+def judge_stability(name: str, times: int, text_path: str | None = None) -> dict:
     """Judge ONE fixed brief repeatedly.
 
     Once results stop being 0/N or N/N and start coming back mixed, you
@@ -177,9 +187,11 @@ def judge_stability(name: str, times: int, text_path: str | None = None) -> int:
     print(f"{DIM}--- end ---{RESET}\n")
 
     verdicts = []
+    reasons = []
     for i in range(times):
         passed, reason = judge(server.client, server.MODEL, brief, spec["rubric"])
         verdicts.append(passed)
+        reasons.append(reason)
         mark = f"{GREEN}PASS{RESET}" if passed else f"{RED}FAIL{RESET}"
         print(f"  [{mark}] run {i + 1}: {DIM}{reason[:110]}{RESET}")
 
@@ -192,7 +204,8 @@ def judge_stability(name: str, times: int, text_path: str | None = None) -> int:
         print(f"  {DIM}The judge disagrees with itself on the same text. Treat borderline")
         print(f"  failures in this scenario as noise, not something to tune away.{RESET}")
     print()
-    return 0
+    return {name: {"source": source, "judged_text": brief, "passed": agreed, "runs": times,
+                   "verdicts": [{"pass": ok, "reason": r} for ok, r in zip(verdicts, reasons)]}}
 
 
 def main() -> int:
@@ -207,6 +220,8 @@ def main() -> int:
     parser.add_argument("--judge-stability", type=int, metavar="N",
                         help="generate ONE brief, then judge it N times, to measure how much "
                              "of a mixed result is the judge's own noise rather than the brief")
+    parser.add_argument("--save", action="store_true",
+                        help="write the result, with model and commit, to evals/results/")
     args = parser.parse_args()
 
     if args.dry_run:
@@ -220,7 +235,12 @@ def main() -> int:
         return 1
 
     if args.judge_stability:
-        return judge_stability(args.scenario or "quiet_day", args.judge_stability, args.text)
+        record = judge_stability(args.scenario or "quiet_day", args.judge_stability, args.text)
+        if args.save:
+            settings = {"judge_stability": args.judge_stability, "text": args.text}
+            path = save_run("judge-stability", server.MODEL, settings, record, args.dry_run)
+            print(f"Saved to {path.relative_to(PROJECT_ROOT)}\n")
+        return 0
 
     chosen = {args.scenario: SCENARIOS[args.scenario]} if args.scenario else SCENARIOS
     if args.scenario and args.scenario not in SCENARIOS:
@@ -228,15 +248,23 @@ def main() -> int:
         return 1
 
     checks = failed = 0
+    records = {}
     for name, spec in chosen.items():
         outcome = run_scenario(name, spec, args.runs)
         checks += outcome["checks"]
         failed += outcome["failed"]
+        records[name] = outcome["record"]
 
     if not args.scenario and not args.skip_themes:
         outcome = run_theme_eval()
         checks += outcome["checks"]
         failed += outcome["failed"]
+        records["themes"] = outcome["record"]
+
+    if args.save:
+        settings = {"runs": args.runs, "scenario": args.scenario, "skip_themes": args.skip_themes}
+        path = save_run("brief", server.MODEL, settings, records, args.dry_run)
+        print(f"\nSaved to {path.relative_to(PROJECT_ROOT)}")
 
     print(f"\n{'=' * 74}")
     if args.dry_run:

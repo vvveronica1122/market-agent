@@ -25,6 +25,7 @@ SUITES = [
     ("agent loop", "test_agent.py"),
     ("calculator", "tools/test_calc.py"),
     ("eval checks", "evals/test_checks.py"),
+    ("eval results", "evals/test_results.py"),
 ]
 
 

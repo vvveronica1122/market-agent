@@ -140,7 +140,8 @@ python3 tools/test_calc.py     # the calculator, mostly what it refuses
 python3 evals/test_checks.py   # the eval checks themselves
 ```
 
-`python3 run_tests.py` runs all four, and it's what CI runs on every push.
+`python3 run_tests.py` runs all of them, plus a test of the code that saves eval
+results, and it's what CI runs on every push.
 None of these touch the network or call a model. They stub everything, so
 they're fast and can't fail because Yahoo rate-limited you — a test that
 fails for reasons unrelated to your code teaches you nothing. Stubbing also

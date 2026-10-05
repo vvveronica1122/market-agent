@@ -133,7 +133,12 @@ python3 evals/run_evals.py              # brief writing: 4 scenarios + themes
 python3 evals/run_agent_evals.py        # agent tool choices: 4 scenarios
 python3 evals/run_evals.py --runs 3     # repeat for pass rates, not anecdotes
 python3 evals/run_evals.py --dry-run    # exercise the harness, no API calls
+python3 evals/run_evals.py --runs 5 --save   # also write the result to evals/results/
 ```
+
+`--save` (on either runner) records each check's pass count, the first
+output (with the agent's tool calls), the model, and the commit, so a
+pass rate can be cited later.
 
 Cheap checks (regex: required tickers, forbidden advice phrasing, format)
 run first; an LLM judge grades what needs judgement against a written
