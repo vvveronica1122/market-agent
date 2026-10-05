@@ -94,6 +94,13 @@ def main() -> int:
                           str(config["chat"]))
     failures += not check("it says which model wrote the AI text", bool(config.get("model")))
 
+    print("\nRefreshing the frontend alone")
+    (out / "app.js").write_text("stale")
+    build.copy_assets(out)
+    failures += not check("--assets-only replaces the frontend and leaves the data alone",
+                          "window.MARKET_AGENT_DEMO" in (out / "app.js").read_text()
+                          and (data / "home.json").exists())
+
     print("\nThe frontend reads it")
     app_js = (out / "app.js").read_text()
     failures += not check("app.js maps requests to the captured files",

@@ -2910,8 +2910,9 @@ async function showDiscover() {
   head.appendChild(el("h1", null, "Discover"));
   frag.appendChild(head);
   frag.appendChild(
-    el("p", "view-sub", "What's moving across the market today that isn't in your themes. " +
-       "Use + to add a company to one.")
+    el("p", "view-sub", DEMO
+      ? "What was moving across the market in this session that isn't in the themes."
+      : "What's moving across the market today that isn't in your themes. Use + to add a company to one.")
   );
 
   const scanned = data.scanned || 0;

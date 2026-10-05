@@ -165,6 +165,28 @@ Set them in `.env` or the environment. Themes are saved to
 run it's created from the default themes, and anything in an older
 `web/watchlist.json` that they don't cover is kept in an "Other" theme.
 
+## Static demo
+
+Running the app publicly would mean paying for every visitor's AI calls and
+being rate-limited by Yahoo from a cloud host. So the public version is a
+**static snapshot**: `demo/build.py` walks the live app once -- real data,
+real model -- and saves every page's data as JSON beside a copy of the
+frontend, which reads those files instead of a server.
+
+```bash
+python3 demo/build.py                       # writes demo/site/
+python3 demo/build.py --repo-url <url>      # adds a link to the banner
+python3 -m http.server -d demo/site 8000    # look at it locally
+```
+
+The demo is read-only, says which session it's a snapshot of, and replays
+the Ask panel's suggested questions as recorded (answers and lookups). Any
+static host can serve `demo/site/` -- GitHub Pages, Netlify, Vercel, or a
+subfolder of another site. It's gitignored until you decide to publish it.
+
+Before publishing, note that the snapshot contains market data from Yahoo
+Finance via yfinance, whose use is governed by Yahoo's terms.
+
 ## Tests and evals
 
 **Offline tests** — free, instant, no network, no API key. CI runs these on
@@ -225,6 +247,8 @@ web/
   app.py              Flask server: ranking, brief, detail, Discover, earnings, chat
   static/             single-page frontend, vanilla JS, no build step
 evals/                model evals, scenarios, and tests of the checks
+evals/tuning/         logs of the prompt tuning runs
+demo/build.py         builds the static demo snapshot
 run_tests.py          runs every offline suite
 docs/DESIGN.md        design decisions and lessons
 ```

@@ -17,6 +17,7 @@ suggested questions, answered by the real agent with its tool calls.
     python3 demo/build.py                      # writes demo/site/
     python3 demo/build.py --out /tmp/demo      # somewhere else
     python3 demo/build.py --repo-url https://github.com/you/market-agent
+    python3 demo/build.py --assets-only        # refresh the frontend, keep the data
 
 It needs ANTHROPIC_API_KEY (the brief, the analyses and the agent are real
 model output) and network access to Yahoo.
@@ -131,6 +132,19 @@ def build(out: Path = DEFAULT_OUT, questions: list[str] = QUESTIONS,
         "// Written by demo/build.py. Its presence switches the app into the static demo.\n"
         "window.MARKET_AGENT_DEMO = " + json.dumps(config, indent=1) + ";\n")
 
+    copy_assets(out)
+
+    size = sum(p.stat().st_size for p in out.rglob("*") if p.is_file())
+    summary = {"files": len(written), "stocks": len(tickers), "chats": len(chats),
+               "bytes": size, "session": config["snapshot_session"]}
+    log(f"done: {summary}")
+    return summary
+
+
+def copy_assets(out: Path) -> None:
+    """The frontend files, rewritten to load by relative path. Separate from
+    the capture so a frontend fix doesn't need a new snapshot (or new model
+    calls)."""
     shutil.copy(STATIC / "app.js", out / "app.js")
     shutil.copy(STATIC / "style.css", out / "style.css")
     html = (STATIC / "index.html").read_text()
@@ -144,18 +158,21 @@ def build(out: Path = DEFAULT_OUT, questions: list[str] = QUESTIONS,
         raise CaptureError("index.html still references /static/; the demo couldn't load its assets")
     (out / "index.html").write_text(html)
 
-    size = sum(p.stat().st_size for p in out.rglob("*") if p.is_file())
-    summary = {"files": len(written), "stocks": len(tickers), "chats": len(chats),
-               "bytes": size, "session": config["snapshot_session"]}
-    log(f"done: {summary}")
-    return summary
-
 
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--out", type=Path, default=DEFAULT_OUT)
     parser.add_argument("--repo-url", help="link shown in the demo banner")
+    parser.add_argument("--assets-only", action="store_true",
+                        help="copy the current frontend into an existing build; no capture")
     args = parser.parse_args()
+    if args.assets_only:
+        if not (args.out / "demo-config.js").exists():
+            print(f"No demo build in {args.out} to refresh -- run without --assets-only first.")
+            return 1
+        copy_assets(args.out)
+        print(f"frontend refreshed in {args.out}")
+        return 0
     if not server.os.environ.get("ANTHROPIC_API_KEY"):
         print("Missing ANTHROPIC_API_KEY -- the demo's AI text is real model output.")
         return 1
