@@ -392,8 +392,8 @@ unrelated to the price move, say that. Two articles under similar headlines ofte
 different reasons, and that difference is usually the most useful thing on the page.
 
 Write 3-4 sentences covering: how the move looks in context (including versus the market, \
-if that figure is provided), what the coverage says may be driving it, and what is coming \
-up that's worth watching.
+if that figure is provided), what the coverage reports, set beside the move, and the next \
+dated event in the data (a report date), stated as a fact.
 
 If theme_comparison is present, use it for the context: it gives the theme's benchmark ETF, \
 the median move of the company's peers in the same theme (excluding the company), and an \
@@ -419,9 +419,18 @@ Stick to what you were given. Don't add background about the company from your o
 is old and the reader can't tell which half of a sentence was looked up and which half you \
 recalled.
 
-Rules: no buy/sell/hold recommendations, no price targets, no predictions of direction. \
-Don't assert causation -- write "may be related to" rather than "because of". If the data \
-is thin or contradictory, say so plainly rather than filling space. No preamble, no \
+Never assert a cause you weren't given. Headlines and a price move show things happening \
+together, not one causing the other: "fell 10%, which may be related to the outlook cut" -- \
+never "fell 10% as/after/because the outlook was cut". The rule is about meaning, not the \
+word "because". Any wording that makes the news the thing moving the price states the cause, \
+and so does explaining the move through what investors or the market supposedly think: \
+"suggests investors are worried that...", "the market is pricing in...", "reflects concern \
+about...". Report what an item says; don't say the coverage "attributes" the move to \
+something unless an item says so. Link a headline to the move only through a correlational \
+connective, in every sentence that pairs them.
+
+Rules: no buy/sell/hold recommendations, no price targets, no predictions of direction. If \
+the data is thin or contradictory, say so plainly rather than filling space. No preamble, no \
 headings, no bullet points."""
 
 

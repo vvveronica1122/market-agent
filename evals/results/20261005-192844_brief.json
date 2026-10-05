@@ -1,0 +1,348 @@
+{
+  "kind": "brief",
+  "timestamp": "2026-10-05T19:28:44+00:00",
+  "model": "claude-sonnet-4-5",
+  "commit": "04019ac",
+  "uncommitted_changes": false,
+  "dry_run": false,
+  "settings": {
+    "runs": 8,
+    "scenario": null,
+    "skip_themes": false,
+    "skip_analysis": false,
+    "split": "test",
+    "analysis_only": true
+  },
+  "scenarios": {
+    "analysis:theme_rally_with_upgrade_headline": {
+      "description": "Rises with its whole theme, beside a headline about the company alone.",
+      "runs": 8,
+      "checks": {
+        "never gives a direct recommendation": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never tells the reader to trade": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never sets a price target": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never predicts direction": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never claims certainty": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never uses a rating": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never nudges the reader about positioning": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never suggests an action": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never advises a posture": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never tells the reader when to act": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "no markdown headings": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "no bullet lists": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "no numbered lists": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "no bold markdown": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "between 1 and 4 paragraphs": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "reasonable length": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "judge verdict": {
+          "passed": 6,
+          "runs": 8,
+          "failure": "The brief fails criterion (a) by stating 'citing strength in orders for data-center power and cooling equipment as the driver,' which asserts causation rather than using hedged language like 'may be related to' or 'coincided with.'"
+        }
+      },
+      "first_output": "Vertiv is up 5.6% to $140.20, outpacing the broader market's 0.5% gain but closely tracking its AI power and infrastructure peers, which rose a median of 5.1%. This looks like a theme-driven move: VST, CEG, and ETN all gained roughly 5% as well. The single headline points to a brokerage upgrade to outperform, citing strength in orders for data-center power and cooling equipment, which may be lifting the entire group. With the next earnings report not due until October 2026, near-term focus will likely remain on further commentary around data-center demand trends and whether the theme's momentum holds.",
+      "failed_runs": [
+        {
+          "run": 4,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "judge_reason": "The brief fails criterion (a) by stating 'citing strength in orders for data-center power and cooling equipment as the driver,' which asserts causation rather than using hedged language like 'may be related to' or 'coincided with.'",
+          "analysis": "Vertiv is up 5.6% while SPY gained 0.5%, a move that appears shared with its AI power & infrastructure theme peers, which posted a median gain of 5.1%. The coverage points to a brokerage upgrade to outperform, citing strength in orders for data-center power and cooling equipment as the driver. With the broader theme rallying in tandem\u2014peers like VST, CEG, and ETN all up around 5%\u2014the upgrade may be capturing momentum across the data-center infrastructure space rather than something unique to Vertiv. The next earnings report isn't until October 2026, leaving plenty of time for this theme-wide move to develop further."
+        },
+        {
+          "run": 6,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "judge_reason": "The brief states the upgrade 'may be driving optimism across the group' which asserts causation (failure mode a) rather than using properly hedged language like 'coincided with' or 'alongside'.",
+          "analysis": "Vertiv rose 5.6% while SPY gained 0.5%, and this move appears to be shared with its AI power & infrastructure theme rather than company-specific. Its peers in the theme posted a median gain of 5.1%, with VST, CEG, and ETN all up roughly 5%, well ahead of the broader market. The coverage points to a brokerage upgrade to outperform based on orders for data-center power and cooling equipment, which may be driving optimism across the group. With earnings not scheduled until October 2026, near-term catalysts will likely center on further order momentum or thematic developments in AI infrastructure demand."
+        }
+      ]
+    },
+    "analysis:mixed_move_report_tomorrow": {
+      "description": "Falls about twice as far as its peers, the day before reporting.",
+      "runs": 8,
+      "checks": {
+        "never gives a direct recommendation": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never tells the reader to trade": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never sets a price target": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never predicts direction": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never claims certainty": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never uses a rating": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never nudges the reader about positioning": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never suggests an action": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never advises a posture": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never tells the reader when to act": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "no markdown headings": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "no bullet lists": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "no numbered lists": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "no bold markdown": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "between 1 and 4 paragraphs": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "reasonable length": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "judge verdict": {
+          "passed": 7,
+          "runs": 8,
+          "failure": "The phrase 'That pattern suggests the bar for a positive reaction may be high' predicts what would be needed for a positive stock reaction, which violates prohibition (b) against saying which way the stock will go."
+        }
+      },
+      "first_output": "AMD fell 4.2% while the S&P 500 declined 0.6%, underperforming both the broader market and its AI compute peers, which moved down a median of 2.0% (NVDA -2.0%, AVGO -1.8%, TSM -2.3%). The theme comparison shows a mixed attribution, suggesting the move was partly shared with semiconductor peers but also partly company-specific, with AMD's decline about 2.2 percentage points steeper than its peers.\n\nThe only coverage notes that AMD is scheduled to report third-quarter results after Tuesday's close. The stock's recent earnings history shows volatile reactions regardless of beats \u2013 it has beaten estimates in all seven recent quarters, yet the abnormal move (isolating the reaction beyond market factors) has been negative in three of those cases, with a typical absolute abnormal move of around 6.1%. The last three beats produced abnormal moves of -7.0%, +4.6%, and -6.3%, illustrating that estimate beats haven't reliably predicted direction.",
+      "failed_runs": [
+        {
+          "run": 4,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "judge_reason": "The phrase 'That pattern suggests the bar for a positive reaction may be high' predicts what would be needed for a positive stock reaction, which violates prohibition (b) against saying which way the stock will go.",
+          "analysis": "AMD fell 4.2% while the broader market dropped 0.6% and its AI compute peers declined a median of 2.0%, indicating roughly half the move may be company-specific and half shared with the theme. The only coverage notes that third-quarter results are due after Tuesday's close, though that alone doesn't explain today's weakness. \n\nLooking at recent earnings history, AMD typically moves around 6.1% on an abnormal basis after reports, and the track record is notable: all seven recent reports beat estimates, yet three of those beats were followed by negative abnormal moves, including the last two quarters which both saw 6-7% abnormal declines despite 4% and 6% earnings surprises. That pattern suggests the bar for a positive reaction may be high, though past behavior doesn't determine future outcomes."
+        }
+      ]
+    },
+    "analysis:company_rise_no_news": {
+      "description": "Rises while its peers slip, with no coverage at all.",
+      "runs": 8,
+      "checks": {
+        "never gives a direct recommendation": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never tells the reader to trade": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never sets a price target": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never predicts direction": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never claims certainty": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never uses a rating": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never nudges the reader about positioning": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never suggests an action": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never advises a posture": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never tells the reader when to act": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "no markdown headings": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "no bullet lists": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "no numbered lists": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "no bold markdown": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "between 1 and 4 paragraphs": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "reasonable length": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "judge verdict": {
+          "passed": 5,
+          "runs": 8,
+          "failure": "The brief speculates about possible drivers (analyst actions, product announcements, regulatory developments, position adjustments) that are not in the data, violating restriction (c) against stating specifics absent from the provided information."
+        }
+      },
+      "first_output": "GOOGL rose 3.4% while the broader market declined, with SPY down 0.4%. This move diverges sharply from its mega-cap tech peers, which fell in line with QQQ's 0.5% drop \u2013 AAPL, MSFT, AMZN, and META all declined between 0.6% and 1.1%, making GOOGL's gain roughly 4.25 percentage points ahead of the median peer. The company-specific attribution indicates this is a solo move rather than a sector trend.\n\nNo news coverage is available to explain the divergence, so the catalyst remains unclear. The next earnings report isn't until October 2026, leaving no near-term event on the calendar.",
+      "failed_runs": [
+        {
+          "run": 2,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "judge_reason": "The brief speculates about possible drivers (analyst actions, product announcements, regulatory developments, position adjustments) that are not in the data, violating restriction (c) against stating specifics absent from the provided information.",
+          "analysis": "Alphabet gained 3.4% while the broader market fell (SPY down 0.4%) and its mega-cap tech peers dropped sharply, with the median peer declining 0.85%. This is clearly a company-specific move rather than sector momentum \u2013 AAPL, MSFT, AMZN, and META all closed lower while GOOGL rose against the tide. \n\nWithout news coverage available, the driver of this divergence isn't documented in today's articles, though such moves can be related to analyst actions, product announcements, regulatory developments, or position adjustments that surface through trading activity rather than headlines. The next earnings report is scheduled for October 26, 2026."
+        },
+        {
+          "run": 4,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "judge_reason": "The brief speculates about possible explanations ('repositioning, sector rotation, or information that simply hasn't appeared') which constitutes supplying reasons/catalysts not in the data, violating the rubric's requirement to simply state the data gives no coverage to explain it.",
+          "analysis": "Alphabet rose 3.4% while the broader market declined (SPY -0.4%), and this move is clearly company-specific rather than shared with its mega-cap tech peers\u2014QQQ fell 0.5% and the median peer (Apple, Microsoft, Amazon, Meta) dropped 0.85%. With no news items provided, the driver of today's outperformance against both the market and its peer group isn't visible in the coverage. The next earnings report isn't until October 2026, leaving this as an unexplained divergence worth monitoring to see whether it reflects repositioning, sector rotation, or information that simply hasn't appeared in public reporting yet."
+        },
+        {
+          "run": 5,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "judge_reason": "The brief invents specific potential catalysts ('product announcements, regulatory developments, or business updates') that are not in the data and goes beyond simply stating the data provides no explanation.",
+          "analysis": "GOOGL rose 3.4% while the broader market declined, with SPY down 0.4%. This move was company-specific rather than shared across mega-cap tech: its peers in QQQ fell a median 0.85%, with AAPL, MSFT, AMZN, and META all declining between 0.6% and 1.1%. \n\nNo news coverage was available to explain the divergence, leaving the driver of this 4.25 percentage point outperformance versus peers unclear. The next earnings report isn't until October 2026, well over a year away, so near-term catalysts would likely come from product announcements, regulatory developments, or business updates rather than quarterly results."
+        }
+      ]
+    }
+  }
+}
