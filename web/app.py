@@ -216,14 +216,18 @@ def days_until_earnings(events: dict | None) -> int | None:
 
 
 def compute_attention(price, news, events, market_pct, peer_pct=None) -> dict:
-    score = 0.0
     factors: list[dict] = []
+    # Each part kept separately, so the page can show how a company got its
+    # rank instead of asking the reader to trust a number.
+    parts = {"move": 0.0, "relative": 0.0, "earnings": 0.0, "news": 0.0}
 
     pct = (price or {}).get("change_percent")
     if pct is not None:
-        score += min(abs(pct) * 8, 45)
+        parts["move"] = min(abs(pct) * 8, 45)
         if abs(pct) >= 2:
-            factors.append({"label": f"{pct:+.1f}% today", "tone": "up" if pct > 0 else "down"})
+            # "move", not "today": outside market hours this is the last
+            # session's move, and the page says which session that was.
+            factors.append({"label": f"{pct:+.1f}% move", "tone": "up" if pct > 0 else "down"})
 
         # A move only means something relative to what it should be measured
         # against. Inside a theme that's the company's peers: -6% when its
@@ -234,7 +238,7 @@ def compute_attention(price, news, events, market_pct, peer_pct=None) -> dict:
         if reference is not None:
             relative = pct - reference
             if abs(relative) >= 1.5:
-                score += 12
+                parts["relative"] = 12
                 factors.append(
                     {
                         "label": f"{relative:+.1f}pt {label}",
@@ -244,18 +248,21 @@ def compute_attention(price, news, events, market_pct, peer_pct=None) -> dict:
 
     days = days_until_earnings(events)
     if days is not None and 0 <= days <= 14:
-        score += 25 if days <= 7 else 12
+        parts["earnings"] = 25 if days <= 7 else 12
         label = "earnings today" if days == 0 else f"earnings in {days}d"
         factors.append({"label": label, "tone": "neutral"})
 
     count = len(news or [])
     if count:
-        score += min(count * 3, 12)
+        parts["news"] = min(count * 3, 12)
         if count >= 3:
             factors.append({"label": f"{count} headlines", "tone": "neutral"})
 
+    score = sum(parts.values())
     level = "high" if score >= 45 else "medium" if score >= 20 else "quiet"
-    return {"score": round(score, 1), "level": level, "factors": factors}
+    return {"score": round(score, 1), "level": level, "factors": factors,
+            "parts": {k: round(v, 1) for k, v in parts.items()},
+            "reference": "peers" if peer_pct is not None else "market"}
 
 
 # --- data assembly ----------------------------------------------------
@@ -418,6 +425,20 @@ is thin or contradictory, say so plainly rather than filling space. No preamble,
 headings, no bullet points."""
 
 
+def ai_unavailable(what: str, exc: Exception) -> str:
+    """The message shown in place of AI text that couldn't be written.
+
+    A missing key is the common case and the SDK's own wording for it
+    ("Could not resolve authentication method...") doesn't say what to do.
+    """
+    text = str(exc)
+    if type(exc).__name__ == "AuthenticationError" or "authentication" in text.lower() \
+            or "api_key" in text.lower():
+        return (f"({what} needs an Anthropic API key: add ANTHROPIC_API_KEY to the .env file "
+                f"and restart the app.)")
+    return f"({what} is unavailable right now: {type(exc).__name__}: {text[:120]})"
+
+
 def analyze(ticker: str, data: dict) -> str:
     if not data.get("price") and not data.get("news"):
         return "Not enough data available for this ticker to say anything useful."
@@ -450,7 +471,7 @@ def analyze(ticker: str, data: dict) -> str:
         )
         return "".join(b.text for b in response.content if b.type == "text").strip()
     except Exception as exc:
-        return f"(Analysis unavailable: {exc})"
+        return ai_unavailable("The analysis", exc)
 
 
 # --- routes -----------------------------------------------------------
@@ -464,7 +485,16 @@ def overview():
     def produce():
         with ThreadPoolExecutor(max_workers=4) as pool:
             quotes = list(pool.map(lambda pair: index_quote(*pair), INDICES))
-        return {"indices": quotes, "market": market_status()}
+        history = safe(history_of, "SPY", default=[]) or []
+        return {
+            "indices": quotes,
+            "market": market_status(),
+            # The session the latest prices come from. Before the open on a
+            # Monday that's Friday's, and the pages say so instead of
+            # calling Friday's move "today".
+            "last_session": history[-1]["date"] if history else None,
+            "today": datetime.now(ZoneInfo("America/New_York")).date().isoformat(),
+        }
 
     return jsonify(cached("overview", 60, produce))
 
@@ -823,6 +853,7 @@ def stock_detail(ticker: str):
         data["market"] = {"ticker": "SPY", "change_percent": market_pct} if market_pct is not None else None
         own = (data.get("price") or {}).get("change_percent")
         data["theme"] = safe(theme_context, state, ticker, own)
+        data["flags"] = peer_flags(data.get("stats") or {})
         data["attention"] = compute_attention(
             data.get("price"), data.get("news"), data.get("events"), market_pct,
             (data["theme"] or {}).get("peer_median"),
@@ -1197,7 +1228,7 @@ def build_brief(rows: list[dict], market_pct, indices: list[dict],
         )
         return "".join(b.text for b in response.content if b.type == "text").strip()
     except Exception as exc:
-        return f"(Brief unavailable: {exc})"
+        return ai_unavailable("The AI brief", exc)
 
 
 # --- earnings calendar ------------------------------------------------

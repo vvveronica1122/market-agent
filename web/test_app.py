@@ -313,6 +313,29 @@ def main() -> int:
     failures += not check("a move its peers didn't make is flagged against peers, not the market",
                           any(f["label"].endswith("vs peers") for f in alone["factors"]), str(alone["factors"]))
 
+    print("\nAttention, explained")
+    parts = vs_peers["parts"]
+    failures += not check("the score is the sum of its parts, so the breakdown adds up",
+                          abs(sum(parts.values()) - vs_peers["score"]) < 0.11, str(parts))
+    failures += not check("the breakdown says what the relative move was measured against",
+                          vs_peers["reference"] == "peers" and crash["reference"] == "market")
+    failures += not check("a move is labelled as a move, not as today's",
+                          any(f["label"] == "-6.0% move" for f in crash["factors"]), str(crash["factors"]))
+
+    print("\nWhich session")
+    server._cache.clear()
+    ov = client.get("/api/overview").get_json()
+    failures += not check("the overview says which session the latest prices come from",
+                          ov.get("last_session") == "2026-09-10" and bool(ov.get("today")), str(ov.get("last_session")))
+
+    print("\nAI text that couldn't be written")
+    msg = server.ai_unavailable("The AI brief", TypeError("Could not resolve authentication method."))
+    failures += not check("a missing key says how to fix it",
+                          "ANTHROPIC_API_KEY" in msg and ".env" in msg, msg)
+    other = server.ai_unavailable("The analysis", RuntimeError("overloaded"))
+    failures += not check("other failures still say what went wrong",
+                          "overloaded" in other and "API key" not in other, other)
+
     print("\nHome page -- themes")
     server._cache.clear()
     server.client = FakeClient()
@@ -445,6 +468,8 @@ def main() -> int:
     failures += not check("detail view places the company in its theme",
                           theme.get("theme_id") == "chips" and theme.get("peer_median") == -6.0
                           and theme.get("attribution") == "theme", str(theme))
+    failures += not check("the stock page carries the same warnings as the peer table",
+                          any("one-off" in f for f in detail.get("flags", [])), str(detail.get("flags")))
     failures += not check("a name in no theme simply has no theme context",
                           client.get("/api/stock/SURGE").get_json().get("theme") is None)
 

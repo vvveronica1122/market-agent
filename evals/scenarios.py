@@ -90,7 +90,7 @@ SCENARIOS = {
         "indices": [_index("S&P 500", -0.2), _index("Nasdaq 100", -0.3)],
         "rows": [
             _row("NVDA", -8.4, "high",
-                 ["-8.4% today", "-8.2pt vs market", "earnings in 3d", "6 headlines"],
+                 ["-8.4% move", "-8.2pt vs market", "earnings in 3d", "6 headlines"],
                  "Nvidia slides as China export restrictions widen"),
             _row("AAPL", -0.3, "quiet", [], None),
             _row("KO", 0.1, "quiet", [], None),
@@ -111,9 +111,9 @@ SCENARIOS = {
         "market_pct": -0.4,
         "indices": [_index("S&P 500", -0.4), _index("Nasdaq 100", -1.2)],
         "rows": [
-            _row("NVDA", -6.1, "high", ["-6.1% today", "5 headlines"],
+            _row("NVDA", -6.1, "high", ["-6.1% move", "5 headlines"],
                  "Chip names fall as export rules widen"),
-            _row("AMD", -5.4, "high", ["-5.4% today", "4 headlines"],
+            _row("AMD", -5.4, "high", ["-5.4% move", "4 headlines"],
                  "AMD drops alongside semiconductor peers"),
             _row("MU", -7.2, "high", ["-7.2% today", "6 headlines"],
                  "Micron hit hardest as memory rules tighten"),
