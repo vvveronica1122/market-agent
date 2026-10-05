@@ -1,8 +1,14 @@
-anthropic>=0.40.0
-yfinance>=0.2.40
-python-dotenv>=1.0.1
-flask>=3.0.0
+# Python 3.9 or newer.
+#
+# Direct dependencies pinned to the versions the tests and evals were last
+# run against, so a fresh install behaves like the one that was verified.
+anthropic==0.125.0
+python-dotenv==1.2.1
+flask==3.1.3
+# yfinance wraps Yahoo's unofficial endpoints, which change without notice.
+# If data stops loading, upgrading this pin is the first thing to try.
+yfinance==1.2.0
 # yfinance parses some tables with pandas.read_html, which needs lxml.
 # Without it, earnings_dates fails with ImportError and the richer
 # earnings data silently disappears behind the calendar fallback.
-lxml>=5.0.0
+lxml==6.1.3
