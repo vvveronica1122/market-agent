@@ -9,7 +9,9 @@ AI-written parts are covered by an eval suite that checks the model doesn't
 give investment advice, assert causes the data doesn't support, or invent
 facts that weren't in its input.
 
-<!-- TODO: screenshot of the watchlist and detail view -->
+![Home: an AI brief over four themes, each measured against its ETF and its peers](docs/images/home.png)
+
+<!-- TODO: link to the hosted static demo once it's published -->
 
 > Not financial advice. Data comes from free, delayed Yahoo Finance endpoints
 > and can be incomplete or wrong. The prompts forbid buy/sell/hold opinions
@@ -63,6 +65,17 @@ it diverged from its peers.
   each addable to one of yours.
 - **Ask** — a chat panel backed by the same agent as the terminal, showing
   every tool call it made before answering.
+
+<table>
+<tr>
+<td width="50%"><img src="docs/images/theme-today.png" alt="A theme's companies ranked by attention, each against its peers and the ETF"></td>
+<td width="50%"><img src="docs/images/theme-earnings.png" alt="Earnings reactions measured with a market model, surprise against abnormal reaction"></td>
+</tr>
+<tr>
+<td><img src="docs/images/theme-peers.png" alt="Peer table with the theme median and flags where a figure would mislead"></td>
+<td><img src="docs/images/ask.png" alt="The Ask panel showing every tool call the agent made before answering"></td>
+</tr>
+</table>
 
 **Agent** (`agent.py`, terminal or the Ask panel)
 
@@ -177,7 +190,13 @@ frontend, which reads those files instead of a server.
 python3 demo/build.py                       # writes demo/site/
 python3 demo/build.py --repo-url <url>      # adds a link to the banner
 python3 -m http.server -d demo/site 8000    # look at it locally
+python3 demo/capture.py --video             # retake the screenshots and walkthrough
 ```
+
+Take it after the close: during trading hours the prices are intraday, and
+the banner says so. `demo/capture.py` (needs Playwright, which isn't a
+project dependency) regenerates the screenshots in this README from the
+snapshot, and a walkthrough video into `demo/media/`.
 
 The demo is read-only, says which session it's a snapshot of, and replays
 the Ask panel's suggested questions as recorded (answers and lookups). Any
@@ -206,7 +225,7 @@ fail.
 prompt or the model.
 
 ```bash
-python3 evals/run_evals.py              # brief: 6 scenarios; stock analysis: 3; themes
+python3 evals/run_evals.py              # brief: 9 scenarios; stock analysis: 6; themes
 python3 evals/run_agent_evals.py        # agent tool choices: 4 scenarios
 python3 evals/run_evals.py --runs 3     # repeat for pass rates, not anecdotes
 python3 evals/run_evals.py --dry-run    # exercise the harness, no API calls
@@ -249,6 +268,7 @@ web/
 evals/                model evals, scenarios, and tests of the checks
 evals/tuning/         logs of the prompt tuning runs
 demo/build.py         builds the static demo snapshot
+demo/capture.py       screenshots and a walkthrough video of the snapshot
 run_tests.py          runs every offline suite
 docs/DESIGN.md        design decisions and lessons
 ```
@@ -257,6 +277,13 @@ docs/DESIGN.md        design decisions and lessons
 
 - Free delayed data via yfinance; no intraday streaming, options flow, or
   dark pool data.
+- When a ticker's own Yahoo news feed is empty (as it was for every
+  ticker in October 2026), headlines come from Yahoo's search
+  endpoint instead. Those have no summaries, so the AI text works from
+  headlines alone.
+- Yahoo's operating margin is the latest quarter while its gross and net
+  margins are twelve months; the pages label it, and flag it when the
+  mismatch puts operating margin above gross margin.
 - Market open/closed doesn't account for holidays.
 - Notes and alerts are not built yet. Real alerts (fire while you're not
   looking) need a background scheduler, not just a web server.

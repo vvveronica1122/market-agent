@@ -375,6 +375,24 @@ speculative feature discussion into a ten-line change — and a second one,
 for earnings data, found that the "unavailable endpoint" behind the empty
 Earnings page had been a missing `lxml` package the whole time.
 
+The same habit caught the opposite failure later. In October 2026 every
+ticker's own feed came back empty, and "No recent headlines" on every row
+read like a quiet news day rather than a broken source. It was noticed,
+and put down to the data source being down; only when the demo's
+screenshots showed the same line on every row did a probe go further and
+find Yahoo's search endpoint still returning current stories. That's now
+the fallback, keeping only stories Yahoo tags with the ticker. Those arrive
+without summaries, which puts the analysis back on headlines alone for as
+long as the feed stays empty. That's the limitation this section opened
+with, accepted knowingly this time, because a headline is better than
+nothing.
+
+A neighbouring one from the same screenshots: SNDK's operating margin sat
+above its gross margin, which can't happen within one period. Yahoo's
+operating margin turned out to be the latest quarter while its gross margin
+is twelve months, checked against the quarterly statements. The pages now
+label it that way and flag the case where the mismatch shows.
+
 ## When your own sense of "plausible" is out of date
 
 Reviewing an early agent answer, I said MU revenue of $41.5B "looks wrong
