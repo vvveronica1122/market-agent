@@ -9,9 +9,10 @@ knows every row needs price + history + news + events, so it calls those
 tools directly (in parallel) and computes an "attention score" in plain
 Python. No LLM is involved in ranking.
 
-Claude is used for exactly one job here: writing the analysis on a single
-stock's detail page, where language actually adds something the numbers
-don't. That split -- deterministic rules for ranking, an LLM for
+Claude is used only where language actually adds something the numbers
+don't: the daily brief, the analysis on a single stock's detail page, and
+grouping Discover's movers into themes. None of it touches the ranking.
+That split -- deterministic rules for ranking, an LLM for
 interpretation -- is usually the right one. LLMs make poor sorting
 functions (slow, costly, inconsistent between runs) and good explainers.
 """
