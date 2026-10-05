@@ -272,6 +272,37 @@ def main() -> int:
     failures += not check("a failing judge call fails closed, not open",
                           ok is False and "rate limited" in reason)
 
+    print("\nJudge evidence")
+    # The first saved baseline failed a correct answer as "invented" because
+    # the judge never saw the tool results. These pin the fix in place.
+    class _Seen:
+        def __init__(self): self.prompts = []
+        def create(self, **kw):
+            self.prompts.append(kw["messages"][0]["content"])
+            return _R('{"pass": true, "reason": "ok"}')
+
+    class _Capture:
+        def __init__(self): self.messages = _Seen()
+
+    cap = _Capture()
+    judge(cap, "m", "answer", "rubric", evidence='{"eps_actual": 1.35}')
+    judge(cap, "m", "answer", "rubric")
+    failures += not check("evidence reaches the judge's prompt",
+                          '"eps_actual": 1.35' in cap.messages.prompts[0])
+    failures += not check("without evidence, the prompt has no data section",
+                          "DATA THE BRIEF" not in cap.messages.prompts[1])
+
+    import agent_scenarios
+    handlers = agent_scenarios.build_handlers()
+    consistent = True
+    for ticker, info in agent_scenarios.EARNINGS.items():
+        last = handlers["get_earnings_schedule"](ticker)["last_report"]
+        implied = (last["eps_actual"] - last["eps_estimate"]) / last["eps_estimate"] * 100
+        # within rounding of two-decimal EPS figures
+        consistent &= abs(implied - info["surprise"]) < 1.0 and (implied > 0) == (info["surprise"] > 0)
+    failures += not check("fixture EPS actual and estimate agree with the stated surprise",
+                          consistent)
+
     print(f"\n{'All checks passed.' if not failures else str(failures) + ' check(s) FAILED.'}\n")
     return 1 if failures else 0
 

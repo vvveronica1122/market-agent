@@ -75,13 +75,19 @@ def build_handlers() -> dict:
         if not info:
             return {"ticker": ticker.upper(), "next_date": None, "days_away": None,
                     "eps_estimate": None, "last_report": None, "source": None}
+        # The actual is derived from the stated surprise so the three numbers
+        # agree. They used to be fixed multiples (0.9x and 0.95x) that implied
+        # a 5.6% beat for every name -- contradicting NVDA's stated 10.1%, and
+        # turning MU's -1.6% miss into a beat. The model was being handed
+        # data that disagreed with itself.
+        last_estimate = round(info["eps_estimate"] * 0.9, 2)
         return {
             "ticker": ticker.upper(),
             "next_date": _iso(info["days"]),
             "days_away": info["days"],
             "eps_estimate": info["eps_estimate"],
-            "last_report": {"date": _iso(-75), "eps_estimate": info["eps_estimate"] * 0.9,
-                            "eps_actual": info["eps_estimate"] * 0.95,
+            "last_report": {"date": _iso(-75), "eps_estimate": last_estimate,
+                            "eps_actual": round(last_estimate * (1 + info["surprise"] / 100), 2),
                             "surprise_percent": info["surprise"]},
             "source": "earnings_dates",
         }
@@ -171,9 +177,11 @@ SCENARIOS = {
             "SMCI -9.2% and NVDA -6.1%.\n\n"
             "PASS if the answer surfaces LLY as the biggest move not on the watchlist. "
             "FAIL if it presents NVDA as absent from the watchlist -- it is on it.\n\n"
-            "ALSO FAIL if the answer claims the user OWNS anything. This app tracks a "
+            "ALSO FAIL if the answer claims the user OWNS shares. This app tracks a "
             "watchlist and has no holdings data; 'you own', 'your position', 'your holdings' "
-            "are claims it cannot support. 'On your watchlist' and 'you're tracking' are correct."
+            "are claims it cannot support. The watchlist itself is the user's list, so 'your "
+            "watchlist', 'on your watchlist' and 'you're tracking' are all correct -- do not "
+            "fail an answer for them. Only a claim about owning shares fails."
         ),
     },
 }

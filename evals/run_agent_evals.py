@@ -20,6 +20,7 @@ be exact). Costs money.
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import re
 import sys
@@ -44,6 +45,24 @@ from results import save_run, summarize  # noqa: E402
 GREEN, RED, DIM, RESET = "\033[32m", "\033[31m", "\033[2m", "\033[0m"
 
 KNOWN_TICKERS = set(WATCHLIST) | {m["ticker"] for m in MOVERS} | {"ZZZZ", "SPY", "QQQ"}
+
+# Every tool result the agent received in the current run, in order. The
+# judge is given these as evidence -- it can't call a figure invented
+# without seeing what the tools returned -- and failing runs save them.
+RESULTS_SEEN: list[dict] = []
+
+
+def _recording(name, handler):
+    def wrapped(**kwargs):
+        try:
+            out = handler(**kwargs)
+        except Exception as exc:
+            RESULTS_SEEN.append({"tool": name, "input": kwargs,
+                                 "error": f"{type(exc).__name__}: {exc}"})
+            raise
+        RESULTS_SEEN.append({"tool": name, "input": kwargs, "result": out})
+        return out
+    return wrapped
 
 
 class _Block:
@@ -88,19 +107,22 @@ def run_scenario(name: str, spec: dict, runs: int) -> dict:
 
     totals: dict[str, list[tuple[bool, str]]] = {}
     first_output: dict = {}
+    failed_runs: list[dict] = []
 
     for attempt in range(runs):
         trace: list[dict] = []
+        RESULTS_SEEN.clear()
         try:
             answer = agent.ask_agent(agent._eval_client, spec["question"],
                                      verbose=False, trace=trace)
         except Exception as exc:
             answer = f"(agent raised {type(exc).__name__}: {exc})"
+        seen = list(RESULTS_SEEN)
 
         if attempt == 0:
-            # The trace is saved with the answer: it's half of what's being
-            # evaluated, and the half the answer alone can't show.
-            first_output = {"tool_calls": trace, "answer": answer}
+            # The tool calls are saved with the answer: they're half of
+            # what's being evaluated, and the half the answer can't show.
+            first_output = {"tool_calls": seen, "answer": answer}
             print(f"\n{DIM}--- tools it chose ---{RESET}")
             for call in trace:
                 args = ", ".join(f"{k}={v!r}" for k, v in (call.get("input") or {}).items())
@@ -125,11 +147,18 @@ def run_scenario(name: str, spec: dict, runs: int) -> dict:
         allowed = set(WATCHLIST) | {m["ticker"] for m in MOVERS} | asked_about
         results += check_no_unknown_tickers(answer, allowed, KNOWN_TICKERS)
 
-        passed, reason = judge(agent._eval_client, agent.MODEL, answer, spec["rubric"])
+        evidence = json.dumps(seen, indent=1, default=str)
+        passed, reason = judge(agent._eval_client, agent.MODEL, answer, spec["rubric"], evidence)
         results.append((passed, "judge verdict", reason))
 
         for ok, label, detail in results:
             totals.setdefault(label, []).append((ok, detail))
+        # Keep the full text of any failing run, so a borderline case can be
+        # re-judged later as fixed text (see --judge-stability in run_evals.py).
+        if not all(ok for ok, _, _ in results):
+            failed_runs.append({"run": attempt + 1,
+                                "failed_checks": [label for ok, label, _ in results if not ok],
+                                "tool_calls": seen, "answer": answer})
 
     for label, outcomes in totals.items():
         oks = [ok for ok, _ in outcomes]
@@ -142,7 +171,8 @@ def run_scenario(name: str, spec: dict, runs: int) -> dict:
 
     failed = sum(1 for outcomes in totals.values() if not all(ok for ok, _ in outcomes))
     record = {"description": spec["description"], "question": spec["question"], "runs": runs,
-              "checks": summarize(totals), "first_output": first_output}
+              "checks": summarize(totals), "first_output": first_output,
+              "failed_runs": failed_runs}
     return {"checks": len(totals), "failed": failed, "record": record}
 
 
@@ -163,6 +193,10 @@ def main() -> int:
     fixtures = build_handlers()
     agent.HANDLERS.update(fixtures)
     print(f"{DIM}Data stubbed for {len(fixtures)} tools; 'calculate' left real on purpose.{RESET}")
+    # Record every handler, the real calculator included: its results are
+    # evidence too, since the answer quotes what it computed.
+    for name, handler in list(agent.HANDLERS.items()):
+        agent.HANDLERS[name] = _recording(name, handler)
 
     if args.dry_run:
         agent._eval_client = DryRunClient()

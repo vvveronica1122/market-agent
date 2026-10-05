@@ -81,6 +81,7 @@ def run_scenario(name: str, spec: dict, runs: int) -> dict:
 
     totals: dict[str, list[bool]] = {}
     first_brief = ""
+    failed_runs: list[dict] = []
     for attempt in range(runs):
         brief = server.build_brief(
             spec["rows"], spec["market_pct"], spec["indices"], spec["movers"], spec["headlines"]
@@ -103,6 +104,12 @@ def run_scenario(name: str, spec: dict, runs: int) -> dict:
 
         for ok, label, detail in results:
             totals.setdefault(label, []).append((ok, detail))
+        # Keep the full text of any failing run: it's the input
+        # --judge-stability --text needs to pin a borderline case down.
+        if not all(ok for ok, _, _ in results):
+            failed_runs.append({"run": attempt + 1,
+                                "failed_checks": [label for ok, label, _ in results if not ok],
+                                "brief": brief})
 
     for label, outcomes in totals.items():
         oks = [ok for ok, _ in outcomes]
@@ -116,7 +123,8 @@ def run_scenario(name: str, spec: dict, runs: int) -> dict:
 
     failed = sum(1 for outcomes in totals.values() if not all(ok for ok, _ in outcomes))
     record = {"description": spec["description"], "runs": runs,
-              "checks": summarize(totals), "first_output": first_brief}
+              "checks": summarize(totals), "first_output": first_brief,
+              "failed_runs": failed_runs}
     return {"checks": len(totals), "failed": failed, "record": record}
 
 
@@ -151,9 +159,13 @@ def run_theme_eval() -> dict:
         if detail and not ok:
             print(f"        {DIM}{detail}{RESET}")
 
+    # Several checks share a label (one "came from the input" per theme), so
+    # collect them rather than letting a later one overwrite an earlier one.
+    totals: dict[str, list[tuple[bool, str]]] = {}
+    for ok, label, detail in results:
+        totals.setdefault(label, []).append((ok, detail))
     record = {"description": "Grouping movers into stories without inventing names", "runs": 1,
-              "checks": summarize({label: [(ok, detail)] for ok, label, detail in results}),
-              "first_output": themes}
+              "checks": summarize(totals), "first_output": themes}
     return {"checks": len(results), "failed": sum(1 for ok, _, _ in results if not ok),
             "record": record}
 

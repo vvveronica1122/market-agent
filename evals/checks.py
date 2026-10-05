@@ -92,9 +92,21 @@ brief for being short if the rubric doesn't ask for length. Be strict about the 
 failure modes the rubric names."""
 
 
-def judge(client, model: str, output: str, rubric: str) -> tuple[bool, str]:
-    """Grade an output with a second model call. Returns (passed, reason)."""
-    prompt = f"RUBRIC:\n{rubric}\n\nBRIEF TO GRADE:\n{output}"
+def judge(client, model: str, output: str, rubric: str,
+          evidence: str | None = None) -> tuple[bool, str]:
+    """Grade an output with a second model call. Returns (passed, reason).
+
+    `evidence` is the data the output was written from. Without it the
+    judge can't tell a looked-up figure from an invented one: the first
+    saved baseline failed an answer for "$1.35 actual vs $1.28 estimate" --
+    exactly what the tool had returned, but missing from the rubric's
+    summary, which was all the judge could see.
+    """
+    prompt = f"RUBRIC:\n{rubric}\n\n"
+    if evidence is not None:
+        prompt += ("DATA THE BRIEF WAS WRITTEN FROM (everything it was allowed to use; a "
+                   f"figure found here is not invented):\n{evidence}\n\n")
+    prompt += f"BRIEF TO GRADE:\n{output}"
     try:
         response = client.messages.create(
             model=model,
