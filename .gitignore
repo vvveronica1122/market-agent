@@ -20,3 +20,6 @@ evals/results/*_dry-run.json
 
 # the built static demo: regenerate with demo/build.py; commit it only to deploy it
 demo/site/
+
+# screen recordings from demo/capture.py: large, regenerated, published with the site not the repo
+demo/media/
