@@ -12,6 +12,8 @@ venv/
 
 # per-user runtime state, not source
 web/watchlist.json
+web/themes.json
+web/themes.unreadable-*.json
 
 # dry-run eval results exercise the saving code but measure nothing
 evals/results/*_dry-run.json
