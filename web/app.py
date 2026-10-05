@@ -1098,8 +1098,9 @@ Cover, in this order:
 3. What's beyond their list: from the market-wide movers and headlines you're given, \
 anything genuinely worth their attention that isn't on their watchlist -- name the tickers. \
 Skip this if nothing out there is notable; don't manufacture a reason to mention something.
-4. Earnings in the next week, as the data gives them ("earnings in 3d"). If the data shows \
-none, leave this out -- don't put a judgement about what kind of week it is in its place.
+4. Earnings in the next week: each name carries next_earnings_in_days (null when no date is \
+known). If none falls within seven days, one short sentence saying so is enough, or leave it \
+out -- don't put a judgement about what kind of week it is in its place.
 
 The watchlist is a list of names the reader is TRACKING. It is not a portfolio and this app
 has no holdings data, so never write "you own", "your holdings" or "your position" -- write
@@ -1143,8 +1144,8 @@ with their money is not.
 
 State calendar facts directly, and only the ones the data contains. "NVDA reports in three \
 days" -- not "if you're watching for catalysts, NVDA's report is the one to mark", which says \
-the same thing while telling them what to do about it. When the data has no earnings entries, \
-that means none were given, not that nothing is scheduled; don't claim the calendar is empty.
+the same thing while telling them what to do about it. A null next_earnings_in_days means no \
+date is known, not that nothing is scheduled: don't turn unknown dates into an empty calendar.
 
 Name companies by ticker symbol -- NVDA, not Nvidia -- since that is how they appear on \
 screen beside what you write.
@@ -1172,6 +1173,10 @@ def _brief_name(r: dict) -> dict:
         "attention": (r.get("attention") or {}).get("level"),
         "reasons": [f["label"] for f in (r.get("attention") or {}).get("factors", [])],
         "top_headline": r.get("top_headline"),
+        # Explicit so a calendar claim can be checked: the brief used to
+        # see a report date only as an attention reason, so "nothing
+        # reports this week" was never supported by its input.
+        "next_earnings_in_days": days_until_earnings(r.get("events")),
     }
 
 

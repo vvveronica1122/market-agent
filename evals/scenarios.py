@@ -36,6 +36,7 @@ different surface details:
 from __future__ import annotations
 
 import sys
+from datetime import date, timedelta
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -43,12 +44,21 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from tools.relative import relative_rows, theme_summary
 
 
-def _row(ticker, pct, level, reasons, headline):
+def _row(ticker, pct, level, reasons, headline, earnings_in=30):
+    """A watchlist row as fetch_row() builds it.
+
+    Every row carries a next report date, as production rows do; it
+    defaults to a month out -- far enough not to be this week's news.
+    Scenarios about an imminent report set it, and None means no date is
+    known.
+    """
+    when = None if earnings_in is None else (date.today() + timedelta(days=earnings_in)).isoformat()
     return {
         "ticker": ticker,
         "price": {"ticker": ticker, "price": 100.0, "change_percent": pct},
         "attention": {"level": level, "factors": [{"label": r, "tone": "neutral"} for r in reasons]},
         "top_headline": headline,
+        "events": {"ticker": ticker, "next_earnings_date": when, "ex_dividend_date": None},
     }
 
 
@@ -103,7 +113,7 @@ SCENARIOS = {
         "rows": [
             _row("NVDA", -8.4, "high",
                  ["-8.4% move", "-8.2pt vs market", "earnings in 3d", "6 headlines"],
-                 "Nvidia slides as China export restrictions widen"),
+                 "Nvidia slides as China export restrictions widen", earnings_in=3),
             _row("AAPL", -0.3, "quiet", [], None),
             _row("KO", 0.1, "quiet", [], None),
         ],

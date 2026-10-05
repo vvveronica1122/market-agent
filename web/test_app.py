@@ -556,6 +556,9 @@ def main() -> int:
                           '"watchlist_themes"' in sent_brief and '"theme": "Chips"' in sent_brief)
     failures += not check("each name carries its peer comparison and move type",
                           '"move_type": "theme"' in sent_brief and '"move_type": "company"' in sent_brief)
+    failures += not check("each name carries its next report date, null when none is known",
+                          '"next_earnings_in_days": 3' in sent_brief
+                          and '"next_earnings_in_days": null' in sent_brief)
     server.client = FakeClient()
     server.build_brief([{"ticker": "CRASH", "price": fake_price("CRASH")}], 0.2, [], [], [])
     flat = server.client.messages.calls[0]["messages"][0]["content"]
