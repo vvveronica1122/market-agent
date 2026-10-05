@@ -1147,6 +1147,13 @@ things happening together, not one causing the other. Write "fell 8%, which may 
 related to the export rules reported this morning". Never "fell 8% as/after/because the \
 export rules widened" -- those state the link as established fact, and you don't know it.
 
+That rule is about meaning, not about the word "because". Any wording that makes a \
+headline the thing moving prices states the cause: "on news that...", "following a report \
+that...", "is driving...", "the driver", "the story behind the drop", "weighing on", "sent \
+shares lower". When a sentence puts a headline beside a move, join the two only with a \
+correlational link -- "alongside", "coincided with", "may be related to" -- and do it in \
+every such sentence: a hedge in one sentence doesn't cover the next.
+
 Stick to the data you were handed. Don't add specifics about the event from your own \
 memory: your training data is old, and an invented detail is worse than a missing one."""
 
