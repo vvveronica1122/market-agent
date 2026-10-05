@@ -134,6 +134,7 @@ def run_scenario(name: str, spec: dict, runs: int) -> dict:
         if not all(ok for ok, _, _ in results):
             failed_runs.append({"run": attempt + 1,
                                 "failed_checks": [label for ok, label, _ in results if not ok],
+                                "judge_reason": None if passed else reason,
                                 "brief": brief})
 
     for label, outcomes in totals.items():
@@ -181,6 +182,7 @@ def run_analysis_scenario(name: str, spec: dict, runs: int) -> dict:
         if not all(ok for ok, _, _ in results):
             failed_runs.append({"run": attempt + 1,
                                 "failed_checks": [label for ok, label, _ in results if not ok],
+                                "judge_reason": None if passed else reason,
                                 "analysis": text})
 
     for label, outcomes in totals.items():
