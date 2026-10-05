@@ -239,10 +239,13 @@ def _percent(value) -> float | None:
 def get_key_stats(ticker: str) -> dict[str, Any]:
     """Headline valuation, growth and profitability figures.
 
-    All from Yahoo's summary: margins are trailing twelve months, revenue
-    and earnings growth are the latest quarter against the same quarter a
-    year earlier, forward P/E is on next fiscal year's consensus EPS, and
-    beta is Yahoo's (five years of monthly returns against the S&P 500).
+    All from Yahoo's summary: gross and net margins are trailing twelve
+    months, but the operating margin is the most recent quarter -- checked
+    against the quarterly statements, where SNDK's 78.5% matched its latest
+    quarter, not the 61.6% of its last four. Revenue and earnings growth are
+    the latest quarter against the same quarter a year earlier, forward P/E
+    is on next fiscal year's consensus EPS, and beta is Yahoo's (five years
+    of monthly returns against the S&P 500).
     """
     try:
         info = yf.Ticker(ticker).info or {}

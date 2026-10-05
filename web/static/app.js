@@ -133,9 +133,14 @@ function buildDemoBanner() {
   const banner = el("div", "demo-banner");
   banner.setAttribute("role", "note");
   banner.appendChild(el("strong", null, "Demo. "));
+  // Taken during trading hours, the prices are intraday, not the close.
+  const when = DEMO.captured_time
+    ? `${DEMO.captured_label} at ${DEMO.captured_time}` +
+      (DEMO.market_state === "open" ? ", before the close" : "")
+    : DEMO.captured_label || "";
   banner.appendChild(document.createTextNode(
     `A snapshot of the ${DEMO.snapshot_session ? formatSession(DEMO.snapshot_session) : "captured"} session, ` +
-    `taken ${DEMO.captured_label || ""}. Prices don't update, the AI text was written when the snapshot was ` +
+    `taken ${when}. Prices don't update, the AI text was written when the snapshot was ` +
     "taken, and Ask replays recorded conversations. Nothing here is financial advice."));
   if (DEMO.repo_url) {
     banner.appendChild(document.createTextNode(" "));
@@ -325,7 +330,11 @@ function renderStrip(data) {
 
   (data.indices || []).forEach((idx) => {
     const wrap = el("div", "index");
-    wrap.appendChild(el("span", "label", idx.label));
+    // The figures are the ETFs' (SPY at $700, not the index at 7,000), so
+    // the ETF is named and the index it tracks is the tooltip.
+    const label = el("span", "label", idx.ticker || idx.label);
+    if (idx.ticker) label.title = `${idx.label}, via the ${idx.ticker} ETF`;
+    wrap.appendChild(label);
     if (idx.error) {
       wrap.appendChild(el("span", "value", "--"));
     } else {
@@ -337,7 +346,7 @@ function renderStrip(data) {
 
   const session = el("div", "session");
   const dot = el("span", "dot");
-  if (data.market && data.market.state === "open") dot.classList.add("open");
+  if (!DEMO && data.market && data.market.state === "open") dot.classList.add("open");
   session.appendChild(dot);
   session.appendChild(el("span", null, DEMO
     ? `snapshot · ${data.last_session ? formatSession(data.last_session) : ""}`
@@ -1036,7 +1045,8 @@ const METRIC_NOTES = {
   ev_to_sales: "Enterprise value (market cap plus net debt) divided by the last twelve months' revenue.",
   revenue_growth_percent: "Latest quarter's revenue against the same quarter a year earlier.",
   gross_margin_percent: "Revenue left after direct costs, last twelve months.",
-  operating_margin_percent: "Revenue left after running costs too, last twelve months.",
+  operating_margin_percent: "Revenue left after running costs too, in the latest quarter -- Yahoo " +
+    "reports this margin quarterly, unlike gross margin.",
   estimate_change_90d: "Change in next fiscal year's consensus EPS estimate over 90 days.",
   net_revisions_30d: "Analysts raising next year's EPS estimate minus those cutting it, last 30 days.",
 };
@@ -1118,8 +1128,9 @@ function buildPeerTable(data, highlight) {
     box.appendChild(list);
   }
   box.appendChild(el("p", "metric-note",
-    "From Yahoo Finance. Margins are the last twelve months; growth is the latest quarter against a " +
-    "year earlier; estimates are next fiscal year's consensus."));
+    "From Yahoo Finance. Gross margin is the last twelve months and operating margin the latest " +
+    "quarter; growth is the latest quarter against a year earlier; estimates are next fiscal year's " +
+    "consensus."));
   return box;
 }
 
@@ -1777,8 +1788,9 @@ function buildFundamentalsPanel(data) {
                "Sales left after the direct cost of making what was sold -- pricing power.", ""]);
   }
   if (has(stats.operating_margin_percent)) {
-    defs.push([num(stats.operating_margin_percent, 1) + "%", "Operating margin",
-               "Left after running costs too (research, sales, admin) -- the business's own profitability.",
+    defs.push([num(stats.operating_margin_percent, 1) + "%", "Operating margin, latest quarter",
+               "Left after running costs too (research, sales, admin) -- the business's own profitability. " +
+               "Yahoo gives this one for the latest quarter, the other margins for twelve months.",
                toneClass(stats.operating_margin_percent)]);
   }
   if (has(stats.profit_margin_percent)) {
@@ -2856,10 +2868,12 @@ function buildBriefPanel() {
 
   const head = el("div", "brief-head");
   head.appendChild(el("h2", null, "AI brief"));
-  const refresh = el("button", "brief-refresh", "Refresh");
-  refresh.type = "button";
-  refresh.addEventListener("click", () => loadBrief(panel, true));
-  head.appendChild(refresh);
+  if (!DEMO) {
+    const refresh = el("button", "brief-refresh", "Refresh");
+    refresh.type = "button";
+    refresh.addEventListener("click", () => loadBrief(panel, true));
+    head.appendChild(refresh);
+  }
   panel.appendChild(head);
 
   panel.appendChild(el("div", "brief-body", "Reading your themes..."));

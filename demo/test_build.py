@@ -93,6 +93,11 @@ def main() -> int:
                                               "trace": [{"step": 1, "tool": "get_watchlist", "input": {}}]}],
                           str(config["chat"]))
     failures += not check("it says which model wrote the AI text", bool(config.get("model")))
+    failures += not check("it records the time and whether the market was open",
+                          bool(config.get("captured_time")) and config.get("market_state") in
+                          ("open", "closed", "pre-market", "after-hours"), str(config))
+    failures += not check("the price cache's normal lifetime is restored afterwards",
+                          server.TTL["price"] == 60, str(server.TTL))
 
     print("\nRefreshing the frontend alone")
     (out / "app.js").write_text("stale")

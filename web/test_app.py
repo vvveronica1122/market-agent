@@ -447,6 +447,12 @@ def main() -> int:
                           peers["medians"]["forward_pe"] == 20.0, str(peers["medians"]))
     failures += not check("a net margin above gross margin is flagged as one-off gains",
                           any("one-off" in f for f in crash_peer["flags"]), str(crash_peer["flags"]))
+    flags = server.peer_flags({"gross_margin_percent": 70.0, "operating_margin_percent": 78.0})
+    failures += not check("an operating margin above gross margin is flagged as a period mismatch",
+                          any("latest quarter" in f for f in flags), str(flags))
+    failures += not check("an ordinary operating margin isn't flagged",
+                          not server.peer_flags({"gross_margin_percent": 70.0,
+                                                 "operating_margin_percent": 40.0}))
     failures += not check("net estimate revisions are ups minus downs",
                           crash_peer["values"]["net_revisions_30d"] == 3)
     failures += not check("an unknown theme's tab is a 404",

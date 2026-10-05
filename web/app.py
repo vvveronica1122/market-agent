@@ -648,6 +648,10 @@ def peer_flags(stats: dict) -> list[str]:
     if net is not None and gross is not None and net > gross:
         flags.append("Net margin is above gross margin, so the last twelve months include "
                      "one-off gains; net margin overstates the business.")
+    operating = stats.get("operating_margin_percent")
+    if operating is not None and gross is not None and operating > gross:
+        flags.append("Operating margin (latest quarter) is above gross margin (last twelve "
+                     "months): margins rose fast enough that the two periods disagree.")
     fpe = stats.get("forward_pe")
     if fpe is not None and (fpe <= 0 or fpe > 100):
         flags.append("Forward P/E is above 100 or negative: expected earnings are too small "
@@ -666,7 +670,7 @@ PEER_METRICS = [
     ("ev_to_sales", "EV / sales", "x"),
     ("revenue_growth_percent", "Revenue growth", "%"),
     ("gross_margin_percent", "Gross margin", "%"),
-    ("operating_margin_percent", "Operating margin", "%"),
+    ("operating_margin_percent", "Operating margin, qtr", "%"),
     ("estimate_change_90d", "EPS estimate, 90d", "%"),
     ("net_revisions_30d", "Net revisions, 30d", "count"),
 ]

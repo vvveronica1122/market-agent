@@ -57,6 +57,23 @@ def build(out: Path = DEFAULT_OUT, questions: list[str] = QUESTIONS,
           repo_url: str | None = None, log=print) -> dict:
     """Capture everything into `out`. Returns a summary of what was written."""
     client = server.app.test_client()
+    market = server.market_status()
+    if market["state"] == "open":
+        log(f"note: the market is open ({market['time']}), so prices will be intraday; "
+            "the banner will say the snapshot was taken before the close")
+    # One quote per company for the whole capture. With the live minute-long
+    # price cache, pages captured a few minutes apart disagreed during
+    # trading hours (MU at -0.64% on its theme page, -0.68% on its own).
+    saved_ttl = dict(server.TTL)
+    server.TTL.update({key: 24 * 3600 for key in server.TTL})
+    try:
+        return _capture(client, out, questions, repo_url, market, log)
+    finally:
+        server.TTL.update(saved_ttl)
+
+
+def _capture(client, out: Path, questions: list[str], repo_url: str | None,
+             market: dict, log) -> dict:
     if out.exists():
         shutil.rmtree(out)
     data_dir = out / "data"
@@ -124,6 +141,8 @@ def build(out: Path = DEFAULT_OUT, questions: list[str] = QUESTIONS,
         "snapshot_session": overview.get("last_session"),
         "captured_at": captured.isoformat(timespec="minutes"),
         "captured_label": captured.strftime("%a, %b %-d, %Y"),
+        "captured_time": market["time"],
+        "market_state": market["state"],
         "model": server.MODEL,
         "repo_url": repo_url,
         "chat": chats,
