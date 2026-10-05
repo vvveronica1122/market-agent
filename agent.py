@@ -265,7 +265,8 @@ TOOLS = [
             "Get the evidence on how a stock has behaved around its past earnings: the actual "
             "next-session price move after each of the last several reports, whether it beat or "
             "missed each time, the typical size of the move, how often it beat and STILL fell, "
-            "and which way analyst estimates have been revised. Use this for any question about "
+            "each move's abnormal part (beyond what the market that day would predict for this "
+            "stock), and which way analyst estimates have been revised. Use this for any question about "
             "what to expect from an upcoming earnings report. It describes the setup; it does "
             "not predict the outcome, and neither should you."
         ),

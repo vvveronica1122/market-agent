@@ -6,13 +6,20 @@ closest peers are down 8% too, and another when they're flat. This module
 answers that with two comparisons per company:
 
   - against the theme's benchmark ETF -- the market's standard yardstick;
-  - against its peers -- the equal-weighted average move of the OTHER
-    companies in the same theme.
+  - against its peers -- the MEDIAN move of the OTHER companies in the same
+    theme: the typical peer.
 
 The second exists because cap-weighted ETFs are dominated by the very names
 being measured: NVDA is over a fifth of SMH, so "NVDA vs SMH" is partly NVDA
-against itself. Leaving the company out of its own peer average removes
-that.
+against itself. Leaving the company out of its own peer group removes that.
+
+The median rather than the mean because themes are small. With three or
+four peers, one extreme name decides an average: when VRT jumped 6% and its
+three peers sat flat, each flat peer's "peer average" became +2%, so all
+three were labelled as diverging -- the eval fixture built to test the
+brief caught it. Over long windows, SNDK's 625% year-to-date run put WDC 229
+points behind its "peers". The median is the typical peer, and one outlier
+doesn't move it.
 
 Plain arithmetic on daily percentage changes, no data fetching -- so every
 rule here can be tested exactly.
@@ -20,10 +27,10 @@ rule here can be tested exactly.
 
 from __future__ import annotations
 
-from statistics import mean, pstdev
+from statistics import mean, median, pstdev
 
-# A peer average needs at least this many OTHER companies with data;
-# fewer is a comparison with one stock, not with a group.
+# A peer median needs at least this many OTHER companies with data; fewer is
+# a comparison with one stock, not with a group.
 MIN_PEERS = 2
 
 # Moves smaller than this (in percentage points) are left unattributed:
@@ -31,7 +38,7 @@ MIN_PEERS = 2
 QUIET_MOVE = 1.0
 
 # Attribution measures the GAP between a company and its peers -- own move
-# minus peer average, the part its peers don't share -- as a share of the
+# minus peer median, the part its peers don't share -- as a share of the
 # larger of the two moves. At or below THEME_GAP it moved with its theme; at
 # or above COMPANY_GAP it diverged; in between it's partly shared.
 #
@@ -53,12 +60,12 @@ THEME_GAP = 0.4
 COMPANY_GAP = 0.6
 
 
-def peer_average(changes: dict[str, float | None], ticker: str) -> float | None:
-    """Equal-weighted average move of every other company in the theme."""
+def peer_median(changes: dict[str, float | None], ticker: str) -> float | None:
+    """Median move of every other company in the theme -- the typical peer."""
     peers = [v for t, v in changes.items() if t != ticker and v is not None]
     if len(peers) < MIN_PEERS:
         return None
-    return mean(peers)
+    return median(peers)
 
 
 def attribute(own: float | None, peers: float | None) -> str | None:
@@ -97,11 +104,11 @@ def relative_rows(changes: dict[str, float | None],
     """Both comparisons, and the attribution, for every company."""
     out = {}
     for ticker, own in changes.items():
-        peers = peer_average(changes, ticker)
+        peers = peer_median(changes, ticker)
         out[ticker] = {
             "vs_benchmark": None if own is None or benchmark_change is None
             else own - benchmark_change,
-            "peer_average": peers,
+            "peer_median": peers,
             "vs_peers": None if own is None or peers is None else own - peers,
             "attribution": attribute(own, peers),
         }

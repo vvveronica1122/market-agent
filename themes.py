@@ -29,7 +29,7 @@ LEGACY_WATCHLIST_FILE = PROJECT_ROOT / "web" / "watchlist.json"
 
 MAX_THEMES = 12
 MAX_STOCKS_PER_THEME = 12
-# Below this a leave-one-out peer average rests on a single other company,
+# Below this a leave-one-out peer median rests on a single other company,
 # which is a comparison with one stock, not with a group.
 MIN_STOCKS_FOR_PEERS = 3
 

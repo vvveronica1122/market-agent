@@ -13,7 +13,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from tools.relative import attribute, peer_average, relative_rows, theme_summary
+from tools.relative import attribute, peer_median, relative_rows, theme_summary
 
 
 def check(label, condition, detail=""):
@@ -28,15 +28,24 @@ def close(a, b):
 def main() -> int:
     failures = 0
 
-    print("\nPeer average")
-    changes = {"MU": -8.4, "SNDK": -7.0, "WDC": -8.0, "STX": -8.4}
-    failures += not check("leaves the company out of its own average",
-                          close(peer_average(changes, "MU"), (-7.0 - 8.0 - 8.4) / 3),
-                          str(peer_average(changes, "MU")))
+    print("\nPeer median")
+    changes = {"MU": -8.4, "SNDK": -7.0, "WDC": -8.0, "STX": -9.1}
+    failures += not check("leaves the company out of its own peer group",
+                          close(peer_median(changes, "MU"), -8.0), str(peer_median(changes, "MU")))
     failures += not check("needs at least two other companies with data",
-                          peer_average({"A": 1.0, "B": 2.0}, "A") is None)
+                          peer_median({"A": 1.0, "B": 2.0}, "A") is None)
     failures += not check("skips peers with no data rather than counting them as flat",
-                          close(peer_average({"A": 5.0, "B": None, "C": 2.0, "D": 4.0}, "A"), 3.0))
+                          close(peer_median({"A": 5.0, "B": None, "C": 2.0, "D": 4.0}, "A"), 3.0))
+    # The eval fixture that caught the mean: VRT jumped 6.2% and its peers
+    # sat flat, and each flat peer's AVERAGE peer move became about +2%.
+    quiet_day = {"VRT": 6.2, "VST": 0.2, "CEG": -0.1, "ETN": 0.3}
+    failures += not check("one peer's jump doesn't move the typical peer",
+                          close(peer_median(quiet_day, "VST"), 0.3), str(peer_median(quiet_day, "VST")))
+    rows = relative_rows(quiet_day, 0.1)
+    failures += not check("so the flat names aren't labelled as diverging; the jumper is",
+                          rows["VRT"]["attribution"] == "company"
+                          and all(rows[t]["attribution"] != "company" for t in ("VST", "CEG", "ETN")),
+                          str({t: r["attribution"] for t, r in rows.items()}))
 
     print("\nAttribution")
     failures += not check("falling with the peers is a theme move",
@@ -79,7 +88,7 @@ def main() -> int:
     rows = relative_rows({"A": -6.0, "B": -5.5, "C": -6.5, "D": None}, benchmark_change=-5.0)
     failures += not check("vs benchmark is the plain difference",
                           close(rows["A"]["vs_benchmark"], -1.0))
-    failures += not check("vs peers uses the leave-one-out average",
+    failures += not check("vs peers uses the leave-one-out median",
                           close(rows["A"]["vs_peers"], -6.0 - (-6.0)))
     failures += not check("a company with no price gets no comparisons",
                           rows["D"]["vs_benchmark"] is None and rows["D"]["attribution"] is None)

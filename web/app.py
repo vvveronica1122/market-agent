@@ -40,6 +40,7 @@ from config import MODEL
 import themes as theme_store
 from themes import ThemeError
 from tools.relative import relative_rows, theme_summary
+from tools import performance
 from tools.market_data import (
     get_stock_price,
     get_recent_news,
@@ -52,7 +53,10 @@ from tools.fundamentals import (
     get_quarterly_results,
     get_key_stats,
     get_earnings_setup,
+    get_estimate_revisions,
 )
+
+import pandas as pd
 
 # The conversational agent, reused as-is. The dashboard and the chat panel
 # are now two front doors onto one implementation rather than two codebases.
@@ -114,6 +118,34 @@ def safe(fn, *args, default=None):
         return fn(*args)
     except Exception:
         return default
+
+
+# Slower-moving data: earnings history and fundamentals change when a
+# company reports, not between page loads.
+SLOW_TTL = 6 * 3600
+
+
+def closes_of(ticker: str, period: str = "2y") -> pd.Series:
+    points = history_of(ticker, period)
+    return pd.Series([p["close"] for p in points],
+                     index=pd.to_datetime([p["date"] for p in points]), dtype=float)
+
+
+def setup_of(ticker: str) -> dict:
+    """The earnings setup with market-model figures. SPY's history is
+    passed in from the cache so a theme's companies share one download."""
+    def produce():
+        market = pd.DataFrame({"Close": closes_of("SPY")})
+        return get_earnings_setup(ticker, market_history=market)
+    return cached(f"setup:{ticker}", SLOW_TTL, produce)
+
+
+def stats_of(ticker: str) -> dict:
+    return cached(f"stats:{ticker}", SLOW_TTL, lambda: get_key_stats(ticker))
+
+
+def revisions_of(ticker: str) -> dict:
+    return cached(f"revisions:{ticker}", SLOW_TTL, lambda: get_estimate_revisions(ticker))
 
 
 # --- themes -----------------------------------------------------------
@@ -273,7 +305,7 @@ def theme_block(theme: dict, rows_by_ticker: dict, quotes: dict, market_pct) -> 
         # cached, so this costs nothing.
         row["attention"] = compute_attention(base.get("price"), safe(news_of, t, default=[]),
                                              base.get("events"), market_pct,
-                                             relative[t]["peer_average"])
+                                             relative[t]["peer_median"])
         rows.append(row)
     rows.sort(key=lambda r: r["attention"]["score"], reverse=True)
 
@@ -357,7 +389,7 @@ if that figure is provided), what the coverage says may be driving it, and what 
 up that's worth watching.
 
 If theme_comparison is present, use it for the context: it gives the theme's benchmark ETF, \
-the average move of the company's peers in the same theme (excluding the company), and an \
+the median move of the company's peers in the same theme (excluding the company), and an \
 attribution -- "theme" when it tracked its peers, "company" when it diverged from them \
 (moved alone, against them, or held up while they fell), "mixed" in between, "quiet" when \
 neither it nor its peers moved much. Say plainly whether the move looks shared with the \
@@ -369,8 +401,11 @@ don't describe a video as something the reader can read.
 
 If earnings_setup is present and a report is close, say what the evidence shows about how \
 this stock handles earnings -- the typical size of the move, and whether beating estimates \
-has actually meant the stock rose. Never say which way it will go this time; that isn't \
-knowable and stating it would be invention in a confident voice.
+has actually meant the stock rose. Where reactions carry abnormal_move, prefer it: it is the \
+move beyond what the stock's market model expected given SPY that session, so it isolates \
+the reaction to the report. median_abs_abnormal is its typical size and beat_but_lagged counts \
+beats followed by a negative abnormal move. Never say which way it will go this time; that \
+isn't knowable and stating it would be invention in a confident voice.
 
 Stick to what you were given. Don't add background about the company from your own memory \
 -- not its history, not its usual volatility, not what its products do. Your training data \
@@ -400,7 +435,7 @@ def analyze(ticker: str, data: dict) -> str:
         payload["theme_comparison"] = {
             "theme": theme["theme_name"],
             "benchmark": theme["benchmark"],
-            "peer_average_change_percent": theme["peer_average"],
+            "peer_median_change_percent": theme["peer_median"],
             "vs_peers": theme["vs_peers"],
             "vs_benchmark": theme["vs_benchmark"],
             "attribution": theme["attribution"],
@@ -463,6 +498,195 @@ def theme_route(theme_id: str):
                      lambda: compute_blocks(state, [theme]))
     return jsonify({"market_change_percent": payload["market_change_percent"],
                     **payload["themes"][0]})
+
+
+# --- theme tabs: performance, earnings, peers -------------------------
+# The theme page's deeper layers. Each is its own endpoint so a tab only
+# costs what it shows, and each is cached on the slower clock its data
+# changes on.
+PERIOD_ORDER = ["1M", "3M", "6M", "YTD", "1Y"]
+
+
+def _round_all(d: dict) -> dict:
+    return {k: rounded(v) if isinstance(v, float) else v for k, v in d.items()}
+
+
+def theme_performance(theme: dict) -> dict:
+    """Returns over several windows, each against the ETF and the peers.
+
+    The same leave-one-out comparison as the daily view, applied to each
+    window's returns: a company up 40% in three months means one thing if
+    its peers are up 38% and another if they're flat.
+    """
+    tickers = [s["ticker"] for s in theme["stocks"]]
+    wanted = tickers + [theme["benchmark"]]
+    with ThreadPoolExecutor(max_workers=12) as pool:
+        series = dict(zip(wanted, pool.map(lambda t: safe(closes_of, t), wanted)))
+    returns = {t: performance.period_returns(s) if s is not None and len(s) else {}
+               for t, s in series.items()}
+    bench = returns.get(theme["benchmark"], {})
+
+    by_period, summaries = {}, {}
+    for period in PERIOD_ORDER:
+        changes = {t: returns[t].get(period) for t in tickers}
+        by_period[period] = relative_rows(changes, bench.get(period))
+        summaries[period] = _round_all(theme_summary(changes, bench.get(period)))
+
+    rows = []
+    for stock in theme["stocks"]:
+        t = stock["ticker"]
+        rows.append({
+            "ticker": t,
+            "role": stock.get("role", ""),
+            "periods": {p: _round_all({"return": returns[t].get(p), **by_period[p][t]})
+                        for p in PERIOD_ORDER},
+        })
+    return {
+        "id": theme["id"], "name": theme["name"], "periods": PERIOD_ORDER,
+        "benchmark": {"ticker": theme["benchmark"],
+                      "returns": {p: rounded(bench.get(p)) for p in PERIOD_ORDER}},
+        "summary": summaries,
+        "rows": rows,
+    }
+
+
+def theme_earnings(theme: dict) -> dict:
+    """Each company's recent reactions measured against its market model,
+    and whether, across the theme, bigger surprises met bigger reactions."""
+    tickers = [s["ticker"] for s in theme["stocks"]]
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        setups = dict(zip(tickers, pool.map(lambda t: safe(setup_of, t, default={}), tickers)))
+        events = dict(zip(tickers, pool.map(lambda t: safe(events_of, t, default={}), tickers)))
+
+    rows, points = [], []
+    for t in tickers:
+        setup = setups.get(t) or {}
+        reactions = setup.get("reactions") or []
+        modelled = [r for r in reactions if r.get("abnormal_move") is not None]
+        for r in modelled:
+            if r.get("surprise_percent") is not None:
+                points.append({"ticker": t, "date": r["date"], "surprise": r["surprise_percent"],
+                               "abnormal": r["abnormal_move"], "standardized": r["standardized"]})
+        days = days_until_earnings(events.get(t))
+        rows.append({
+            "ticker": t,
+            "next_report_days": days if days is not None and days >= 0 else None,
+            "latest": modelled[0] if modelled else (reactions[0] if reactions else None),
+            "reports": len(reactions),
+            "modelled": len(modelled),
+            "median_abs_abnormal": setup.get("median_abs_abnormal"),
+            "beat_count": setup.get("beat_count"),
+            "beat_but_lagged": setup.get("beat_but_lagged"),
+            "unusual_count": setup.get("unusual_count"),
+            "unavailable_reason": setup.get("unavailable_reason"),
+        })
+    rows.sort(key=lambda r: (r["next_report_days"] is None, r["next_report_days"] or 0))
+
+    beats = [p for p in points if p["surprise"] > 0]
+    misses = [p for p in points if p["surprise"] < 0]
+    correlation = performance.rank_correlation([p["surprise"] for p in points],
+                                               [p["abnormal"] for p in points])
+    return {
+        "id": theme["id"], "name": theme["name"],
+        "rows": rows,
+        "points": points,
+        "stats": {
+            "reports": len(points),
+            "beats": len(beats),
+            "beats_rewarded": sum(1 for p in beats if p["abnormal"] > 0),
+            "misses": len(misses),
+            "misses_punished": sum(1 for p in misses if p["abnormal"] < 0),
+            "rank_correlation": rounded(correlation),
+            "min_points": performance.MIN_CORRELATION_POINTS,
+        },
+    }
+
+
+# Shown beside a figure when the number on its own would mislead.
+def peer_flags(stats: dict) -> list[str]:
+    flags = []
+    net, gross = stats.get("profit_margin_percent"), stats.get("gross_margin_percent")
+    if net is not None and gross is not None and net > gross:
+        flags.append("Net margin is above gross margin, so the last twelve months include "
+                     "one-off gains; net margin overstates the business.")
+    fpe = stats.get("forward_pe")
+    if fpe is not None and (fpe <= 0 or fpe > 100):
+        flags.append("Forward P/E is above 100 or negative: expected earnings are too small "
+                     "for P/E to compare usefully with peers.")
+    growth = stats.get("revenue_growth_percent")
+    if growth is not None and growth > 100:
+        flags.append("Revenue more than doubled from a year earlier; growth rates this large "
+                     "say as much about the starting point as the trend.")
+    return flags
+
+
+PEER_METRICS = [
+    # key, label, unit
+    ("market_cap", "Market cap", "money"),
+    ("forward_pe", "Forward P/E", "x"),
+    ("ev_to_sales", "EV / sales", "x"),
+    ("revenue_growth_percent", "Revenue growth", "%"),
+    ("gross_margin_percent", "Gross margin", "%"),
+    ("operating_margin_percent", "Operating margin", "%"),
+    ("estimate_change_90d", "EPS estimate, 90d", "%"),
+    ("net_revisions_30d", "Net revisions, 30d", "count"),
+]
+
+
+def theme_peers(theme: dict) -> dict:
+    tickers = [s["ticker"] for s in theme["stocks"]]
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        stats = dict(zip(tickers, pool.map(lambda t: safe(stats_of, t, default={}), tickers)))
+        revisions = dict(zip(tickers, pool.map(lambda t: safe(revisions_of, t, default={}), tickers)))
+
+    rows = []
+    for stock in theme["stocks"]:
+        t = stock["ticker"]
+        s, r = stats.get(t) or {}, revisions.get(t) or {}
+        up, down = r.get("up_30d"), r.get("down_30d")
+        values = {
+            **{k: s.get(k) for k, _, _ in PEER_METRICS if k in s},
+            "estimate_change_90d": r.get("change_90d_percent"),
+            "net_revisions_30d": None if up is None or down is None else up - down,
+        }
+        rows.append({"ticker": t, "name": s.get("name"), "role": stock.get("role", ""),
+                     "values": _round_all(values), "revisions": r,
+                     "analysts": s.get("analysts"), "flags": peer_flags(s)})
+
+    medians = {}
+    for key, _, _ in PEER_METRICS:
+        present = sorted(row["values"].get(key) for row in rows if row["values"].get(key) is not None)
+        if present:
+            mid = len(present) // 2
+            medians[key] = rounded(present[mid] if len(present) % 2
+                                   else (present[mid - 1] + present[mid]) / 2)
+    return {"id": theme["id"], "name": theme["name"],
+            "metrics": [{"key": k, "label": label, "unit": unit} for k, label, unit in PEER_METRICS],
+            "rows": rows, "medians": medians}
+
+
+def _theme_tab(theme_id: str, kind: str, builder, ttl: int):
+    state = load_themes()
+    try:
+        theme = theme_store.find_theme(state, theme_id)
+    except ThemeError as exc:
+        return jsonify({"error": str(exc)}), 404
+    return jsonify(cached(f"theme-{kind}:{theme_id}:{themes_key(state)}", ttl, lambda: builder(theme)))
+
+
+@app.route("/api/theme/<theme_id>/performance")
+def theme_performance_route(theme_id: str):
+    return _theme_tab(theme_id, "performance", theme_performance, TTL["history"])
+
+
+@app.route("/api/theme/<theme_id>/earnings")
+def theme_earnings_route(theme_id: str):
+    return _theme_tab(theme_id, "earnings", theme_earnings, SLOW_TTL)
+
+
+@app.route("/api/theme/<theme_id>/peers")
+def theme_peers_route(theme_id: str):
+    return _theme_tab(theme_id, "peers", theme_peers, SLOW_TTL)
 
 
 # --- theme management -------------------------------------------------
@@ -566,8 +790,9 @@ def stock_detail(ticker: str):
             "events": lambda: get_upcoming_events(ticker),
             "earnings": lambda: get_earnings_schedule(ticker),
             "quarters": lambda: get_quarterly_results(ticker),
-            "stats": lambda: get_key_stats(ticker),
-            "setup": lambda: get_earnings_setup(ticker),
+            "stats": lambda: stats_of(ticker),
+            "setup": lambda: setup_of(ticker),
+            "revisions": lambda: revisions_of(ticker),
             "spy": spy_change_percent,
         }
 
@@ -592,6 +817,7 @@ def stock_detail(ticker: str):
         data.setdefault("quarters", [])
         data.setdefault("stats", {})
         data.setdefault("setup", {})
+        data.setdefault("revisions", {})
 
         market_pct = data.pop("spy", None)
         data["market"] = {"ticker": "SPY", "change_percent": market_pct} if market_pct is not None else None
@@ -599,7 +825,7 @@ def stock_detail(ticker: str):
         data["theme"] = safe(theme_context, state, ticker, own)
         data["attention"] = compute_attention(
             data.get("price"), data.get("news"), data.get("events"), market_pct,
-            (data["theme"] or {}).get("peer_average"),
+            (data["theme"] or {}).get("peer_median"),
         )
         data["analysis"] = analyze(ticker, data)
         return data
@@ -848,7 +1074,7 @@ has no holdings data, so never write "you own", "your holdings" or "your positio
 "on your watchlist" or "you're tracking".
 
 If the watchlist arrives grouped into themes, each theme is a set of companies sharing a \
-driver, with a benchmark ETF. Every name carries its peers' average move -- the other \
+driver, with a benchmark ETF. Every name carries its peers' median move -- the other \
 companies in the same theme, excluding itself -- and a move_type: "theme" when it tracked its \
 peers, "company" when it diverged from them (moved alone, against them, or held up while they \
 fell), "mixed" in between, "quiet" when neither it nor its peers moved much. Use \
@@ -940,7 +1166,7 @@ def build_brief(rows: list[dict], market_pct, indices: list[dict],
                     if b["summary"]["beat_count"] is not None else None),
                 "names": [
                     dict(_brief_name(r),
-                         peer_average_change_percent=r["relative"]["peer_average"],
+                         peer_median_change_percent=r["relative"]["peer_median"],
                          move_type=r["relative"]["attribution"])
                     for r in b["rows"]
                 ],

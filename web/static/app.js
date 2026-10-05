@@ -42,8 +42,8 @@ const toastEl = document.getElementById("toast");
 
 const ROUTES = [
   [/^#\/?$/, () => showHome()],
-  [/^#\/theme\/([^/]+)$/, (m) => showTheme(decodeURIComponent(m[1]))],
-  [/^#\/stock\/([^/]+)$/, (m) => showDetail(decodeURIComponent(m[1]).toUpperCase())],
+  [/^#\/theme\/([^/]+)(?:\/([a-z]+))?$/, (m) => showTheme(decodeURIComponent(m[1]), m[2])],
+  [/^#\/stock\/([^/]+)(?:\/([a-z]+))?$/, (m) => showDetail(decodeURIComponent(m[1]).toUpperCase(), m[2])],
   [/^#\/earnings$/, () => showEarnings()],
   [/^#\/discover$/, () => showDiscover()],
   [/^#\/ask$/, () => showChat()],
@@ -106,8 +106,8 @@ function toast(message) {
 // How a move lines up with its peers. The rule lives in tools/relative.py;
 // these are the words the page uses for it.
 const ATTRIBUTION = {
-  theme: { label: "With theme", note: "Tracked its peers: the gap to their average is small next to the move." },
-  mixed: { label: "Partly shared", note: "Partly tracked its peers: the gap to their average is 40-60% of the move." },
+  theme: { label: "With theme", note: "Tracked its peers: the gap to the typical peer is small next to the move." },
+  mixed: { label: "Partly shared", note: "Partly tracked its peers: the gap to the typical peer is 40-60% of the move." },
   company: { label: "Own move", note: "Diverged from its peers: it moved alone, against them, or held up while they fell." },
   quiet: { label: "Quiet", note: "Neither it nor its peers moved as much as 1% today." },
 };
@@ -299,8 +299,8 @@ function buildReadingGuide() {
     ["vs benchmark", "Theme average minus the benchmark ETF's move today."],
     ["Beat", "How many companies did better than the benchmark today. Breadth: is the theme's move broad or carried by one or two names?"],
     ["Spread", "Standard deviation of the companies' moves. Low means they moved together; high means they went their own ways."],
-    ["vs peers", "A company's move minus the average of the other companies in its theme. Cap-weighted ETFs are dominated by their largest holdings, so this is the cleaner comparison."],
-    ["With theme / Partly shared / Own move", "Compares a company's move with its peers' average. The gap " +
+    ["vs peers", "A company's move minus the median move of the other companies in its theme -- the typical peer. Cap-weighted ETFs are dominated by their largest holdings, and in a small group one extreme name would decide an average, so this is the cleaner comparison."],
+    ["With theme / Partly shared / Own move", "Compares a company's move with its peers' median. The gap " +
       "between them, as a share of the larger move, decides: up to 40% (or under a point) it tracked its theme; " +
       "60% or more it diverged -- moved alone, against its peers, or held up while they fell; in between is " +
       "partly shared. If neither moved 1%, it's quiet."],
@@ -396,7 +396,7 @@ function buildCompactRow(row) {
 
   const rel = row.relative || {};
   const vs = el("span", "crow-vs " + toneClass(rel.vs_peers), pts(rel.vs_peers));
-  vs.title = "Move minus its peers' average";
+  vs.title = "Move minus its peers' median move";
   link.appendChild(vs);
   link.appendChild(attributionTag(rel.attribution));
   return link;
@@ -470,16 +470,22 @@ function labelledInput(form, label, placeholder, maxLength) {
    benchmark, each company against the benchmark and against its peers,
    and the controls to change what's in it. */
 
-async function showTheme(themeId) {
+const THEME_TABS = [
+  ["today", "Today"],
+  ["performance", "Performance"],
+  ["earnings", "Earnings"],
+  ["peers", "Peers"],
+];
+
+async function showTheme(themeId, tab) {
+  tab = THEME_TABS.some(([key]) => key === tab) ? tab : "today";
   const token = beginView("theme", "theme:" + themeId);
   state.themeId = themeId;
   setActiveNav("theme:" + themeId);
-  viewEl.replaceChildren(el("p", "loading-text", "Loading theme..."));
 
-  const { ok, data } = await api("GET", "/api/theme/" + encodeURIComponent(themeId));
-  if (!isCurrent(token)) return;
-  if (!ok) {
-    viewEl.replaceChildren(el("p", "empty", data.error || "Could not load this theme."));
+  const config = state.themes.find((t) => t.id === themeId);
+  if (!config) {
+    viewEl.replaceChildren(el("p", "empty", `There is no theme '${themeId}'.`));
     return;
   }
 
@@ -487,12 +493,32 @@ async function showTheme(themeId) {
   const back = el("a", "back", "← Home");
   back.href = "#/";
   frag.appendChild(back);
-
   const head = el("div", "view-head");
-  head.appendChild(el("h1", null, data.name));
+  head.appendChild(el("h1", null, config.name));
   frag.appendChild(head);
-  if (data.description) frag.appendChild(el("p", "view-sub", data.description));
+  if (config.description) frag.appendChild(el("p", "view-sub", config.description));
+  frag.appendChild(buildTabs(THEME_TABS, tab, (key) => themeHash(themeId) + (key === "today" ? "" : "/" + key)));
 
+  const holder = el("div", "tab-body");
+  holder.appendChild(el("p", "loading-text", tab === "today" ? "Loading theme..." : "Loading..."));
+  frag.appendChild(holder);
+  viewEl.replaceChildren(frag);
+
+  const url = "/api/theme/" + encodeURIComponent(themeId) + (tab === "today" ? "" : "/" + tab);
+  const { ok, data } = await api("GET", url);
+  if (!isCurrent(token)) return;
+  if (!ok) {
+    holder.replaceChildren(el("p", "empty", data.error || "Could not load this theme."));
+    return;
+  }
+  if (tab === "today") renderThemeToday(holder, data);
+  else if (tab === "performance") renderThemePerformance(holder, data);
+  else if (tab === "earnings") renderThemeEarnings(holder, data);
+  else renderThemePeers(holder, data);
+}
+
+function renderThemeToday(holder, data) {
+  const frag = document.createDocumentFragment();
   const bench = data.benchmark || {};
   const summary = el("div", "panel theme-summary");
   const benchStat = themeStat("Benchmark", `${bench.ticker} ${bench.available ? pct(bench.change_percent) : "unavailable"}`,
@@ -521,12 +547,458 @@ async function showTheme(themeId) {
 
   frag.appendChild(buildAddCompanyForm(data));
   frag.appendChild(buildThemeSettings(data));
-  viewEl.replaceChildren(frag);
+  holder.replaceChildren(frag);
 
   data.rows.forEach((row) => {
-    const canvas = viewEl.querySelector(`canvas[data-ticker="${cssEscape(row.ticker)}"]`);
+    const canvas = holder.querySelector(`canvas[data-ticker="${cssEscape(row.ticker)}"]`);
     if (canvas) drawSparkline(canvas, row.history || []);
   });
+}
+
+/* ---------------- theme tab: performance ---------------- */
+
+function renderThemePerformance(holder, data) {
+  const periods = data.periods || [];
+  let period = periods.includes(state.perfPeriod) ? state.perfPeriod : "3M";
+
+  const draw = () => {
+    const frag = document.createDocumentFragment();
+    frag.appendChild(el("p", "view-sub",
+      "Each company's return over the window, against the theme's ETF and against its peers -- the " +
+      "median return of the other companies in the theme over the same window."));
+
+    const picker = el("div", "segmented");
+    picker.setAttribute("role", "group");
+    picker.setAttribute("aria-label", "Window");
+    periods.forEach((p) => {
+      const b = el("button", "segment" + (p === period ? " is-active" : ""), p);
+      b.type = "button";
+      b.setAttribute("aria-pressed", String(p === period));
+      b.addEventListener("click", () => {
+        period = p;
+        state.perfPeriod = p;
+        draw();
+      });
+      picker.appendChild(b);
+    });
+    frag.appendChild(picker);
+
+    const bench = data.benchmark || {};
+    const s = (data.summary || {})[period] || {};
+    const benchReturn = (bench.returns || {})[period];
+    const stats = el("div", "panel theme-summary");
+    const line = el("div", "tstats");
+    line.appendChild(themeStat(`${bench.ticker}, ${period}`, pct(benchReturn), toneClass(benchReturn)));
+    line.appendChild(themeStat("Theme avg", pct(s.average), toneClass(s.average), "Equal-weighted average return."));
+    line.appendChild(themeStat(`vs ${bench.ticker}`, pts(s.vs_benchmark), toneClass(s.vs_benchmark)));
+    line.appendChild(themeStat(`Beat ${bench.ticker}`,
+      s.beat_count === null || s.beat_count === undefined ? "--" : `${s.beat_count} of ${s.count}`));
+    line.appendChild(themeStat("Spread", s.dispersion === null || s.dispersion === undefined ? "--" : num(s.dispersion) + "pt",
+                               "", "Standard deviation of the companies' returns over the window."));
+    stats.appendChild(line);
+    frag.appendChild(stats);
+
+    const rows = (data.rows || []).map((r) => ({ ...r, cell: r.periods[period] || {} }))
+      .sort((a, b) => (b.cell.vs_peers ?? -Infinity) - (a.cell.vs_peers ?? -Infinity));
+    const extent = Math.max(1, ...rows.map((r) => Math.abs(r.cell.vs_peers || 0)));
+
+    const table = el("table", "data-table");
+    const thead = el("thead");
+    const hr = el("tr");
+    ["Company", `Return, ${period}`, `vs ${bench.ticker}`, "vs peers", ""].forEach((h, i) => {
+      const th = el("th", i === 0 ? "" : "num", h);
+      th.scope = "col";
+      hr.appendChild(th);
+    });
+    thead.appendChild(hr);
+    table.appendChild(thead);
+    const tbody = el("tbody");
+    rows.forEach((r) => {
+      const tr = el("tr", "is-link");
+      tr.tabIndex = 0;
+      const open = () => go(stockHash(r.ticker));
+      tr.addEventListener("click", open);
+      tr.addEventListener("keydown", (e) => { if (e.key === "Enter") open(); });
+      const who = el("td");
+      who.appendChild(el("span", "cell-ticker", r.ticker));
+      if (r.role) who.appendChild(el("span", "cell-role", r.role));
+      tr.appendChild(who);
+      tr.appendChild(el("td", "num " + toneClass(r.cell.return), pct(r.cell.return)));
+      tr.appendChild(el("td", "num " + toneClass(r.cell.vs_benchmark), pts(r.cell.vs_benchmark)));
+      const vs = el("td", "num bar-cell");
+      vs.appendChild(divergingBar(r.cell.vs_peers, extent));
+      vs.appendChild(el("span", toneClass(r.cell.vs_peers), pts(r.cell.vs_peers)));
+      tr.appendChild(vs);
+      const tagCell = el("td", "num");
+      tagCell.appendChild(attributionTag(r.cell.attribution));
+      tr.appendChild(tagCell);
+      tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);
+    const wrap = el("div", "panel table-wrap");
+    wrap.appendChild(table);
+    frag.appendChild(wrap);
+
+    frag.appendChild(el("p", "metric-note",
+      "Windows are counted in trading sessions (1M = 21, 3M = 63, 6M = 126, 1Y = 252); a window " +
+      "longer than a company's history shows --. Peers are summarised by their median, so one " +
+      "extreme name can't decide the comparison on its own."));
+    holder.replaceChildren(frag);
+  };
+  draw();
+}
+
+// A bar growing left or right from the centre: the gap to peers at a glance.
+function divergingBar(value, extent) {
+  const track = el("span", "bar-track");
+  track.setAttribute("aria-hidden", "true");
+  if (value === null || value === undefined) return track;
+  const bar = el("span", "bar " + (value >= 0 ? "bar-up" : "bar-down"));
+  bar.style.width = Math.min(50, (Math.abs(value) / extent) * 50) + "%";
+  track.appendChild(bar);
+  return track;
+}
+
+/* ---------------- theme tab: earnings ---------------- */
+
+const SERIES_PALETTE = ["#2a78d6", "#7B4B63", "#A15C00", "#3B7F8C", "#6B5CA5", "#8A7278", "#4F6D3A", "#B05E86"];
+
+function correlationWords(rho) {
+  const a = Math.abs(rho);
+  const strength = a < 0.2 ? "little to no" : a < 0.4 ? "a weak" : a < 0.6 ? "a moderate" : "a strong";
+  return a < 0.2 ? "little to no relationship" : `${strength} ${rho > 0 ? "positive" : "negative"} relationship`;
+}
+
+function renderThemeEarnings(holder, data) {
+  const frag = document.createDocumentFragment();
+  const s = data.stats || {};
+  const companies = new Set((data.points || []).map((p) => p.ticker)).size;
+
+  const summary = el("div", "panel");
+  summary.appendChild(el("h2", null, "Does this theme reward beats?"));
+  if (!s.reports) {
+    summary.appendChild(el("p", "form-hint", "No reports with both a surprise figure and a market model yet."));
+  } else {
+    const lines = [
+      `${s.reports} reports from ${companies} compan${companies === 1 ? "y" : "ies"} over roughly two years, ` +
+      `each reaction measured against that company's own market model.`,
+      `${s.beats} beat the EPS estimate; ${s.beats_rewarded} of those ` +
+      `(${s.beats ? Math.round((s.beats_rewarded / s.beats) * 100) : 0}%) were followed by a positive abnormal reaction.` +
+      (s.misses ? ` ${s.misses} missed, and ${s.misses_punished} of those lagged their model.` : ""),
+    ];
+    if (s.rank_correlation !== null && s.rank_correlation !== undefined) {
+      lines.push(`Rank correlation between the size of the surprise and the abnormal reaction: ` +
+                 `${num(s.rank_correlation, 2)} -- ${correlationWords(s.rank_correlation)}. Bigger beats ` +
+                 (Math.abs(s.rank_correlation) < 0.2 ? "have not meant bigger reactions here." : "have tended to move with reactions here."));
+    } else {
+      lines.push(`Fewer than ${s.min_points} reports with both figures -- too few for a correlation.`);
+    }
+    lines.forEach((t) => summary.appendChild(el("p", "earn-line", t)));
+    summary.appendChild(el("p", "metric-note",
+      "Reports from a handful of companies, overlapping in time, aren't independent observations: " +
+      "read this as a description of the theme's recent history, not a statistical test."));
+  }
+  frag.appendChild(summary);
+
+  const points = data.points || [];
+  let scatter = null;
+  if (points.length) {
+    const panel = el("div", "panel");
+    panel.appendChild(el("h2", null, "Surprise against abnormal reaction"));
+    const wrap = el("div", "chart-wrap");
+    const canvas = el("canvas", "scatter-chart");
+    canvas.setAttribute("role", "img");
+    canvas.setAttribute("aria-label",
+      `Scatter of ${points.length} earnings reports: EPS surprise against the abnormal reaction. ` +
+      `The table below lists each company's figures.`);
+    wrap.appendChild(canvas);
+    panel.appendChild(wrap);
+
+    const tickers = [...new Set(points.map((p) => p.ticker))];
+    const colorOf = Object.fromEntries(tickers.map((t, i) => [t, SERIES_PALETTE[i % SERIES_PALETTE.length]]));
+    const legend = el("div", "legend");
+    tickers.forEach((t) => {
+      const item = el("span", "legend-item");
+      const swatch = el("span", "legend-swatch");
+      swatch.style.background = colorOf[t];
+      item.appendChild(swatch);
+      item.appendChild(document.createTextNode(t));
+      legend.appendChild(item);
+    });
+    panel.appendChild(legend);
+    panel.appendChild(el("p", "metric-note",
+      "Right of the vertical line: beat the estimate. Above the horizontal line: did better than " +
+      "the company's market model expected on the reaction session. Surprises beyond " +
+      `${X_CLIP[0]}% or +${X_CLIP[1]}% are drawn hollow at the axis edge. Hover a point for the report.`));
+    frag.appendChild(panel);
+    scatter = { canvas, points, colorOf };
+  }
+
+  const table = el("table", "data-table");
+  const thead = el("thead");
+  const hr = el("tr");
+  ["Company", "Next report", "Latest report", "Surprise", "Abnormal reaction", "Run-up before",
+   "Typical |abnormal|", "Beat but lagged"].forEach((h, i) => {
+    const th = el("th", i === 0 ? "" : "num", h);
+    th.scope = "col";
+    hr.appendChild(th);
+  });
+  thead.appendChild(hr);
+  table.appendChild(thead);
+  const tbody = el("tbody");
+  (data.rows || []).forEach((r) => {
+    const latest = r.latest || {};
+    const tr = el("tr", "is-link");
+    tr.tabIndex = 0;
+    const open = () => go(stockHash(r.ticker) + "/earnings");
+    tr.addEventListener("click", open);
+    tr.addEventListener("keydown", (e) => { if (e.key === "Enter") open(); });
+    const who = el("td");
+    who.appendChild(el("span", "cell-ticker", r.ticker));
+    tr.appendChild(who);
+    tr.appendChild(el("td", "num", r.next_report_days === null || r.next_report_days === undefined
+      ? "--" : r.next_report_days === 0 ? "today" : `in ${r.next_report_days}d`));
+    tr.appendChild(el("td", "num", latest.date ? formatDate(latest.date) : "--"));
+    tr.appendChild(el("td", "num " + toneClass(latest.surprise_percent),
+      latest.surprise_percent === null || latest.surprise_percent === undefined ? "--" : pct(latest.surprise_percent)));
+    const ar = latest.abnormal_move;
+    tr.appendChild(el("td", "num " + toneClass(ar), ar === null || ar === undefined ? "--"
+      : pct(ar) + (latest.standardized !== null && latest.standardized !== undefined ? `  (${num(latest.standardized, 1)} sd)` : "")));
+    tr.appendChild(el("td", "num " + toneClass(latest.runup_abnormal),
+      latest.runup_abnormal === null || latest.runup_abnormal === undefined ? "--" : pct(latest.runup_abnormal)));
+    tr.appendChild(el("td", "num", r.median_abs_abnormal === null || r.median_abs_abnormal === undefined
+      ? "--" : "±" + num(r.median_abs_abnormal, 1) + "%"));
+    tr.appendChild(el("td", "num", r.beat_count ? `${r.beat_but_lagged || 0} of ${r.beat_count}` : "--"));
+    tbody.appendChild(tr);
+  });
+  table.appendChild(tbody);
+  const wrap = el("div", "panel table-wrap");
+  wrap.appendChild(el("h2", null, "By company"));
+  wrap.appendChild(table);
+  wrap.appendChild(el("p", "metric-note",
+    "Abnormal reaction: the move on the first session that could react, minus what the company's " +
+    "market model predicted given SPY that session; sd says how many of its ordinary daily moves " +
+    "that is. Run-up: the abnormal move over the 20 sessions before the report. Click a company " +
+    "for its full history."));
+  frag.appendChild(wrap);
+
+  holder.replaceChildren(frag);
+  if (scatter) setupScatter(scatter.canvas, scatter.points, scatter.colorOf);
+}
+
+const SCATTER_PAD = { left: 52, right: 16, top: 14, bottom: 34 };
+const X_CLIP = [-40, 60];
+
+// Round-number ticks that fit the range, never closer than `minGap` px.
+function niceTicks(lo, hi, scale, minGap) {
+  const steps = [5, 10, 20, 25, 50, 100];
+  const step = steps.find((st) => Math.abs(scale(st) - scale(0)) >= minGap) || 100;
+  const ticks = [];
+  for (let v = Math.ceil(lo / step) * step; v <= hi; v += step) ticks.push(v);
+  return ticks;
+}
+
+function scatterScales(canvas, points) {
+  const cssW = canvas.clientWidth || 600;
+  const cssH = canvas.clientHeight || 300;
+  // Surprises have long tails (a 300% beat on a tiny estimate); clip the
+  // axis and draw outliers at its edge rather than squash everything else.
+  const xs = points.map((p) => Math.max(X_CLIP[0], Math.min(X_CLIP[1], p.surprise)));
+  const xMin = Math.min(0, ...xs) - 2;
+  const xMax = Math.max(0, ...xs) + 2;
+  const yExt = Math.max(2, ...points.map((p) => Math.abs(p.abnormal))) * 1.1;
+  const plotW = cssW - SCATTER_PAD.left - SCATTER_PAD.right;
+  const plotH = cssH - SCATTER_PAD.top - SCATTER_PAD.bottom;
+  return {
+    cssW, cssH,
+    x: (v) => SCATTER_PAD.left + ((Math.max(X_CLIP[0], Math.min(X_CLIP[1], v)) - xMin) / (xMax - xMin)) * plotW,
+    y: (v) => SCATTER_PAD.top + plotH / 2 - (v / yExt) * (plotH / 2),
+    xMin, xMax, yExt, plotW, plotH,
+  };
+}
+
+function drawScatter(canvas, points, colorOf, hoverIndex) {
+  const dpr = window.devicePixelRatio || 1;
+  const sc = scatterScales(canvas, points);
+  canvas.width = sc.cssW * dpr;
+  canvas.height = sc.cssH * dpr;
+  const ctx = canvas.getContext("2d");
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, sc.cssW, sc.cssH);
+
+  ctx.strokeStyle = COLORS.axis;
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(SCATTER_PAD.left, Math.round(sc.y(0)) + 0.5);
+  ctx.lineTo(sc.cssW - SCATTER_PAD.right, Math.round(sc.y(0)) + 0.5);
+  ctx.moveTo(Math.round(sc.x(0)) + 0.5, SCATTER_PAD.top);
+  ctx.lineTo(Math.round(sc.x(0)) + 0.5, SCATTER_PAD.top + sc.plotH);
+  ctx.stroke();
+
+  ctx.font = "11px system-ui, -apple-system, sans-serif";
+  ctx.fillStyle = COLORS.muted;
+  ctx.textAlign = "right";
+  ctx.textBaseline = "middle";
+  [sc.yExt / 1.1, 0, -sc.yExt / 1.1].forEach((v) => {
+    ctx.fillText((v > 0 ? "+" : "") + v.toFixed(0) + "%", SCATTER_PAD.left - 8, sc.y(v));
+  });
+  ctx.textAlign = "center";
+  ctx.textBaseline = "top";
+  niceTicks(sc.xMin, sc.xMax, sc.x, 48).forEach((v) => {
+    const edge = v >= X_CLIP[1] ? "+" : "";  // the clipped edge holds everything beyond it
+    ctx.fillText((v > 0 ? "+" : "") + v.toFixed(0) + "%" + edge, sc.x(v), SCATTER_PAD.top + sc.plotH + 6);
+  });
+  ctx.fillText("EPS surprise", SCATTER_PAD.left + sc.plotW / 2, SCATTER_PAD.top + sc.plotH + 19);
+  ctx.save();
+  ctx.translate(12, SCATTER_PAD.top + sc.plotH / 2);
+  ctx.rotate(-Math.PI / 2);
+  ctx.fillText("Abnormal reaction", 0, -6);
+  ctx.restore();
+
+  points.forEach((p, i) => {
+    const clipped = p.surprise < X_CLIP[0] || p.surprise > X_CLIP[1];
+    ctx.beginPath();
+    ctx.arc(sc.x(p.surprise), sc.y(p.abnormal), i === hoverIndex ? 6 : 4.5, 0, Math.PI * 2);
+    ctx.globalAlpha = i === hoverIndex || hoverIndex === null || hoverIndex === undefined ? 0.85 : 0.35;
+    if (clipped) {
+      // Hollow: this point sits at the axis edge, not at its true surprise.
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = colorOf[p.ticker];
+      ctx.stroke();
+    } else {
+      ctx.fillStyle = colorOf[p.ticker];
+      ctx.fill();
+      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = COLORS.surface;
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+  });
+}
+
+function setupScatter(canvas, points, colorOf) {
+  drawScatter(canvas, points, colorOf, null);
+  if (window.ResizeObserver) new ResizeObserver(() => drawScatter(canvas, points, colorOf, null)).observe(canvas);
+  canvas.addEventListener("pointermove", (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const sc = scatterScales(canvas, points);
+    let best = null;
+    let bestDist = 10;
+    points.forEach((p, i) => {
+      const d = Math.hypot(sc.x(p.surprise) - (e.clientX - rect.left), sc.y(p.abnormal) - (e.clientY - rect.top));
+      if (d < bestDist) { best = i; bestDist = d; }
+    });
+    drawScatter(canvas, points, colorOf, best);
+    if (best === null) { hideTooltip(); return; }
+    const p = points[best];
+    tooltipEl.replaceChildren();
+    tooltipEl.appendChild(el("div", "tip-value", `${p.ticker} · ${formatLongDate(p.date)}`));
+    tooltipEl.appendChild(el("div", "tip-label", `EPS ${p.surprise >= 0 ? "beat" : "missed"} by ${Math.abs(p.surprise).toFixed(1)}%`));
+    tooltipEl.appendChild(el("div", "tip-label",
+      `Abnormal reaction ${pct(p.abnormal)}` + (p.standardized !== null ? ` (${num(p.standardized, 1)} sd)` : "")));
+    tooltipEl.hidden = false;
+    const tip = tooltipEl.getBoundingClientRect();
+    let left = e.clientX + 14;
+    if (left + tip.width > window.innerWidth - 8) left = e.clientX - tip.width - 14;
+    tooltipEl.style.left = left + "px";
+    tooltipEl.style.top = Math.max(8, e.clientY - tip.height - 12) + "px";
+  });
+  canvas.addEventListener("pointerleave", () => { drawScatter(canvas, points, colorOf, null); hideTooltip(); });
+}
+
+/* ---------------- theme tab: peers ---------------- */
+
+const METRIC_NOTES = {
+  market_cap: "Share price times shares outstanding.",
+  forward_pe: "Price divided by next fiscal year's consensus EPS.",
+  ev_to_sales: "Enterprise value (market cap plus net debt) divided by the last twelve months' revenue.",
+  revenue_growth_percent: "Latest quarter's revenue against the same quarter a year earlier.",
+  gross_margin_percent: "Revenue left after direct costs, last twelve months.",
+  operating_margin_percent: "Revenue left after running costs too, last twelve months.",
+  estimate_change_90d: "Change in next fiscal year's consensus EPS estimate over 90 days.",
+  net_revisions_30d: "Analysts raising next year's EPS estimate minus those cutting it, last 30 days.",
+};
+
+function formatMetric(value, unit) {
+  if (value === null || value === undefined) return "--";
+  if (unit === "money") return "$" + bigMoney(value);
+  if (unit === "x") return num(value, 1) + "x";
+  if (unit === "%") return num(value, 1) + "%";
+  if (unit === "count") return (value > 0 ? "+" : "") + num(value, 0);
+  return String(value);
+}
+
+function renderThemePeers(holder, data) {
+  const frag = document.createDocumentFragment();
+  frag.appendChild(el("p", "view-sub",
+    "Valuation, growth, profitability and the direction of analyst estimates, side by side, with " +
+    "the theme's median. Hover a column heading for its definition."));
+  const panel = el("div", "panel table-wrap");
+  panel.appendChild(buildPeerTable(data, null));
+  frag.appendChild(panel);
+  holder.replaceChildren(frag);
+}
+
+function buildPeerTable(data, highlight) {
+  const box = el("div");
+  const table = el("table", "data-table peer-table");
+  const thead = el("thead");
+  const hr = el("tr");
+  const th0 = el("th", null, "Company");
+  th0.scope = "col";
+  hr.appendChild(th0);
+  data.metrics.forEach((m) => {
+    const th = el("th", "num", m.label);
+    th.scope = "col";
+    th.title = METRIC_NOTES[m.key] || "";
+    hr.appendChild(th);
+  });
+  thead.appendChild(hr);
+  table.appendChild(thead);
+
+  const notes = [];
+  const tbody = el("tbody");
+  data.rows.forEach((r) => {
+    const tr = el("tr", "is-link" + (r.ticker === highlight ? " is-self" : ""));
+    tr.tabIndex = 0;
+    const open = () => go(stockHash(r.ticker) + "/fundamentals");
+    tr.addEventListener("click", open);
+    tr.addEventListener("keydown", (e) => { if (e.key === "Enter") open(); });
+    const who = el("td");
+    who.appendChild(el("span", "cell-ticker", r.ticker));
+    (r.flags || []).forEach((f) => {
+      notes.push([r.ticker, f]);
+      const mark = el("sup", "flag-mark", String(notes.length));
+      mark.title = f;
+      who.appendChild(mark);
+    });
+    tr.appendChild(who);
+    data.metrics.forEach((m) => {
+      const v = r.values[m.key];
+      const signed = m.unit === "count" || m.key === "estimate_change_90d";
+      tr.appendChild(el("td", "num " + (signed ? toneClass(v) : ""), formatMetric(v, m.unit)));
+    });
+    tbody.appendChild(tr);
+  });
+  table.appendChild(tbody);
+
+  const tfoot = el("tfoot");
+  const fr = el("tr");
+  fr.appendChild(el("th", null, "Theme median"));
+  data.metrics.forEach((m) => fr.appendChild(el("td", "num", formatMetric(data.medians[m.key], m.unit))));
+  tfoot.appendChild(fr);
+  table.appendChild(tfoot);
+  box.appendChild(table);
+
+  if (notes.length) {
+    const list = el("ol", "flag-notes");
+    notes.forEach(([ticker, text]) => list.appendChild(el("li", null, `${ticker}: ${text}`)));
+    box.appendChild(list);
+  }
+  box.appendChild(el("p", "metric-note",
+    "From Yahoo Finance. Margins are the last twelve months; growth is the latest quarter against a " +
+    "year earlier; estimates are next fiscal year's consensus."));
+  return box;
 }
 
 function cssEscape(value) {
@@ -669,6 +1141,7 @@ function afterThemeChange(ok, data, message) {
     return;
   }
   state.themes = data.themes;
+  state.detail = null;
   renderNavThemes();
   toast(message);
   route();
@@ -891,20 +1364,42 @@ function buildRow(row, opts) {
 
 /* ---------------- detail ---------------- */
 
-async function showDetail(ticker) {
+/* The stock page, in three tabs. Overview answers "what happened today and
+   why might it matter"; Earnings, "how does this company handle reports";
+   Fundamentals & peers, "what is the business, and how does it compare". */
+
+const STOCK_TABS = [
+  ["overview", "Overview"],
+  ["earnings", "Earnings"],
+  ["fundamentals", "Fundamentals & peers"],
+];
+
+// Pages and tabs share one fetch: switching tabs on the same company
+// shouldn't reload it.
+const DETAIL_REUSE_MS = 60 * 1000;
+
+async function showDetail(ticker, tab) {
+  tab = STOCK_TABS.some(([key]) => key === tab) ? tab : "overview";
   const owner = state.themes.find((t) => t.stocks.some((s) => s.ticker === ticker));
   const token = beginView("detail", owner ? "theme:" + owner.id : null);
-  viewEl.replaceChildren(el("p", "loading-text", `Loading ${ticker}...`));
 
-  const { ok, data } = await api("GET", `/api/stock/${encodeURIComponent(ticker)}`);
-  if (!isCurrent(token)) return;
-  if (!ok) {
-    viewEl.replaceChildren(el("p", "empty", "Could not load " + ticker + ": " + (data.error || "")));
-    return;
+  let data = null;
+  const held = state.detail;
+  if (held && held.ticker === ticker && Date.now() - held.at < DETAIL_REUSE_MS) {
+    data = held.data;
+  } else {
+    viewEl.replaceChildren(el("p", "loading-text", `Loading ${ticker}...`));
+    const res = await api("GET", `/api/stock/${encodeURIComponent(ticker)}`);
+    if (!isCurrent(token)) return;
+    if (!res.ok) {
+      viewEl.replaceChildren(el("p", "empty", "Could not load " + ticker + ": " + (res.data.error || "")));
+      return;
+    }
+    data = res.data;
+    state.detail = { ticker, data, at: Date.now() };
   }
 
   const frag = document.createDocumentFragment();
-
   const back = el("a", "back", data.theme ? `← ${data.theme.theme_name}` : "← Home");
   back.href = data.theme ? themeHash(data.theme.theme_id) : "#/";
   frag.appendChild(back);
@@ -938,11 +1433,66 @@ async function showDetail(ticker) {
     );
   }
 
-  frag.appendChild(buildThemeContext(data));
+  frag.appendChild(buildTabs(STOCK_TABS, tab, (key) => stockHash(ticker) + (key === "overview" ? "" : "/" + key)));
 
-  // Chart panel
-  const chartPanel = el("div", "panel");
-  chartPanel.appendChild(el("h2", null, "Price — last 6 months"));
+  const after = [];  // drawing that needs the canvases in the document
+  if (tab === "overview") {
+    frag.appendChild(buildThemeContext(data));
+    const chart = buildPriceChartPanel(data);
+    frag.appendChild(chart.panel);
+    frag.appendChild(buildAnalysisNews(data));
+    if (chart.history.length >= 2) after.push(() => setupChart(chart.canvas, chart.history));
+  } else if (tab === "earnings") {
+    frag.appendChild(buildEarningsFacts(data));
+    const setupBuilt = buildSetupPanel(data.setup, data.ticker, (data.earnings || {}).days_away);
+    if (setupBuilt) {
+      frag.appendChild(setupBuilt.panel);
+      after.push(() => {
+        drawReactionChart(setupBuilt.canvas, setupBuilt.reactions);
+        attachReactionHover(setupBuilt.canvas, setupBuilt.reactions);
+        if (window.ResizeObserver) {
+          new ResizeObserver(() => drawReactionChart(setupBuilt.canvas, setupBuilt.reactions))
+            .observe(setupBuilt.canvas);
+        }
+      });
+    } else {
+      frag.appendChild(el("p", "empty", (data.setup && data.setup.unavailable_reason)
+        ? `No earnings history to show (${data.setup.unavailable_reason}).`
+        : "Fewer than three past reports with price data, so there's no pattern to show yet."));
+    }
+  } else {
+    const fundamentals = buildFundamentalsPanel(data);
+    if (fundamentals) {
+      frag.appendChild(fundamentals.panel);
+      if (fundamentals.quarters.length) {
+        after.push(() => setupBarChart(fundamentals.barCanvas, fundamentals.quarters));
+      }
+    }
+    const peersHolder = el("div");
+    frag.appendChild(peersHolder);
+    if (data.theme) after.push(() => loadStockPeers(peersHolder, data, token));
+  }
+
+  viewEl.replaceChildren(frag);
+  after.forEach((fn) => fn());
+}
+
+// Navigation tabs: plain links, so each tab has its own address.
+function buildTabs(items, active, hrefFor) {
+  const nav = el("nav", "tabs");
+  nav.setAttribute("aria-label", "Sections");
+  items.forEach(([key, label]) => {
+    const link = el("a", "tab" + (key === active ? " is-active" : ""), label);
+    link.href = hrefFor(key);
+    if (key === active) link.setAttribute("aria-current", "page");
+    nav.appendChild(link);
+  });
+  return nav;
+}
+
+function buildPriceChartPanel(data) {
+  const panel = el("div", "panel");
+  panel.appendChild(el("h2", null, "Price — last 6 months"));
   const wrap = el("div", "chart-wrap");
   const canvas = el("canvas", "chart");
   canvas.tabIndex = 0;
@@ -952,7 +1502,7 @@ async function showDetail(ticker) {
     `Closing price for ${data.ticker} over the last six months. Use left and right arrow keys to read individual days.`
   );
   wrap.appendChild(canvas);
-  chartPanel.appendChild(wrap);
+  panel.appendChild(wrap);
 
   const history = data.history || [];
   if (history.length >= 2) {
@@ -973,139 +1523,24 @@ async function showDetail(ticker) {
       stat.appendChild(el("span", "stat-value " + cls, value));
       stats.appendChild(stat);
     });
-    chartPanel.appendChild(stats);
+    panel.appendChild(stats);
   } else {
-    chartPanel.appendChild(el("p", "empty", data.history_error || "No price history available."));
+    panel.appendChild(el("p", "empty", data.history_error || "No price history available."));
   }
-  frag.appendChild(chartPanel);
+  return { panel, canvas, history };
+}
 
-  // Fundamentals: the numbers behind the price.
-  const quarters = data.quarters || [];
-  const stats = data.stats || {};
-  const earnings = data.earnings || {};
-
-  if (quarters.length || Object.keys(stats).length || earnings.next_date) {
-    const fPanel = el("div", "panel");
-    fPanel.appendChild(el("h2", null, "Fundamentals"));
-
-    // Every figure says what it means. A number a reader can't interpret
-    // isn't information, it's decoration.
-    const metrics = el("div", "metrics");
-    const defs = [];
-
-    if (stats.market_cap) {
-      defs.push(["$" + bigMoney(stats.market_cap), "Company value",
-                 "What the whole company is worth at today's share price.", ""]);
-    }
-    if (stats.trailing_pe) {
-      defs.push([num(stats.trailing_pe, 1), "Price to earnings",
-                 `You pay $${num(stats.trailing_pe, 2)} for every $1 the company earned over the past year. ` +
-                 `Higher means the market expects more growth — or that it's expensive.`, ""]);
-    }
-    if (stats.profit_margin_percent !== null && stats.profit_margin_percent !== undefined) {
-      defs.push([num(stats.profit_margin_percent, 1) + "%", "Profit margin",
-                 `Keeps ${num(stats.profit_margin_percent, 1)} cents of every dollar of sales as profit, after all costs.`,
-                 toneClass(stats.profit_margin_percent)]);
-    }
-    if (stats.revenue_growth_percent !== null && stats.revenue_growth_percent !== undefined) {
-      const g = stats.revenue_growth_percent;
-      defs.push([num(g, 1) + "%", "Revenue growth",
-                 `Sales are ${g >= 0 ? "higher" : "lower"} than the same period a year ago.`,
-                 toneClass(g)]);
-    }
-
-    defs.forEach(([value, name, note, cls]) => {
-      const metric = el("div", "metric");
-      metric.appendChild(el("div", "metric-value " + cls, value));
-      const text = el("div");
-      text.appendChild(el("div", "metric-name", name));
-      text.appendChild(el("div", "metric-note", note));
-      metric.appendChild(text);
-      metrics.appendChild(metric);
-    });
-    if (defs.length) fPanel.appendChild(metrics);
-
-    if (quarters.length) {
-      const label = el("p", "section-heading", "Quarterly revenue — oldest to newest");
-      label.style.margin = "22px 0 4px";
-      fPanel.appendChild(label);
-      const explain = el("p", "metric-note",
-        "Each bar is one three-month reporting period, in date order. Quarterly rather than " +
-        "yearly because most businesses are seasonal — a December quarter often looks nothing " +
-        "like a March one.");
-      explain.style.margin = "0 0 10px";
-      fPanel.appendChild(explain);
-      const barWrap = el("div", "chart-wrap");
-      const barCanvas = el("canvas", "bar-chart");
-      barCanvas.setAttribute("role", "img");
-      barCanvas.setAttribute("aria-label",
-        `Quarterly revenue for ${data.ticker}: ` +
-        quarters.map((q) => `${periodLabel(q.period)} $${bigMoney(q.revenue)}`).join(", "));
-      barWrap.appendChild(barCanvas);
-      fPanel.appendChild(barWrap);
-
-      const latest = quarters[quarters.length - 1];
-      const yearAgo = quarters.length >= 5 ? quarters[quarters.length - 5] : null;
-      if (yearAgo && yearAgo.revenue) {
-        const yoy = ((latest.revenue - yearAgo.revenue) / yearAgo.revenue) * 100;
-        const note = el("p", "view-sub",
-          `Most recent quarter $${bigMoney(latest.revenue)}, ` +
-          `${yoy >= 0 ? "up" : "down"} ${Math.abs(yoy).toFixed(1)}% from the same quarter a year earlier. ` +
-          `Year-over-year rather than quarter-to-quarter, since many businesses are seasonal.`);
-        note.style.margin = "12px 0 0";
-        fPanel.appendChild(note);
-      }
-    }
-
-    if (earnings.next_date) {
-      const eRow = el("div", "stat-line");
-      eRow.style.marginTop = "16px";
-      const stat = el("div", "stat");
-      stat.appendChild(el("span", "stat-label", "Next earnings"));
-      stat.appendChild(el("span", "stat-value",
-        formatLongDate(earnings.next_date) +
-        (earnings.days_away !== null && earnings.days_away !== undefined ? `  ·  in ${earnings.days_away}d` : "")));
-      eRow.appendChild(stat);
-
-      if (earnings.eps_estimate !== null && earnings.eps_estimate !== undefined) {
-        const est = el("div", "stat");
-        est.appendChild(el("span", "stat-label", "EPS estimate"));
-        est.appendChild(el("span", "stat-value", num(earnings.eps_estimate)));
-        eRow.appendChild(est);
-      }
-
-      const last = earnings.last_report;
-      if (last && last.surprise_percent !== null && last.surprise_percent !== undefined) {
-        const surprise = el("div", "stat");
-        surprise.appendChild(el("span", "stat-label", "Last quarter"));
-        surprise.appendChild(el("span", "stat-value " + toneClass(last.surprise_percent),
-          (last.surprise_percent >= 0 ? "Beat by " : "Missed by ") + Math.abs(last.surprise_percent).toFixed(1) + "%"));
-        eRow.appendChild(surprise);
-      }
-      fPanel.appendChild(eRow);
-    }
-
-    frag.appendChild(fPanel);
-  }
-
-  const setupBuilt = buildSetupPanel(data.setup, data.ticker,
-                                     (data.earnings || {}).days_away);
-  if (setupBuilt) frag.appendChild(setupBuilt.panel);
-
-  // Analysis + news side by side
+function buildAnalysisNews(data) {
   const grid = el("div", "grid-2");
 
   const analysisPanel = el("div", "panel");
-  analysisPanel.style.marginTop = "0";
+  analysisPanel.style.marginTop = "16px";
   analysisPanel.appendChild(el("h2", null, "What's going on"));
   analysisPanel.appendChild(el("p", "analysis", data.analysis || "No analysis available."));
-  // The earnings date lives in the Fundamentals panel above, with the
-  // estimate and last quarter's surprise next to it -- repeating it here
-  // would be the same fact twice with less context.
   grid.appendChild(analysisPanel);
 
   const newsPanel = el("div", "panel");
-  newsPanel.style.marginTop = "0";
+  newsPanel.style.marginTop = "16px";
   newsPanel.appendChild(el("h2", null, "Recent news"));
   if (data.news && data.news.length) {
     const list = el("ul", "news-list");
@@ -1135,23 +1570,158 @@ async function showDetail(ticker) {
     newsPanel.appendChild(el("p", "empty", "No recent headlines found."));
   }
   grid.appendChild(newsPanel);
+  return grid;
+}
 
-  frag.appendChild(grid);
-  viewEl.replaceChildren(frag);
+// The next report and how the last one went, above the history of
+// reactions.
+function buildEarningsFacts(data) {
+  const earnings = data.earnings || {};
+  const panel = el("div", "panel");
+  panel.appendChild(el("h2", null, "Next report"));
+  const row = el("div", "stat-line");
+  const add = (label, value, cls) => {
+    const stat = el("div", "stat");
+    stat.appendChild(el("span", "stat-label", label));
+    stat.appendChild(el("span", "stat-value " + (cls || ""), value));
+    row.appendChild(stat);
+  };
+  add("Date", earnings.next_date
+    ? formatLongDate(earnings.next_date) +
+      (earnings.days_away !== null && earnings.days_away !== undefined ? `  ·  in ${earnings.days_away}d` : "")
+    : "Not announced");
+  if (earnings.eps_estimate !== null && earnings.eps_estimate !== undefined) {
+    add("EPS estimate", num(earnings.eps_estimate));
+  }
+  const last = earnings.last_report;
+  if (last && last.surprise_percent !== null && last.surprise_percent !== undefined) {
+    add("Last quarter",
+        (last.surprise_percent >= 0 ? "Beat by " : "Missed by ") + Math.abs(last.surprise_percent).toFixed(1) + "%",
+        toneClass(last.surprise_percent));
+  }
+  const rev = data.revisions || {};
+  if (rev.change_90d_percent !== null && rev.change_90d_percent !== undefined) {
+    add("Next fiscal year's EPS estimate, 90d", pct(rev.change_90d_percent), toneClass(rev.change_90d_percent));
+  }
+  if (rev.up_30d !== null && rev.up_30d !== undefined) {
+    add("Next fiscal year's revisions, 30d", `${num(rev.up_30d, 0)} up / ${num(rev.down_30d, 0)} down`);
+  }
+  panel.appendChild(row);
+  return panel;
+}
 
-  if (history.length >= 2) setupChart(canvas, history);
+function buildFundamentalsPanel(data) {
+  const quarters = data.quarters || [];
+  const stats = data.stats || {};
+  if (!quarters.length && !Object.keys(stats).length) return null;
 
-  const barCanvas = viewEl.querySelector("canvas.bar-chart");
-  if (barCanvas && quarters.length) setupBarChart(barCanvas, quarters);
+  const panel = el("div", "panel");
+  panel.appendChild(el("h2", null, "Fundamentals"));
 
-  if (setupBuilt) {
-    drawReactionChart(setupBuilt.canvas, setupBuilt.reactions);
-    attachReactionHover(setupBuilt.canvas, setupBuilt.reactions);
-    if (window.ResizeObserver) {
-      new ResizeObserver(() => drawReactionChart(setupBuilt.canvas, setupBuilt.reactions))
-        .observe(setupBuilt.canvas);
+  // Every figure says what it means. A number a reader can't interpret
+  // isn't information, it's decoration.
+  const metrics = el("div", "metrics");
+  const defs = [];
+  const has = (v) => v !== null && v !== undefined;
+
+  if (stats.market_cap) {
+    defs.push(["$" + bigMoney(stats.market_cap), "Company value",
+               "What the whole company is worth at today's share price.", ""]);
+  }
+  if (stats.forward_pe) {
+    defs.push([num(stats.forward_pe, 1), "Forward P/E",
+               `Price divided by next fiscal year's consensus EPS: you pay $${num(stats.forward_pe, 2)} ` +
+               `for each $1 analysts expect it to earn.`, ""]);
+  }
+  if (stats.trailing_pe) {
+    defs.push([num(stats.trailing_pe, 1), "Trailing P/E",
+               `You pay $${num(stats.trailing_pe, 2)} for every $1 the company earned over the past year. ` +
+               `Higher means the market expects more growth — or that it's expensive.`, ""]);
+  }
+  if (has(stats.gross_margin_percent)) {
+    defs.push([num(stats.gross_margin_percent, 1) + "%", "Gross margin",
+               "Sales left after the direct cost of making what was sold -- pricing power.", ""]);
+  }
+  if (has(stats.operating_margin_percent)) {
+    defs.push([num(stats.operating_margin_percent, 1) + "%", "Operating margin",
+               "Left after running costs too (research, sales, admin) -- the business's own profitability.",
+               toneClass(stats.operating_margin_percent)]);
+  }
+  if (has(stats.profit_margin_percent)) {
+    defs.push([num(stats.profit_margin_percent, 1) + "%", "Net margin",
+               `Keeps ${num(stats.profit_margin_percent, 1)} cents of every dollar of sales as profit, after all costs.`,
+               toneClass(stats.profit_margin_percent)]);
+  }
+  if (has(stats.revenue_growth_percent)) {
+    const g = stats.revenue_growth_percent;
+    defs.push([num(g, 1) + "%", "Revenue growth",
+               `Sales are ${g >= 0 ? "higher" : "lower"} than the same quarter a year ago.`,
+               toneClass(g)]);
+  }
+
+  defs.forEach(([value, name, note, cls]) => {
+    const metric = el("div", "metric");
+    metric.appendChild(el("div", "metric-value " + cls, value));
+    const text = el("div");
+    text.appendChild(el("div", "metric-name", name));
+    text.appendChild(el("div", "metric-note", note));
+    metric.appendChild(text);
+    metrics.appendChild(metric);
+  });
+  if (defs.length) panel.appendChild(metrics);
+
+  let barCanvas = null;
+  if (quarters.length) {
+    const label = el("p", "section-heading", "Quarterly revenue — oldest to newest");
+    label.style.margin = "22px 0 4px";
+    panel.appendChild(label);
+    const explain = el("p", "metric-note",
+      "Each bar is one three-month reporting period, in date order. Quarterly rather than " +
+      "yearly because most businesses are seasonal — a December quarter often looks nothing " +
+      "like a March one.");
+    explain.style.margin = "0 0 10px";
+    panel.appendChild(explain);
+    const barWrap = el("div", "chart-wrap");
+    barCanvas = el("canvas", "bar-chart");
+    barCanvas.setAttribute("role", "img");
+    barCanvas.setAttribute("aria-label",
+      `Quarterly revenue for ${data.ticker}: ` +
+      quarters.map((q) => `${periodLabel(q.period)} $${bigMoney(q.revenue)}`).join(", "));
+    barWrap.appendChild(barCanvas);
+    panel.appendChild(barWrap);
+
+    const latest = quarters[quarters.length - 1];
+    const yearAgo = quarters.length >= 5 ? quarters[quarters.length - 5] : null;
+    if (yearAgo && yearAgo.revenue) {
+      const yoy = ((latest.revenue - yearAgo.revenue) / yearAgo.revenue) * 100;
+      const note = el("p", "view-sub",
+        `Most recent quarter $${bigMoney(latest.revenue)}, ` +
+        `${yoy >= 0 ? "up" : "down"} ${Math.abs(yoy).toFixed(1)}% from the same quarter a year earlier. ` +
+        `Year-over-year rather than quarter-to-quarter, since many businesses are seasonal.`);
+      note.style.margin = "12px 0 0";
+      panel.appendChild(note);
     }
   }
+  return { panel, barCanvas, quarters };
+}
+
+async function loadStockPeers(holder, data, token) {
+  holder.replaceChildren(el("p", "loading-text", "Loading peers..."));
+  const { ok, data: peers } = await api("GET", `/api/theme/${encodeURIComponent(data.theme.theme_id)}/peers`);
+  if (!isCurrent(token)) return;
+  if (!ok) {
+    holder.replaceChildren(el("p", "empty", "Peer figures unavailable."));
+    return;
+  }
+  const panel = el("div", "panel");
+  const title = el("h2");
+  title.appendChild(document.createTextNode("Against its peers in "));
+  const link = el("a", "inline-link", data.theme.theme_name);
+  link.href = themeHash(data.theme.theme_id) + "/peers";
+  title.appendChild(link);
+  panel.appendChild(title);
+  panel.appendChild(buildPeerTable(peers, data.ticker));
+  holder.replaceChildren(panel);
 }
 
 // Where this company stands in its theme today -- the first question the
@@ -1185,8 +1755,8 @@ function buildThemeContext(data) {
   const own = data.price ? data.price.change_percent : null;
   const stats = el("div", "tstats");
   stats.appendChild(themeStat(`${data.ticker} today`, pct(own), toneClass(own)));
-  stats.appendChild(themeStat(`Peers, ex-${data.ticker}`, pct(t.peer_average), toneClass(t.peer_average),
-                              "Equal-weighted average move of the other companies in the theme."));
+  stats.appendChild(themeStat(`Peer median, ex-${data.ticker}`, pct(t.peer_median), toneClass(t.peer_median),
+                              "Median move of the other companies in the theme -- the typical peer."));
   stats.appendChild(themeStat("vs peers", pts(t.vs_peers), toneClass(t.vs_peers)));
   stats.appendChild(themeStat(t.benchmark.ticker, pct(t.benchmark.change_percent),
                               toneClass(t.benchmark.change_percent), "The theme's benchmark ETF today."));
@@ -1639,17 +2209,46 @@ function buildSetupPanel(setup, ticker, daysAway) {
   const panel = el("div", "panel");
   panel.appendChild(el("h2", null, "Going into earnings"));
 
+  // Lead with the abnormal figure when there's a model for enough reports:
+  // a raw move includes whatever the whole market did that session.
+  const modelled = (setup.modelled_count || 0) >= 3 && setup.median_abs_abnormal !== null
+                   && setup.median_abs_abnormal !== undefined;
   const lead = el("p", "setup-lead");
-  lead.appendChild(el("span", "setup-figure", "\u00b1" + num(setup.median_abs_move, 1) + "%"));
-  lead.appendChild(el("span", null,
-    ` typical move the session after ${ticker} reports, across its last ` +
-    `${setup.reactions.length} reports.`));
+  if (modelled) {
+    lead.appendChild(el("span", "setup-figure", "\u00b1" + num(setup.median_abs_abnormal, 1) + "%"));
+    lead.appendChild(el("span", null,
+      ` typical abnormal move after ${ticker} reports -- the part the market that day doesn't ` +
+      `explain -- across ${setup.modelled_count} reports. The raw move was ` +
+      `\u00b1${num(setup.median_abs_move, 1)}%.`));
+  } else {
+    lead.appendChild(el("span", "setup-figure", "\u00b1" + num(setup.median_abs_move, 1) + "%"));
+    lead.appendChild(el("span", null,
+      ` typical move the session after ${ticker} reports, across its last ` +
+      `${setup.reactions.length} reports.`));
+  }
   panel.appendChild(lead);
 
   // The finding worth leading with, when it applies: beating estimates
-  // has not meant the stock rose. Markets price the expectation, not the
-  // analyst number.
-  if (setup.beat_count >= 3 && setup.beat_but_fell > 0) {
+  // has not meant the stock did better than expected. Markets price the
+  // expectation, not the analyst number.
+  if (modelled && setup.beat_count >= 3 && setup.beat_but_lagged > 0) {
+    const share = setup.beat_but_lagged / setup.beat_count;
+    const note = el("p", "setup-note" + (share >= 0.4 ? " is-striking" : ""));
+    note.textContent =
+      `Beat the estimate in ${setup.beat_count} of its reports -- and still lagged what its ` +
+      `market model expected the next session ${setup.beat_but_lagged} ` +
+      `time${setup.beat_but_lagged === 1 ? "" : "s"} (in raw terms it fell ${setup.beat_but_fell}). ` +
+      (share >= 0.4
+        ? "For this stock, beating has not reliably meant outperforming: what matters is the "
+          + "result against what was already priced in, not against the analyst figure."
+        : "");
+    panel.appendChild(note);
+    if (setup.unusual_count) {
+      panel.appendChild(el("p", "metric-note",
+        `${setup.unusual_count} of those reactions were more than two standard deviations beyond ` +
+        `${ticker}'s ordinary daily moves -- genuinely unusual, not just a volatile stock being volatile.`));
+    }
+  } else if (setup.beat_count >= 3 && setup.beat_but_fell > 0) {
     const share = setup.beat_but_fell / setup.beat_count;
     const note = el("p", "setup-note" + (share >= 0.4 ? " is-striking" : ""));
     note.textContent =
@@ -1666,18 +2265,23 @@ function buildSetupPanel(setup, ticker, daysAway) {
   const canvas = el("canvas", "reaction-chart");
   canvas.setAttribute("role", "img");
   canvas.setAttribute("aria-label",
-    "Price move the session after each past earnings report: " +
-    setup.reactions.map((r) => `${r.date} ${r.next_session_move > 0 ? "up" : "down"} ` +
-      `${Math.abs(r.next_session_move)} percent`).join(", "));
+    "Abnormal move the session after each past earnings report: " +
+    setup.reactions.map((r) => {
+      const v = reactionValue(r);
+      return `${r.date} ${v > 0 ? "up" : "down"} ${Math.abs(v)} percent` +
+        (r.abnormal_move === null || r.abnormal_move === undefined ? " (raw, no model)" : "");
+    }).join(", "));
   wrap.appendChild(canvas);
   panel.appendChild(wrap);
 
   const legend = el("p", "metric-note");
   legend.textContent =
-    "Each bar is one past report, comparing the closing price just before the news to the " +
-    "close of the first session that could react to it — the next day when a company " +
-    "reports after the close, the same day when it reports before the open. Hover a bar " +
-    "for the two prices. This is what happened, not what will.";
+    "Each bar is one past report: the abnormal return on the first session that could react " +
+    "-- the next day after an after-close report, the same day after a before-open one. " +
+    "Abnormal means the stock's move minus what its market model predicted given SPY that " +
+    "session (beta estimated over the 120 sessions ending two weeks before the report). Grey " +
+    "bars had too little earlier history for a model and show the raw move. Hover a bar for " +
+    "the prices, SPY's move and the run-up into the report. This is what happened, not what will.";
   legend.style.margin = "10px 0 0";
   panel.appendChild(legend);
 
@@ -1688,14 +2292,14 @@ function buildSetupPanel(setup, ticker, daysAway) {
     if (trend.current && trend.days_90) {
       const shift = ((trend.current - trend.days_90) / Math.abs(trend.days_90)) * 100;
       const stat = el("div", "stat");
-      stat.appendChild(el("span", "stat-label", "Estimate vs 90 days ago"));
+      stat.appendChild(el("span", "stat-label", "Coming quarter's EPS estimate, 90d"));
       stat.appendChild(el("span", "stat-value " + toneClass(shift),
         (shift >= 0 ? "+" : "") + num(shift, 0) + "%"));
       stats.appendChild(stat);
     }
     if (trend.up_last_30_days !== null && trend.up_last_30_days !== undefined) {
       const stat = el("div", "stat");
-      stat.appendChild(el("span", "stat-label", "Revisions last 30 days"));
+      stat.appendChild(el("span", "stat-label", "Coming quarter's revisions, 30d"));
       stat.appendChild(el("span", "stat-value",
         `${num(trend.up_last_30_days, 0)} up / ${num(trend.down_last_30_days, 0)} down`));
       stats.appendChild(stat);
@@ -1726,13 +2330,29 @@ function attachReactionHover(canvas, reactions) {
   canvas.addEventListener("pointerleave", hideTooltip);
 }
 
+// The abnormal move where a market model exists, the raw move otherwise.
+function reactionValue(r) {
+  return r.abnormal_move !== null && r.abnormal_move !== undefined ? r.abnormal_move : r.next_session_move;
+}
+
 function showReactionTooltip(reaction, clientX, clientY) {
   tooltipEl.replaceChildren();
 
-  const value = el("div", "tip-value " + toneClass(reaction.next_session_move));
-  value.textContent = (reaction.next_session_move >= 0 ? "+" : "") +
-    num(reaction.next_session_move, 2) + "%";
+  const hasModel = reaction.abnormal_move !== null && reaction.abnormal_move !== undefined;
+  const value = el("div", "tip-value " + toneClass(reactionValue(reaction)));
+  value.textContent = (hasModel ? "Abnormal " : "Raw ") + (reactionValue(reaction) >= 0 ? "+" : "") +
+    num(reactionValue(reaction), 2) + "%" +
+    (hasModel && reaction.standardized !== null ? `  (${num(reaction.standardized, 1)} sd)` : "");
   tooltipEl.appendChild(value);
+  if (hasModel) {
+    tooltipEl.appendChild(el("div", "tip-label",
+      `Raw ${pct(reaction.next_session_move)} = expected ${pct(reaction.expected_move)} ` +
+      `(SPY ${pct(reaction.market_move)}, beta ${num(reaction.beta, 2)}) + abnormal ${pct(reaction.abnormal_move)}`));
+    if (reaction.runup_abnormal !== null && reaction.runup_abnormal !== undefined) {
+      tooltipEl.appendChild(el("div", "tip-label",
+        `20 sessions before: ${pct(reaction.runup_abnormal)} beyond its model`));
+    }
+  }
 
   // The comparison spelled out, because a percentage with no stated
   // endpoints is a number the reader has to take on faith.
@@ -1770,7 +2390,7 @@ function drawReactionChart(canvas, reactions) {
 
   // Oldest on the left, so it reads like time.
   const points = reactions.slice().reverse();
-  const values = points.map((r) => r.next_session_move);
+  const values = points.map(reactionValue);
   const extent = Math.max(...values.map(Math.abs)) || 1;
 
   const plotW = cssW - REACT_PAD.left - REACT_PAD.right;
@@ -1791,13 +2411,16 @@ function drawReactionChart(canvas, reactions) {
   ctx.textAlign = "center";
 
   points.forEach((r, i) => {
-    const value = r.next_session_move;
+    const value = reactionValue(r);
+    const modelled = r.abnormal_move !== null && r.abnormal_move !== undefined;
     const x = REACT_PAD.left + slot * i + (slot - barW) / 2;
     const h = Math.max(2, (Math.abs(value) / extent) * (plotH / 2 - 4));
     const up = value >= 0;
     const y = up ? zeroY - h : zeroY;
 
-    ctx.fillStyle = up ? COLORS.up : COLORS.down;
+    // Unmodelled reactions in grey: a raw move drawn in the same colours
+    // would pass for an abnormal one.
+    ctx.fillStyle = modelled ? (up ? COLORS.up : COLORS.down) : COLORS.axis;
     roundedTopRect(ctx, x, up ? y : zeroY, barW, h, 3);
     if (!up) {
       // Mirror the rounding so the data-end is the one away from zero.
@@ -1812,7 +2435,7 @@ function drawReactionChart(canvas, reactions) {
       ctx.fill();
     }
 
-    ctx.fillStyle = up ? COLORS.up : COLORS.down;
+    ctx.fillStyle = modelled ? (up ? COLORS.up : COLORS.down) : COLORS.muted;
     ctx.textBaseline = up ? "bottom" : "top";
     ctx.fillText((value >= 0 ? "+" : "") + value.toFixed(1) + "%",
                  x + barW / 2, up ? y - 4 : zeroY + h + 4);

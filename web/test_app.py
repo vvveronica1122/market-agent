@@ -76,11 +76,23 @@ def fake_themes():
 STORE = {"state": fake_themes()}
 
 
+# Two years of closes for the performance tab: straight lines, so every
+# period return can be worked out by hand. (start, end) over 300 sessions.
+LONG_PATHS = {"CRASH": (100.0, 70.0), "PEER1": (100.0, 130.0), "PEER2": (100.0, 115.0),
+              "CHIPETF": (100.0, 110.0)}
+
+
 def fake_history(ticker, period="1mo"):
     # Mirror the real thing: an unknown ticker fails here too, so the
     # degradation test exercises a realistic scenario.
     if ticker not in KNOWN:
         raise ValueError(f"Could not fetch price history for '{ticker}'.")
+    if period == "2y":
+        import pandas as pd
+        start, end = LONG_PATHS.get(ticker, (100.0, 100.0))
+        days = pd.bdate_range(end="2026-10-02", periods=300)
+        step = (end - start) / 299
+        return [{"date": d.strftime("%Y-%m-%d"), "close": start + step * i} for i, d in enumerate(days)]
     return [{"date": f"2026-09-{d:02d}", "close": 100.0 + d} for d in range(1, 11)]
 
 
@@ -197,23 +209,30 @@ def fake_quarters(ticker, quarters=6):
     ]
 
 
-def fake_setup(ticker, events=8):
+def fake_setup(ticker, events=8, market_history=None):
     # Deliberately mirrors the real MU pattern found by the probe: beat
     # every time, fell more often than not.
     reactions = [
         {"date": "2026-06-24", "surprise_percent": 21.4, "next_session_move": 15.74,
-         "timing": "after close", "from_close": 157.7, "to_close": 182.5},
-        {"date": "2026-03-18", "surprise_percent": 33.2, "next_session_move": -3.78},
-        {"date": "2025-12-17", "surprise_percent": 20.6, "next_session_move": 10.21},
-        {"date": "2025-09-23", "surprise_percent": 5.9, "next_session_move": -2.82},
-        {"date": "2025-06-25", "surprise_percent": 19.8, "next_session_move": -0.98},
-        {"date": "2025-03-20", "surprise_percent": 9.5, "next_session_move": -8.04},
+         "timing": "after close", "from_close": 157.7, "to_close": 182.5,
+         "abnormal_move": 14.25, "standardized": 3.2, "runup_abnormal": 6.27},
+        {"date": "2026-03-18", "surprise_percent": 33.2, "next_session_move": -3.78,
+         "abnormal_move": -3.82, "standardized": -1.1, "runup_abnormal": 5.83},
+        {"date": "2025-12-17", "surprise_percent": 20.6, "next_session_move": 10.21,
+         "abnormal_move": 7.95, "standardized": 2.8, "runup_abnormal": -11.58},
+        {"date": "2025-09-23", "surprise_percent": 5.9, "next_session_move": -2.82,
+         "abnormal_move": -2.23, "standardized": -0.9, "runup_abnormal": 29.48},
+        {"date": "2025-06-25", "surprise_percent": 19.8, "next_session_move": -0.98,
+         "abnormal_move": -2.79, "standardized": -0.9, "runup_abnormal": 18.36},
+        {"date": "2025-03-20", "surprise_percent": 9.5, "next_session_move": -8.04,
+         "abnormal_move": None, "standardized": None, "runup_abnormal": None},
     ]
     return {
         "ticker": ticker.upper(), "reactions": reactions,
         "median_abs_move": 5.9, "moves_over_5pct": 3,
         "up_count": 2, "down_count": 4,
         "beat_count": 6, "miss_count": 0, "beat_but_fell": 4,
+        "modelled_count": 5, "median_abs_abnormal": 3.8, "beat_but_lagged": 3, "unusual_count": 2,
         "estimate_trend": {"current": 31.3, "days_30": 31.3, "days_90": 22.7,
                            "up_last_30_days": 0, "down_last_30_days": 2},
         "unavailable_reason": None,
@@ -221,9 +240,20 @@ def fake_setup(ticker, events=8):
 
 
 def fake_stats(ticker):
-    return {"market_cap": 1.2e12, "trailing_pe": 28.4, "forward_pe": 24.1,
-            "profit_margin_percent": 23.5, "revenue_growth_percent": 8.2,
+    # CRASH carries a one-off gain: net margin above gross margin, which
+    # the peer table must flag rather than present as the business.
+    net = 60.0 if ticker == "CRASH" else 23.5
+    return {"market_cap": 1.2e12, "trailing_pe": 28.4,
+            "forward_pe": {"CRASH": 10.0, "PEER1": 20.0, "PEER2": 30.0}.get(ticker, 24.1),
+            "ev_to_sales": 5.0, "profit_margin_percent": net, "gross_margin_percent": 50.0,
+            "operating_margin_percent": 30.0, "revenue_growth_percent": 8.2,
+            "earnings_growth_percent": 12.0, "beta": 1.3, "analysts": 20,
             "sector": "Technology", "name": ticker}
+
+
+def fake_revisions(ticker):
+    return {"period": "next fiscal year", "current": 5.0, "change_30d_percent": 2.0,
+            "change_90d_percent": 6.0, "up_30d": 4, "down_30d": 1}
 
 
 def install_stubs():
@@ -244,6 +274,7 @@ def install_stubs():
     server.get_quarterly_results = fake_quarters
     server.get_key_stats = fake_stats
     server.get_earnings_setup = fake_setup
+    server.get_estimate_revisions = fake_revisions
     server._cache.clear()
 
 
@@ -297,8 +328,8 @@ def main() -> int:
     failures += not check("breadth counts names that beat the benchmark (none did)",
                           chips["beat_count"] == 0 and chips["count"] == 3, str(chips))
     crash = next(r for r in blocks["chips"]["rows"] if r["ticker"] == "CRASH")
-    failures += not check("a company's peer average leaves the company out",
-                          crash["relative"]["peer_average"] == -6.0, str(crash["relative"]))
+    failures += not check("a company's peer median leaves the company out",
+                          crash["relative"]["peer_median"] == -6.0, str(crash["relative"]))
     failures += not check("falling with its whole theme is labelled a theme move",
                           crash["relative"]["attribution"] == "theme")
     solo = next(r for r in blocks["other"]["rows"] if r["ticker"] == "SOLO")
@@ -349,6 +380,55 @@ def main() -> int:
                           all(t["id"] != "power" for t in STORE["state"]["themes"]))
     STORE["state"] = fake_themes()
 
+    print("\nTheme tab: performance")
+    server._cache.clear()
+    perf = client.get("/api/theme/chips/performance").get_json()
+
+    def line_return(ticker, days):  # the fake histories are straight lines over 300 sessions
+        start, end = LONG_PATHS[ticker]
+        step = (end - start) / 299
+        return (end / (start + step * (299 - days)) - 1) * 100
+
+    crash_3m = next(r for r in perf["rows"] if r["ticker"] == "CRASH")["periods"]["3M"]
+    peers_3m = (line_return("PEER1", 63) + line_return("PEER2", 63)) / 2
+    failures += not check("periods come back in reading order",
+                          perf["periods"] == ["1M", "3M", "6M", "YTD", "1Y"])
+    failures += not check("a 3M return is measured over 63 sessions",
+                          abs(crash_3m["return"] - line_return("CRASH", 63)) < 0.01, str(crash_3m))
+    failures += not check("over 3M, a company is compared with its peers' 3M returns, itself left out",
+                          abs(crash_3m["vs_peers"] - (line_return("CRASH", 63) - peers_3m)) < 0.01)
+    failures += not check("falling while its peers rose is labelled the company's own move",
+                          crash_3m["attribution"] == "company")
+    failures += not check("breadth over 3M counts names beating the ETF over 3M",
+                          perf["summary"]["3M"]["beat_count"] == 2, str(perf["summary"]["3M"]))
+
+    print("\nTheme tab: earnings")
+    earn = client.get("/api/theme/chips/earnings").get_json()
+    stats = earn["stats"]
+    failures += not check("every modelled reaction with a surprise becomes a point",
+                          stats["reports"] == 15 and len(earn["points"]) == 15, str(stats))
+    failures += not check("counts beats followed by a positive abnormal move",
+                          stats["beats"] == 15 and stats["beats_rewarded"] == 6, str(stats))
+    failures += not check("a rank correlation is given once there are enough reports",
+                          stats["rank_correlation"] is not None)
+    failures += not check("the company reporting soonest comes first",
+                          earn["rows"][0]["ticker"] == "CRASH" and earn["rows"][0]["next_report_days"] == 3,
+                          str([(r["ticker"], r["next_report_days"]) for r in earn["rows"]]))
+    failures += not check("each company's latest modelled reaction is surfaced",
+                          earn["rows"][0]["latest"]["abnormal_move"] == 14.25)
+
+    print("\nTheme tab: peers")
+    peers = client.get("/api/theme/chips/peers").get_json()
+    crash_peer = next(r for r in peers["rows"] if r["ticker"] == "CRASH")
+    failures += not check("the theme median is given for each metric",
+                          peers["medians"]["forward_pe"] == 20.0, str(peers["medians"]))
+    failures += not check("a net margin above gross margin is flagged as one-off gains",
+                          any("one-off" in f for f in crash_peer["flags"]), str(crash_peer["flags"]))
+    failures += not check("net estimate revisions are ups minus downs",
+                          crash_peer["values"]["net_revisions_30d"] == 3)
+    failures += not check("an unknown theme's tab is a 404",
+                          client.get("/api/theme/nope/peers").status_code == 404)
+
     print("\nRoutes")
     for path in ["/", "/static/style.css", "/static/app.js", "/api/overview", "/api/themes"]:
         res = client.get(path)
@@ -363,7 +443,7 @@ def main() -> int:
                           detail.get("market") is not None)
     theme = detail.get("theme") or {}
     failures += not check("detail view places the company in its theme",
-                          theme.get("theme_id") == "chips" and theme.get("peer_average") == -6.0
+                          theme.get("theme_id") == "chips" and theme.get("peer_median") == -6.0
                           and theme.get("attribution") == "theme", str(theme))
     failures += not check("a name in no theme simply has no theme context",
                           client.get("/api/stock/SURGE").get_json().get("theme") is None)
