@@ -22,6 +22,8 @@ from typing import Any
 
 import yfinance as yf
 
+from tools import performance
+
 
 def _clean(value: Any) -> float | None:
     """pandas NaN, numpy types and None all have to collapse to None/float."""
@@ -228,28 +230,78 @@ def get_quarterly_results(ticker: str, quarters: int = 6) -> list[dict[str, Any]
     return periods
 
 
+def _percent(value) -> float | None:
+    """yfinance gives margins and growth as fractions; pages show percent."""
+    number = _clean(value)
+    return round(number * 100, 1) if number is not None else None
+
+
 def get_key_stats(ticker: str) -> dict[str, Any]:
-    """Headline valuation and profitability figures."""
+    """Headline valuation, growth and profitability figures.
+
+    All from Yahoo's summary: margins are trailing twelve months, revenue
+    and earnings growth are the latest quarter against the same quarter a
+    year earlier, forward P/E is on next fiscal year's consensus EPS, and
+    beta is Yahoo's (five years of monthly returns against the S&P 500).
+    """
     try:
         info = yf.Ticker(ticker).info or {}
     except Exception:
         return {}
 
-    growth = _clean(info.get("revenueGrowth"))
-    margin = _clean(info.get("profitMargins"))
     return {
         "market_cap": _clean(info.get("marketCap")),
         "trailing_pe": _clean(info.get("trailingPE")),
         "forward_pe": _clean(info.get("forwardPE")),
-        # yfinance returns these as fractions; percent is what gets displayed.
-        "profit_margin_percent": round(margin * 100, 1) if margin is not None else None,
-        "revenue_growth_percent": round(growth * 100, 1) if growth is not None else None,
+        "ev_to_sales": _clean(info.get("enterpriseToRevenue")),
+        "profit_margin_percent": _percent(info.get("profitMargins")),
+        "gross_margin_percent": _percent(info.get("grossMargins")),
+        "operating_margin_percent": _percent(info.get("operatingMargins")),
+        "revenue_growth_percent": _percent(info.get("revenueGrowth")),
+        "earnings_growth_percent": _percent(info.get("earningsGrowth")),
+        "beta": _clean(info.get("beta")),
+        "analysts": _clean(info.get("numberOfAnalystOpinions")),
         "sector": info.get("sector"),
         "name": info.get("shortName") or info.get("longName"),
     }
 
 
-def get_earnings_setup(ticker: str, events: int = 8) -> dict[str, Any]:
+def get_estimate_revisions(ticker: str) -> dict[str, Any]:
+    """How analysts' EPS estimate for next fiscal year has moved.
+
+    Next fiscal year rather than this quarter because it's what forward P/E
+    is built on, so it's the estimate valuation hinges on. Percent changes
+    are withheld when the old estimate is zero or negative -- "up 300% from
+    -$0.10" describes the base, not the revision.
+    """
+    out: dict[str, Any] = {"period": "next fiscal year", "current": None,
+                           "change_30d_percent": None, "change_90d_percent": None,
+                           "up_30d": None, "down_30d": None}
+    stock = yf.Ticker(ticker)
+    try:
+        trend = stock.eps_trend
+        if trend is not None and not trend.empty and "+1y" in trend.index:
+            row = trend.loc["+1y"]
+            current = _clean(row.get("current"))
+            out["current"] = current
+            for key, column in (("change_30d_percent", "30daysAgo"), ("change_90d_percent", "90daysAgo")):
+                base = _clean(row.get(column))
+                if current is not None and base is not None and base > 0:
+                    out[key] = round((current / base - 1) * 100, 1)
+    except Exception:
+        pass
+    try:
+        revisions = stock.eps_revisions
+        if revisions is not None and not revisions.empty and "+1y" in revisions.index:
+            row = revisions.loc["+1y"]
+            out["up_30d"] = _clean(row.get("upLast30days"))
+            out["down_30d"] = _clean(row.get("downLast30days"))
+    except Exception:
+        pass
+    return out
+
+
+def get_earnings_setup(ticker: str, events: int = 8, market_history=None) -> dict[str, Any]:
     """What the evidence says about how this stock handles earnings.
 
     Nothing here predicts the next move -- that isn't knowable. It answers
@@ -267,6 +319,16 @@ def get_earnings_setup(ticker: str, events: int = 8) -> dict[str, Any]:
     a company can beat every quarter and still fall half the time. When
     that is true of a stock, "will it rise if they beat?" has a documented
     answer for that name, and it is "not reliably".
+
+    Each reaction also carries its ABNORMAL return (tools/performance.py):
+    the move minus what the stock's market model predicted for that
+    session, given what SPY did. A 6% rise on a day the market rose 3%
+    wasn't a 6% reaction to the report. `standardized` says how unusual
+    the reaction was against the stock's ordinary daily noise, and
+    `runup_abnormal` how much the stock had moved, beyond the market, in
+    the 20 sessions before the report. `market_history` lets a caller
+    share one SPY download across many companies; without it, SPY is
+    fetched here.
     """
     result: dict[str, Any] = {
         "ticker": ticker.upper(),
@@ -301,6 +363,14 @@ def get_earnings_setup(ticker: str, events: int = 8) -> dict[str, Any]:
     except Exception as exc:
         result["unavailable_reason"] = f"no price history: {type(exc).__name__}"
         history = None
+
+    if market_history is None:
+        try:
+            market_history = yf.Ticker("SPY").history(period="2y")
+        except Exception:
+            market_history = None
+    market_closes = (market_history["Close"] if market_history is not None
+                     and len(market_history) else None)
 
     if history is not None and len(history):
         index = history.index.tz_localize(None) if history.index.tz is not None else history.index
@@ -352,14 +422,20 @@ def get_earnings_setup(ticker: str, events: int = 8) -> dict[str, Any]:
             row = frame.loc[stamp]
             surprise = _clean(_field(row, "Surprise(%)"))
 
-            result["reactions"].append({
+            reaction = {
                 "date": day.date().isoformat(),
                 "surprise_percent": round(surprise, 1) if surprise is not None else None,
                 "next_session_move": round(move, 2),
                 "timing": "before open" if before_open else "after close",
                 "from_close": round(prior_close, 2),
                 "to_close": round(reaction_close, 2),
-            })
+                "market_move": None, "expected_move": None, "abnormal_move": None,
+                "standardized": None, "runup_abnormal": None, "beta": None,
+            }
+            if market_closes is not None:
+                _add_abnormal(reaction, history["Close"], market_closes,
+                              prior_rows.index[-1], reaction_rows.index[0])
+            result["reactions"].append(reaction)
 
     for reaction in result["reactions"]:
         move = reaction["next_session_move"]
@@ -379,15 +455,54 @@ def get_earnings_setup(ticker: str, events: int = 8) -> dict[str, Any]:
 
     moves = [abs(r["next_session_move"]) for r in result["reactions"]]
     if moves:
-        ordered = sorted(moves)
-        middle = len(ordered) // 2
-        median = (ordered[middle] if len(ordered) % 2
-                  else (ordered[middle - 1] + ordered[middle]) / 2)
-        result["median_abs_move"] = round(median, 1)
+        result["median_abs_move"] = round(_median(moves), 1)
         result["moves_over_5pct"] = sum(1 for m in moves if m >= 5)
+
+    # The same counts on abnormal returns: "beat but underperformed what its
+    # model expected" is the cleaner version of beat-but-fell, since a beat
+    # on a day the whole market fell 3% isn't the same story.
+    modelled = [r for r in result["reactions"] if r["abnormal_move"] is not None]
+    result["modelled_count"] = len(modelled)
+    result["median_abs_abnormal"] = (round(_median([abs(r["abnormal_move"]) for r in modelled]), 1)
+                                     if modelled else None)
+    result["beat_but_lagged"] = sum(1 for r in modelled if (r["surprise_percent"] or 0) > 0
+                                    and r["abnormal_move"] < 0)
+    result["unusual_count"] = sum(1 for r in modelled
+                                  if r["standardized"] is not None and abs(r["standardized"]) >= 2)
 
     result["estimate_trend"] = _estimate_trend(stock)
     return result
+
+
+def _median(values: list[float]) -> float:
+    ordered = sorted(values)
+    middle = len(ordered) // 2
+    return ordered[middle] if len(ordered) % 2 else (ordered[middle - 1] + ordered[middle]) / 2
+
+
+def _add_abnormal(reaction: dict, closes, market_closes, prior_day, reaction_day) -> None:
+    """Fill in the market-model fields for one reaction, or leave them None
+    when the history before the report is too short to fit a model."""
+    # A failure here costs the abnormal figures, never the reaction itself:
+    # the raw move is still worth showing.
+    try:
+        model = performance.fit_market_model(closes, market_closes, prior_day)
+        if model is None:
+            return
+        ar = performance.abnormal_return(closes, market_closes, prior_day, reaction_day, model)
+        if ar is None:
+            return
+        run = performance.runup(closes, market_closes, prior_day, model)
+    except Exception:
+        return
+    reaction.update({
+        "market_move": round(ar["market_return"], 2),
+        "expected_move": round(ar["expected_return"], 2),
+        "abnormal_move": round(ar["abnormal_return"], 2),
+        "standardized": round(ar["standardized"], 1) if ar["standardized"] is not None else None,
+        "runup_abnormal": round(run["abnormal_return"], 2) if run else None,
+        "beta": round(model["beta"], 2),
+    })
 
 
 def _estimate_trend(stock) -> dict[str, Any] | None:
