@@ -136,6 +136,12 @@ def get_recent_news(ticker: str, limit: int = 5) -> list[dict[str, Any]]:
     return items
 
 
+# Share classes Yahoo tags under one symbol: Alphabet stories carry GOOG
+# even when the search was for GOOGL, which left GOOGL with no news at all.
+SAME_COMPANY = {"GOOGL": {"GOOG"}, "GOOG": {"GOOGL"}, "FOXA": {"FOX"}, "FOX": {"FOXA"},
+                "NWSA": {"NWS"}, "NWS": {"NWSA"}, "BRK-B": {"BRK-A"}, "BRK-A": {"BRK-B"}}
+
+
 def _search_news(ticker: str, limit: int) -> list[dict[str, Any]]:
     """Stories from Yahoo's search endpoint, as a fallback.
 
@@ -149,8 +155,8 @@ def _search_news(ticker: str, limit: int) -> list[dict[str, Any]]:
         found = yf.Search(ticker, max_results=1, news_count=limit * 2).news or []
     except Exception:
         return []
-    symbol = ticker.upper()
-    return [item for item in found if symbol in (item.get("relatedTickers") or [])]
+    symbols = {ticker.upper()} | SAME_COMPANY.get(ticker.upper(), set())
+    return [item for item in found if symbols & set(item.get("relatedTickers") or [])]
 
 
 def get_upcoming_events(ticker: str) -> dict[str, Any]:

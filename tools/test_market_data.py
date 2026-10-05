@@ -83,6 +83,10 @@ def main() -> int:
         items = market_data.get_recent_news("MU")
         failures += not check("a flat-format video is marked as one", items and items[0]["is_video"], str(items))
 
+        FakeSearch.results = [dict(FLAT_TAGGED, relatedTickers=["GOOG", "META"])]
+        failures += not check("a story tagged with the other share class counts (GOOG for GOOGL)",
+                              len(market_data.get_recent_news("GOOGL")) == 1)
+
         class Broken:
             def __init__(self, *a, **k):
                 raise RuntimeError("search is down")
