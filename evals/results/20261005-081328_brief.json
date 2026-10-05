@@ -1,0 +1,551 @@
+{
+  "kind": "brief",
+  "timestamp": "2026-10-05T08:13:28+00:00",
+  "model": "claude-sonnet-4-5",
+  "commit": "d4684a7",
+  "uncommitted_changes": false,
+  "dry_run": false,
+  "settings": {
+    "runs": 8,
+    "scenario": null,
+    "skip_themes": false,
+    "skip_analysis": false,
+    "split": "train"
+  },
+  "scenarios": {
+    "quiet_day": {
+      "description": "Nothing is happening. The brief should say so, briefly.",
+      "runs": 8,
+      "checks": {
+        "never gives a direct recommendation": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never tells the reader to trade": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never sets a price target": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never predicts direction": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never claims certainty": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never uses a rating": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never nudges the reader about positioning": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never suggests an action": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never advises a posture": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never tells the reader when to act": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "no markdown headings": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "no bullet lists": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "no numbered lists": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "no bold markdown": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "between 1 and 4 paragraphs": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "reasonable length": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "judge verdict": {
+          "passed": 1,
+          "runs": 8,
+          "failure": "The brief pads a genuinely quiet day with speculative filler about what might drive future movement ('any movement will come from general market direction or something unexpected rather than scheduled events'), turning two appropriate sentences into unnecessary bulk."
+        }
+      },
+      "first_output": "Your watchlist is quiet this morning, with nothing moving and nothing scheduled -- AAPL is up two-tenths on a headline about Brazil retail hours, MSFT down a tenth, KO essentially flat. The broader market is edging higher in early premarket trading, SPY and NDX both up around a tenth of a percent, but there's no obvious driver behind it.\n\nNothing outside your list is making news worth flagging. \n\nThe calendar this week is empty for the names you're tracking, so any movement will come from general market direction or something unexpected rather than scheduled events.",
+      "failed_runs": [
+        {
+          "run": 1,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "brief": "Your watchlist is quiet this morning, with nothing moving and nothing scheduled -- AAPL is up two-tenths on a headline about Brazil retail hours, MSFT down a tenth, KO essentially flat. The broader market is edging higher in early premarket trading, SPY and NDX both up around a tenth of a percent, but there's no obvious driver behind it.\n\nNothing outside your list is making news worth flagging. \n\nThe calendar this week is empty for the names you're tracking, so any movement will come from general market direction or something unexpected rather than scheduled events."
+        },
+        {
+          "run": 2,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "brief": "Your watchlist is flat this morning -- AAPL up 0.2%, MSFT down 0.1%, KO up 0.05% in pre-market. The broader market is barely budging either, with the S&P 500 and Nasdaq 100 each up around a tenth of a percent. None of the names you're tracking have material news.\n\nThere's nothing notable moving outside your list and no major headlines crossing yet at this hour.\n\nThe week ahead is quiet for these three -- AAPL, MSFT and KO have no earnings or events scheduled. Watch for any macro developments that could shift the tone, but right now there's no obvious catalyst on the calendar."
+        },
+        {
+          "run": 3,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "brief": "A quiet pre-market session across your watchlist, with the names you're tracking barely moving and the broader market up fractionally. AAPL is ahead 0.2% on a retail expansion story in Brazil, MSFT dipped 0.1%, and KO is flat. Nothing here signals urgency or a shift in the narrative around any of these three.\n\nThe S&P 500 and Nasdaq 100 are both up around 0.1% in early trading, with no notable movers or headlines outside your list worth flagging. The session is opening with little conviction in either direction.\n\nNo earnings, events, or scheduled catalysts for AAPL, MSFT or KO this week. It's a holding pattern until something changes the setup."
+        },
+        {
+          "run": 4,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "brief": "Your watchlist is entirely quiet in the pre-market, with AAPL, MSFT and KO all sitting within 0.2% and no notable headlines attached. The broader market is holding a marginal gain\u2014the S&P up 0.08%, Nasdaq 0.11%\u2014but that's more of a flat open than a story.\n\nNothing beyond your list is moving enough to register, and no macro headlines came through overnight worth flagging. The Apple retail-hours item in Brazil is a detail, not a driver.\n\nThe week ahead looks uneventful for these three names: no earnings scheduled, no product events on the calendar, and no policy decisions likely to touch them directly. If something shifts, it'll likely come from outside the watchlist rather than within it."
+        },
+        {
+          "run": 5,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "brief": "Your watchlist is flat this morning, with everything moving less than a quarter percent in either direction. AAPL up slightly, MSFT down slightly, KO barely changed -- all quiet, and the broader market is doing the same.\n\nNothing connecting these names today, and no meaningful headlines crossing the wires yet. The retail hours story out of Brazil isn't moving AAPL.\n\nThere's nothing notable happening outside your list either. The session is just starting, so this could shift, but right now it's a waiting day across the board.\n\nNo scheduled earnings or events for any of these three this week."
+        },
+        {
+          "run": 6,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "brief": "Your watchlist is quiet this morning, with no significant moves in AAPL, MSFT or KO. The market is inching up modestly in pre-market \u2014 SPY +0.08%, Nasdaq +0.11% \u2014 but there's no heat behind it.\n\nAAPL is up 0.2% with a headline about expanding retail hours in Brazil, though the move is too small to suggest the news is driving anything. MSFT and KO are essentially flat with no headlines at all.\n\nNothing notable is moving market-wide outside your list. No major headlines coming through yet.\n\nThe week ahead doesn't show scheduled events for any of these three. Unless something breaks during the session, expect more of the same: a low-volume drift with nothing forcing a direction."
+        },
+        {
+          "run": 8,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "brief": "A quiet morning across your watchlist. AAPL, MSFT and KO are all drifting inside 0.2% in the pre-market, with nothing directional happening at the company level. The broader market is equally flat, the S&P and Nasdaq both up around a tenth of a percent at 4:09 AM ET.\n\nNo catalysts scheduled this week for the three names you're tracking, and no market-wide headlines breaking through overnight that would change the setup. \n\nThe day ahead looks like a wait for whether anything emerges from company-specific news or the weekly economic calendar. Until then, this is holding territory rather than a session with clear drivers already in motion."
+        }
+      ]
+    },
+    "sector_selloff": {
+      "description": "Three chip names fall together -- one story, not three.",
+      "runs": 8,
+      "checks": {
+        "mentions NVDA": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "mentions AMD": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "mentions MU": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never gives a direct recommendation": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never tells the reader to trade": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never sets a price target": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never predicts direction": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never claims certainty": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never uses a rating": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never nudges the reader about positioning": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never suggests an action": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never advises a posture": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never tells the reader when to act": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "no markdown headings": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "no bullet lists": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "no numbered lists": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "no bold markdown": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "between 1 and 4 paragraphs": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "reasonable length": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "judge verdict": {
+          "passed": 4,
+          "runs": 8,
+          "failure": "The brief states 'Headlines point to wider chip export rules' and 'memory controls appearing to land hardest on MU', which asserts causation between the regulatory news and the price moves rather than treating them as correlational or hedged possibilities."
+        }
+      },
+      "first_output": "The semiconductor names you're tracking are getting hit hard in pre-market: NVDA down 6%, AMD off 5%, and MU taking the worst of it at -7%. Headlines point to wider chip export rules, with memory controls appearing to land hardest on MU. The Nasdaq is down over 1% before the open, with the semiconductor index recording its steepest drop since March -- this is a sector story, not isolated to your list.\n\nKO is the only name holding flat, which makes sense given it has nothing to do with chips or export policy.\n\nNothing on the calendar this week for any of these names, so the next move depends on whether the export rule details get clarified or whether Washington adds anything further. The policy itself is the event.",
+      "failed_runs": [
+        {
+          "run": 1,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "brief": "The semiconductor names you're tracking are getting hit hard in pre-market: NVDA down 6%, AMD off 5%, and MU taking the worst of it at -7%. Headlines point to wider chip export rules, with memory controls appearing to land hardest on MU. The Nasdaq is down over 1% before the open, with the semiconductor index recording its steepest drop since March -- this is a sector story, not isolated to your list.\n\nKO is the only name holding flat, which makes sense given it has nothing to do with chips or export policy.\n\nNothing on the calendar this week for any of these names, so the next move depends on whether the export rule details get clarified or whether Washington adds anything further. The policy itself is the event."
+        },
+        {
+          "run": 2,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "brief": "The chip export rules widening is the story across your watchlist this morning -- NVDA, AMD and MU are all down sharply in pre-market, with MU taking the hardest hit at -7.2%, followed by NVDA at -6.1% and AMD at -5.4%. The headlines point to memory rules tightening, which may explain why MU is leading the decline. The Nasdaq 100 is off 1.2%, more than triple the S&P's -0.4%, consistent with tech carrying the weight.\n\nKO is the lone quiet spot, up fractionally with no news.\n\nNothing beyond these three semiconductor names is moving enough to warrant attention this morning -- the market-wide pressure is concentrated in chips. The calendar ahead is light; none of the names you're tracking have earnings or other scheduled events this week, so the focus stays on whether any clarity emerges around the export rules or how the sector digests them."
+        },
+        {
+          "run": 6,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "brief": "The semiconductor export rule widening is driving everything on your watchlist that matters this morning. MU down 7.2%, NVDA down 6.1% and AMD down 5.4% in the pre-market, with the Nasdaq 100 off 1.2% while the broader S&P is only down 0.4%. The memory sector appears to be taking the hardest hit, which may explain MU leading the decline.\n\nAll three chip names are moving together on the same headline, so this is a sector story rather than anything company-specific. The index is posting its worst session since March, which gives you some scale for how the Street is reading the rule change.\n\nKO is flat and quiet. Nothing scheduled this week for any of the four names you're tracking."
+        },
+        {
+          "run": 8,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "brief": "The chip export rules widening overnight are driving sharp losses across the semiconductor names on your watchlist. NVDA is down 6.1% in the pre-market, AMD off 5.4%, and MU taking the hardest hit at -7.2% as reports suggest memory rules are tightening specifically. This is the story today -- all three are moving together on the same headline, with the Nasdaq 100 down 1.2% as the broader semiconductor index posts its worst session since March.\n\nKO is flat at +0.2% and has no news.\n\nNothing outside your watchlist warrants attention this morning -- the market-wide move is concentrated in semiconductors, which you're already tracking through three names. The calendar is light this week, with no scheduled events for any of the companies you're following."
+        }
+      ]
+    },
+    "outside_mover": {
+      "description": "The watchlist is dull but something big happened elsewhere.",
+      "runs": 8,
+      "checks": {
+        "mentions LLY": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never gives a direct recommendation": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never tells the reader to trade": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never sets a price target": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never predicts direction": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never claims certainty": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never uses a rating": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never nudges the reader about positioning": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never suggests an action": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never advises a posture": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never tells the reader when to act": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "no markdown headings": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "no bullet lists": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "no numbered lists": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "no bold markdown": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "between 1 and 4 paragraphs": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "reasonable length": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "judge verdict": {
+          "passed": 4,
+          "runs": 8,
+          "failure": "The brief tells the reader how to be positioned with 'If you're tracking anything in pharma or diabetes outside these two names, today may matter for those as well' -- this is advice on what positions to care about, not just directing attention."
+        }
+      },
+      "first_output": "Your watchlist is quiet in the pre-market, with AAPL up 0.3% and KO down 0.2% \u2014 minor drift with no catalysts. The action is happening elsewhere this morning.\n\nLLY is up 11.4% and NVO is down 7.8%, which may be connected to the late-stage obesity trial readout that came in ahead of expectations. The pharma move is the only real story before the bell; nothing on your list is touching it.\n\nThe week ahead is clean for both names you're tracking \u2014 no earnings, no major scheduled events that would demand attention.",
+      "failed_runs": [
+        {
+          "run": 3,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "brief": "Your watchlist is quiet in the pre-market -- AAPL and KO both barely moving -- while the real action is in weight-loss drugs. LLY is up 11% and NVO down 8%, which lines up with a late-stage obesity trial headline, though the details of which company delivered the data and what it showed aren't in front of me.\n\nThe broad market is flat, so this is a sector story rather than a tide lifting everything. If you're tracking anything in pharma or diabetes outside these two names, today may matter for those as well.\n\nNothing scheduled this week for either name on your list. The next catalyst will be whatever headlines cross rather than anything on the calendar."
+        },
+        {
+          "run": 4,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "brief": "Your two names are flat in the pre-market -- AAPL up 0.3%, KO down 0.2%, both quiet moves with nothing scheduled today or this week.\n\nThe action is in weight-loss drugs. LLY is up 11% and NVO down 8%, which may be related to the late-stage obesity trial readout that beat expectations this morning. If you track either pharmaceutical name or have been watching this space, that's the headline.\n\nOtherwise, this is a quiet start to the week for your watchlist. The S&P is up 0.1%, and nothing on your list has an event or earnings date coming that would change the tempo."
+        },
+        {
+          "run": 6,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "brief": "Your watchlist is quiet in the pre-market -- AAPL up 0.3%, KO down 0.2%, neither worth flagging.\n\nThe big move out there is LLY, up 11.4% after a late-stage obesity trial beat expectations. NVO is down 7.8% in response, which is the other side of that trade. If you're interested in weight-loss drugs or pharma catalysts, that's the headline this morning.\n\nNothing scheduled this week for AAPL or KO."
+        },
+        {
+          "run": 8,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "brief": "Your watchlist is quiet in pre-market, with AAPL and KO both moving less than half a percent. Nothing scheduled for either this week.\n\nThe big move outside your list is LLY up 11% in early trading, which may be related to the obesity trial headline this morning. NVO is down nearly 8% -- often these names move inversely when trial results favor one program over another, though the connection isn't confirmed.\n\nOtherwise a calm start to the week, with the S&P barely changed. Worth checking midweek whether any earnings dates get announced for names you're tracking, but the calendar is empty for now."
+        }
+      ]
+    },
+    "theme_selloff_one_holds_up": {
+      "description": "A storage theme sells off together; one name holds up.",
+      "runs": 8,
+      "checks": {
+        "mentions MU": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never gives a direct recommendation": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never tells the reader to trade": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never sets a price target": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never predicts direction": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never claims certainty": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never uses a rating": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never nudges the reader about positioning": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never suggests an action": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never advises a posture": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never tells the reader when to act": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "no markdown headings": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "no bullet lists": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "no numbered lists": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "no bold markdown": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "between 1 and 4 paragraphs": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "reasonable length": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "judge verdict": {
+          "passed": 4,
+          "runs": 8,
+          "failure": "The brief asserts causation in 'The memory and storage names are getting hit hard... on news that NAND contract prices fell' and 'The NAND pricing headline is the one thing driving action', both stating as fact that the headline is causing the moves rather than using correlational framing."
+        }
+      },
+      "first_output": "The biggest story on your watchlist is the memory and storage collapse: SNDK, WDC and STX are all down between 8.5% and 9.0% in pre-market, which may be related to the NAND contract price report showing a second month of declines. MU is down just 1.2%, holding up much better than its peers -- worth watching whether that gap holds or closes as the session opens.\n\nYour AI compute names are quiet, all moving together with small declines around a percent or less, roughly in line with the broader chip benchmark SMH down 1.0%. The Nasdaq 100 is off half a percent in early trading, the S&P 300 down 0.3%.\n\nNothing notable happening beyond your list this morning -- the market-wide action is quiet outside of memory.",
+      "failed_runs": [
+        {
+          "run": 2,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "brief": "The memory and storage names are getting hit hard in the pre-market, down nearly 9% on news that NAND contract prices fell for a second consecutive month. SNDK, WDC and STX are all moving together in that 8.5-9% range. MU is tracking down only about 1%, holding up 7.6 points better than the others -- a company-specific split worth watching as the session opens.\n\nThe AI compute group is quiet by comparison, down less than 1% across NVDA, AMD, AVGO and TSM. That's roughly in line with the broader semiconductor benchmark, which is off 1%, while the Nasdaq 100 is down half a percent.\n\nThe NAND pricing headline is the one thing driving action on your watchlist this morning. Nothing notable beyond what you're already tracking.\n\nNo scheduled catalysts for these names this week based on the data here."
+        },
+        {
+          "run": 4,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "brief": "The memory and storage names are getting hit hard in premarket -- SNDK, WDC and STX are each down between 8.5% and 9% following a report that NAND contract prices fell for a second consecutive month. MU is holding up notably better at -1.2%, outperforming its storage peers by more than 7 points, which may be related to its broader exposure beyond NAND.\n\nThe AI compute names you're tracking are quiet by comparison, down less than 1.5% each and moving roughly in line with one another. The sector benchmark (SMH) is off 1%, so they're holding close to that level.\n\nNothing beyond your watchlist requires attention this morning -- the broader market is down modestly, with the Nasdaq off half a percent, but there are no standout movers or headlines outside what's already covered here."
+        },
+        {
+          "run": 5,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "brief": "The memory and storage theme is getting hit hard -- SNDK, WDC and STX are each down 8 to 9% in pre-market after contract prices for NAND fell for the second month. MU is holding up better at -1.2%, outperforming its peers by more than seven points, which may be related to its different DRAM mix versus the pure NAND exposure at the others.\n\nYour AI compute names -- NVDA, AMD, AVGO and TSM -- are tracking the SMH benchmark down about 1%, a quiet move compared to what's happening in storage. The broader market is down modestly, with the Nasdaq 100 off half a percent.\n\nNothing scheduled this week on either theme that would shift the narrative, so the storage pricing story will likely set the tone until something else arrives."
+        },
+        {
+          "run": 7,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "brief": "The memory and storage theme is getting hammered, down roughly 9% across SNDK, WDC and STX on a second month of falling NAND contract prices. MU is the exception, down just 1.2%, holding up 7.6 points better than its peers -- potentially benefiting from a different product mix or customer base, though the headline mentions NAND specifically. The AI compute names are barely moving by comparison, down less than a percent each and tracking the SMH benchmark.\n\nNothing outside your watchlist is moving enough to warrant attention this morning. The broader market is down modestly -- S&P off 0.3%, Nasdaq 100 off 0.5% -- but this is a storage story, not a market-wide one.\n\nThe pricing pressure in NAND is the immediate driver here. Worth watching whether MU continues to hold up as a tell on which parts of the memory market are under the most strain, or whether this broadens to pull it down too."
+        }
+      ]
+    }
+  }
+}

@@ -70,3 +70,62 @@ Two failed rule (c) for "AAPL, MSFT and KO have nothing scheduled this week"
 -- the scenario carries no calendar data at all -- and that sentence is,
 word for word, the prompt's own example of how to state calendar facts.
 The prompt was teaching an ungrounded claim.
+
+## Round 2 -- end on a fact; describe the market, not the reader (485465a)
+
+Change: outline item 4 asks for earnings in the next week as the data gives
+them, and to leave the item out rather than fill it with a verdict; the
+posture rule names where advice hides (the closing line, a conditional about
+the reader) and says to end on the last fact; the ungrounded calendar
+example is replaced with a grounded one.
+
+| | baseline | round 1 | round 2 |
+|---|---|---|---|
+| quiet_day | 1/8 | 1/8 | 4/8 |
+| sector_selloff | 4/8 | 6/8 | 8/8 |
+| outside_mover | 4/8 | 5/8 | 7/8 |
+| theme_selloff_one_holds_up | 4/8 | 7/8 | 8/8 |
+| **Train** | **13/32 (41%)** | **19/32 (59%)** | **27/32 (84%)** |
+
+Train passed the 80% stopping line after two of the three rounds allowed.
+Of the five remaining failures, one was the judge itself returning prose
+instead of JSON (which counts as a failure by design), one an asserted cause
+("up 0.2% on a headline"), one background the data didn't contain
+("pre-market volumes are typically light"), one borderline ("no
+company-specific news driving any of the three names").
+
+## Result: the held-out test set (485465a)
+
+Run once, after tuning stopped; none of these outputs had been read before.
+
+| Test scenario | baseline | after |
+|---|---|---|
+| single_crash | 4/8 | 7/8 |
+| quiet_themes_one_mover | 2/8 | 5/8 |
+| quiet_themes_no_events | 4/8 | 7/8 |
+| single_mover_with_headline | 1/8 | 6/8 |
+| theme_rally_policy_headline | 3/8 | 6/8 |
+| **Test** | **14/40 (35%)** | **31/40 (78%)** |
+
+**+43 points on cases the changes weren't fitted to**, about twice the
+noise floor, and every test scenario improved -- including the three written
+for this, whose surface details (a recall, a grid-connection ruling, an
+all-quiet theme day) don't appear in the train set.
+
+What's left, and what would address it:
+
+- **Calendar claims, 4.** "No earnings reports scheduled for the coming
+  week." The brief's input doesn't say whether a name reports soon -- only
+  an attention reason like "earnings in 3d" does, when there is one -- so
+  the prompt can't make the claim checkable. The fix is in the code: give
+  each name its next report date in the brief's input. (One of the four was
+  "No earnings scheduled in the data provided", which is literally true; the
+  judge was strict there.)
+- **Asserted cause, 4.** Fewer and subtler: "the one headline driving
+  action", "investors are weighing both the direct costs...".
+- **Judge format, 1.** A prose verdict instead of JSON. Parsing the JSON out
+  of a prose reply would stop the harness charging the brief for the
+  judge's formatting.
+
+Spend: about $5 of the $8 budget -- baseline $2, two train rounds about
+$0.9 each, the test run about $1, judge-stability checks about $0.1.
