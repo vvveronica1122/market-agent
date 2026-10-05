@@ -294,6 +294,14 @@ def main() -> int:
                           {"quiet_themes_no_events", "single_mover_with_headline",
                            "theme_rally_policy_headline"} <= held_out, str(held_out))
 
+    from analysis_scenarios import ANALYSIS_SCENARIOS as _AS
+    failures += not check("every analysis scenario is explicitly train or test",
+                          all(sp.get("split") in ("train", "test") for sp in _AS.values()))
+    failures += not check("the analysis scenarios written to be held out are in the test split",
+                          {n for n, sp in _AS.items() if sp["split"] == "test"} ==
+                          {"theme_rally_with_upgrade_headline", "mixed_move_report_tomorrow",
+                           "company_rise_no_news"})
+
     print("\nThe action rule, after its false positive")
     spelling = "No price data is available for ZZZZ. You may want to double-check the ticker symbol."
     failures += not check("advice to check a spelling is not a suggested action",
@@ -327,11 +335,10 @@ def main() -> int:
             sent = server.client.last_input or ""
             failures += not check(f"analysis scenario '{name}' runs and its theme comparison reaches the model",
                                   out == "Stub analysis." and '"theme_comparison"' in sent
-                                  and '"peer_median_change_percent"' in sent, out[:60])
+                                  and '"peer_median_change_percent"' in sent
+                                  and f'"ticker": "{spec["ticker"]}"' in sent, out[:60])
     finally:
         server.client = saved_client
-    failures += not check("the recorder keeps what was sent, for the judge",
-                          '"ticker": "VRT"' in sent)
 
     print("\nJudge evidence")
     # The first saved baseline failed a correct answer as "invented" because

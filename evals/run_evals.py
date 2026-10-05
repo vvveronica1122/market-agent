@@ -304,8 +304,11 @@ def main() -> int:
     parser.add_argument("--skip-analysis", action="store_true",
                         help="leave out the stock-page analysis scenarios")
     parser.add_argument("--split", choices=["train", "test"],
-                        help="only the brief scenarios in this split (no analysis, no themes): "
-                             "train while tuning a prompt, test once at the end")
+                        help="only the scenarios in this split (no themes): train while tuning "
+                             "a prompt, test once at the end. Brief scenarios, or with "
+                             "--analysis-only the stock-analysis ones")
+    parser.add_argument("--analysis-only", action="store_true",
+                        help="only the stock-analysis scenarios (combine with --split)")
     parser.add_argument("--text", metavar="PATH",
                         help="with --judge-stability: judge this saved text instead of a "
                              "freshly generated one, so a specific borderline case can be pinned down")
@@ -343,6 +346,10 @@ def main() -> int:
         chosen = {args.scenario: SCENARIOS[args.scenario]} if args.scenario in SCENARIOS else {}
         analyses = ({args.scenario: ANALYSIS_SCENARIOS[args.scenario]}
                     if args.scenario in ANALYSIS_SCENARIOS else {})
+    elif args.analysis_only:
+        chosen = {}
+        analyses = {n: sp for n, sp in ANALYSIS_SCENARIOS.items()
+                    if not args.split or sp["split"] == args.split}
     elif args.split:
         chosen = {n: sp for n, sp in SCENARIOS.items() if sp["split"] == args.split}
         analyses = {}
@@ -364,7 +371,7 @@ def main() -> int:
         failed += outcome["failed"]
         records[f"analysis:{name}"] = outcome["record"]
 
-    if not args.scenario and not args.skip_themes and not args.split:
+    if not args.scenario and not args.skip_themes and not args.split and not args.analysis_only:
         outcome = run_theme_eval()
         checks += outcome["checks"]
         failed += outcome["failed"]
@@ -372,7 +379,8 @@ def main() -> int:
 
     if args.save:
         settings = {"runs": args.runs, "scenario": args.scenario, "skip_themes": args.skip_themes,
-                    "skip_analysis": args.skip_analysis, "split": args.split}
+                    "skip_analysis": args.skip_analysis, "split": args.split,
+                    "analysis_only": args.analysis_only}
         path = save_run("brief", server.MODEL, settings, records, args.dry_run)
         print(f"\nSaved to {path.relative_to(PROJECT_ROOT)}")
 
