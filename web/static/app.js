@@ -1837,12 +1837,17 @@ function buildFundamentalsPanel(data) {
       "like a March one.");
     explain.style.margin = "0 0 10px";
     panel.appendChild(explain);
+    const currency = quarters[quarters.length - 1].currency;
+    if (currency && currency !== "USD") {
+      explain.textContent += ` Figures are in ${currency}, the currency ${data.ticker} reports in; ` +
+        "its share price is in US dollars.";
+    }
     const barWrap = el("div", "chart-wrap");
     barCanvas = el("canvas", "bar-chart");
     barCanvas.setAttribute("role", "img");
     barCanvas.setAttribute("aria-label",
       `Quarterly revenue for ${data.ticker}: ` +
-      quarters.map((q) => `${periodLabel(q.period)} $${bigMoney(q.revenue)}`).join(", "));
+      quarters.map((q) => `${periodLabel(q.period)} ${reported(q.revenue, q.currency)}`).join(", "));
     barWrap.appendChild(barCanvas);
     panel.appendChild(barWrap);
 
@@ -1851,7 +1856,7 @@ function buildFundamentalsPanel(data) {
     if (yearAgo && yearAgo.revenue) {
       const yoy = ((latest.revenue - yearAgo.revenue) / yearAgo.revenue) * 100;
       const note = el("p", "view-sub",
-        `Most recent quarter $${bigMoney(latest.revenue)}, ` +
+        `Most recent quarter ${reported(latest.revenue, latest.currency)}, ` +
         `${yoy >= 0 ? "up" : "down"} ${Math.abs(yoy).toFixed(1)}% from the same quarter a year earlier. ` +
         `Year-over-year rather than quarter-to-quarter, since many businesses are seasonal.`);
       note.style.margin = "12px 0 0";
@@ -2606,6 +2611,12 @@ function drawReactionChart(canvas, reactions) {
 
 /* ---------------- quarterly revenue chart ---------------- */
 
+// Reported figures are in the company's own currency, not always dollars
+// (TSM reports in Taiwan dollars): "$" only for USD, the code otherwise.
+function reported(value, currency) {
+  return !currency || currency === "USD" ? "$" + bigMoney(value) : `${currency} ${bigMoney(value)}`;
+}
+
 const BAR_PAD = { left: 10, right: 10, top: 26, bottom: 30 };
 
 function drawQuarterlyBars(canvas, quarters, hoverIndex) {
@@ -2651,7 +2662,7 @@ function drawQuarterlyBars(canvas, quarters, hoverIndex) {
 
     ctx.fillStyle = COLORS.muted;
     ctx.textBaseline = "bottom";
-    ctx.fillText("$" + bigMoney(q.revenue), x + barW / 2, y - 6);
+    ctx.fillText(reported(q.revenue, q.currency), x + barW / 2, y - 6);
 
     ctx.textBaseline = "top";
     ctx.fillText(periodLabel(q.period), x + barW / 2, baseline + 8);
@@ -2702,12 +2713,12 @@ function showQuarterTooltip(q, clientX, clientY) {
   tooltipEl.replaceChildren();
   const value = el("div", "tip-value");
   value.appendChild(el("span", "tip-key"));
-  value.appendChild(el("span", null, "$" + bigMoney(q.revenue)));
+  value.appendChild(el("span", null, reported(q.revenue, q.currency)));
   tooltipEl.appendChild(value);
   tooltipEl.appendChild(el("div", "tip-label", "Revenue · " + periodLabel(q.period)));
   if (q.net_income !== null && q.net_income !== undefined) {
     tooltipEl.appendChild(
-      el("div", "tip-label", `Net income $${bigMoney(q.net_income)}` +
+      el("div", "tip-label", `Net income ${reported(q.net_income, q.currency)}` +
          (q.net_margin !== null && q.net_margin !== undefined ? ` (${num(q.net_margin, 1)}% margin)` : ""))
     );
   }

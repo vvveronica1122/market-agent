@@ -199,9 +199,15 @@ def get_quarterly_results(ticker: str, quarters: int = 6) -> list[dict[str, Any]
     Quarterly rather than annual on purpose -- annual figures hide the
     seasonality that makes a retailer's December look nothing like its
     March.
+
+    Each period carries the currency the company reports in, which isn't
+    always the dollar its shares trade in: TSM's statements are in Taiwan
+    dollars, and without the label its NT$1.27 trillion quarter was shown,
+    by the dashboard and by the agent, as $1.27 trillion.
     """
+    stock = yf.Ticker(ticker)
     try:
-        frame = yf.Ticker(ticker).quarterly_income_stmt
+        frame = stock.quarterly_income_stmt
     except Exception:
         return []
 
@@ -213,6 +219,11 @@ def get_quarterly_results(ticker: str, quarters: int = 6) -> list[dict[str, Any]
                   "Net Income From Continuing Operation Net Minority Interest")
     if revenue is None:
         return []
+
+    try:
+        currency = (stock.info or {}).get("financialCurrency")
+    except Exception:
+        currency = None
 
     periods = []
     for column in list(frame.columns)[:quarters]:
@@ -227,6 +238,7 @@ def get_quarterly_results(ticker: str, quarters: int = 6) -> list[dict[str, Any]
                 "revenue": rev,
                 "net_income": net,
                 "net_margin": round(net / rev * 100, 1) if net is not None and rev else None,
+                "currency": currency,
             }
         )
 

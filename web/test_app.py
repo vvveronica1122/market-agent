@@ -674,6 +674,22 @@ def main() -> int:
         empty = fundamentals.get_earnings_schedule("TEST")
         failures += not check("no date is reported as no date, never invented",
                               empty["next_date"] is None and empty["source"] is None, str(empty))
+
+        import pandas as pd
+
+        class _TaiwanTicker:
+            """Reports in Taiwan dollars, trades in US dollars."""
+            def __init__(self, symbol):
+                self.symbol = symbol
+                self.info = {"financialCurrency": "TWD", "currency": "USD"}
+                self.quarterly_income_stmt = pd.DataFrame(
+                    {pd.Timestamp("2026-06-30"): [1.27e12, 7.07e11]},
+                    index=["Total Revenue", "Net Income"])
+
+        fundamentals.yf = _FakeYF(_TaiwanTicker)
+        quarters = fundamentals.get_quarterly_results("TSM")
+        failures += not check("quarterly results carry the currency the company reports in",
+                              quarters and quarters[0]["currency"] == "TWD", str(quarters))
     finally:
         fundamentals.yf = real_yf
 

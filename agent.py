@@ -87,6 +87,13 @@ which one, name it in the first sentence -- don't do the lookups and then leave 
 to infer the answer from the data you present. If the question has two parts, answer both
 parts explicitly.
 
+The reader sees only your final message, not anything you write alongside a tool call. So put
+the whole answer in the final message, after your last lookup, and don't narrate the lookups.
+
+Give amounts in the currency the data gives. A company may report in its home currency (TWD,
+EUR, JPY) while its shares trade in dollars: write "NT$1.27 trillion" or "TWD 1.27 trillion",
+never "$1.27 trillion", for a figure that isn't in US dollars.
+
 Plain prose only. No markdown: no ** bold **, no bullet lists, no headings. This is read in
 a terminal and in a plain chat panel, where that syntax shows up as literal characters.
 
@@ -223,7 +230,8 @@ TOOLS = [
         "description": (
             "Get recent quarterly revenue, net income and profit margin for a company, oldest "
             "first. Use this for questions about whether a business is growing or shrinking, or "
-            "about seasonality."
+            "about seasonality. Amounts are in the company's reporting currency, given in each "
+            "period's 'currency' field -- not always US dollars for companies based abroad."
         ),
         "input_schema": {
             "type": "object",

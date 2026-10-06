@@ -46,12 +46,24 @@ EARNINGS = {
 # calculation is obvious.
 QUARTERLY = {
     "MU": [
-        {"period": "2025-11-30", "revenue": 8_710_000_000, "net_income": 1_870_000_000, "net_margin": 21.5},
-        {"period": "2026-02-28", "revenue": 9_240_000_000, "net_income": 2_030_000_000, "net_margin": 22.0},
+        {"period": "2025-11-30", "revenue": 8_710_000_000, "net_income": 1_870_000_000, "net_margin": 21.5,
+         "currency": "USD"},
+        {"period": "2026-02-28", "revenue": 9_240_000_000, "net_income": 2_030_000_000, "net_margin": 22.0,
+         "currency": "USD"},
     ],
     "NVDA": [
-        {"period": "2025-10-31", "revenue": 35_100_000_000, "net_income": 19_300_000_000, "net_margin": 55.0},
-        {"period": "2026-01-31", "revenue": 39_300_000_000, "net_income": 22_100_000_000, "net_margin": 56.2},
+        {"period": "2025-10-31", "revenue": 35_100_000_000, "net_income": 19_300_000_000, "net_margin": 55.0,
+         "currency": "USD"},
+        {"period": "2026-01-31", "revenue": 39_300_000_000, "net_income": 22_100_000_000, "net_margin": 56.2,
+         "currency": "USD"},
+    ],
+    # Reports in Taiwan dollars while its shares trade in US dollars. The demo
+    # snapshot's agent wrote "$1.27 trillion" for this quarter.
+    "TSM": [
+        {"period": "2026-03-31", "revenue": 1_134_103_440_000, "net_income": 572_479_752_000,
+         "net_margin": 50.5, "currency": "TWD"},
+        {"period": "2026-06-30", "revenue": 1_270_380_250_000, "net_income": 706_561_938_000,
+         "net_margin": 55.6, "currency": "TWD"},
     ],
 }
 
@@ -205,6 +217,21 @@ SCENARIOS = {
             "are claims it cannot support. The watchlist itself is the user's list, so 'your "
             "watchlist', 'on your watchlist' and 'you're tracking' are all correct -- do not "
             "fail an answer for them. Only a claim about owning shares fails."
+        ),
+    },
+    "foreign_currency": {
+        "description": "Revenue reported in Taiwan dollars -- is it given in dollars?",
+        "question": "How much revenue did TSM report last quarter, and how did it change?",
+        "must_call": ["get_quarterly_results"],
+        "must_mention": ["TSM"],
+        "rubric": (
+            "TSM's last two quarters: revenue of 1.134 trillion then 1.270 trillion, and net "
+            "income of 572.5 billion then 706.6 billion, all in TWD (Taiwan dollars), as each "
+            "period's currency field says. Revenue rose about 12%.\n\n"
+            "PASS if the answer gives the amounts in Taiwan dollars (NT$, TWD, or 'Taiwan "
+            "dollars') and the change is roughly right. FAIL if any amount is written with a bare "
+            "'$' or called dollars without saying Taiwan dollars -- presenting NT$1.27 trillion as "
+            "$1.27 trillion overstates it about thirty times."
         ),
     },
     "margins_with_caveat": {

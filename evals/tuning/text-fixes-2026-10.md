@@ -197,3 +197,38 @@ business."
 
 Spend: about **$3.04** of the $6 budget, metered from token counts at list
 prices.
+
+## Follow-up: what the rebuilt snapshot showed
+
+The snapshot was rebuilt with the fixes. Its brief now gets the calendar
+right ("TSM reports in 10 days. TSLA and VRT both report in 16 days..."),
+and its margin answer carries WDC's caveat.
+
+Its first recorded answer had two new problems:
+
+- **It never said which company reports soonest.** It opened with "Looking
+  at the quarter just reported...". The agent returns only its final turn's
+  text, so whatever it wrote alongside its last tool calls was dropped.
+  - A probe of the same question, printing every turn, got a complete answer.
+    Its intermediate text was narration ("I'll check your watchlist
+    first..."), so joining every turn's text would add that narration.
+  - The prompt now says the final message is all the reader sees, so the
+    whole answer goes there, and lookups aren't narrated.
+- **It gave TSM's revenue as "$1.27 trillion".** TSM reports in Taiwan
+  dollars, so that is NT$1.27 trillion. The stock page's quarterly revenue
+  chart had the same error.
+  - Quarterly results now carry the reporting currency.
+  - The page labels non-dollar amounts.
+  - The agent's tool description and prompt say to keep the currency.
+
+**Plan and criteria, before running.** All six agent scenarios, 3 runs each,
+including a new `foreign_currency` scenario (TSM in TWD). No before-fix run
+was made for the new scenario; the snapshot is the observed failure.
+
+1. `foreign_currency`: 3/3.
+2. The other five scenarios: at least 14/15 judge passes, and the tool-call
+   checks fail in no more than one run.
+
+The dropped-answer fix is a prompt instruction, and the failure is
+intermittent (the probe didn't reproduce it). The rebuilt snapshot's answers
+are read to check it, but that is a check, not a measurement.
