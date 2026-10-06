@@ -189,6 +189,13 @@ button { font-family: inherit; }
   font: inherit;
 }
 
+/* A grid item's minimum width defaults to its content's, so one long
+   headline (nowrap, for the ellipsis) widened its column past the card and
+   pushed the price, chart and Edit button out of the row -- and out of line
+   with the rows above and below. Letting every cell shrink keeps the
+   columns the template says, and the ellipsis can do its job. */
+.row > * { min-width: 0; }
+
 .row:hover { background: var(--surface-hover); }
 .row:focus-visible { outline: 2px solid var(--series-1); outline-offset: 2px; }
 

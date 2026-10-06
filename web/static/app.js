@@ -1138,6 +1138,13 @@ function cssEscape(value) {
   return String(value).replace(/["\\]/g, "\\$&");
 }
 
+// One line, cut with an ellipsis when it's long; the whole headline on hover.
+function headlineCell(text) {
+  const cell = el("div", "headline", text || "No recent headlines");
+  if (text) cell.title = text;
+  return cell;
+}
+
 function buildThemeRow(row, theme) {
   const level = row.attention ? row.attention.level : "quiet";
   const item = el("div", `row theme-row level-${level}`);
@@ -1161,7 +1168,7 @@ function buildThemeRow(row, theme) {
   if (row.error) {
     middle.appendChild(el("div", "row-error", row.error));
   } else {
-    middle.appendChild(el("div", "headline", row.top_headline || "No recent headlines"));
+    middle.appendChild(headlineCell(row.top_headline));
     const factors = el("div", "factors");
     (row.attention ? row.attention.factors : []).forEach((f) => {
       factors.appendChild(el("span", "chip " + (f.tone === "neutral" ? "" : f.tone), f.label));
@@ -1466,7 +1473,7 @@ function buildRow(row, opts) {
   if (row.error) {
     middle.appendChild(el("div", "row-error", row.error));
   } else {
-    middle.appendChild(el("div", "headline", row.top_headline || "No recent headlines"));
+    middle.appendChild(headlineCell(row.top_headline));
     const factors = el("div", "factors");
     (row.attention ? row.attention.factors : []).forEach((f) => {
       factors.appendChild(el("span", "chip " + (f.tone === "neutral" ? "" : f.tone), f.label));
