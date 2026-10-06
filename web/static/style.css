@@ -48,6 +48,10 @@ body {
 
 button { font-family: inherit; }
 
+/* Reserve the scrollbar's width, so a page that grows long enough to
+   scroll once its data arrives doesn't shift sideways. */
+html { scrollbar-gutter: stable; }
+
 .app { display: flex; min-height: 100vh; }
 
 /* ---------- sidebar ---------- */

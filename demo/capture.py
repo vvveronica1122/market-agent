@@ -11,18 +11,30 @@ it wherever you run this (pip install playwright). It uses Playwright's own
 headless Chromium if installed, else your Google Chrome; with Chrome's
 headless mode the video lost its bottom 87 pixels to a grey band, so the
 former is preferred. Screenshots are reduced to 256 colours when Pillow is
-available (a third of the size, no visible change for a UI). The video is
-WebM; Playwright draws no mouse pointer, so the page gets one injected.
+available (a third of the size, no visible change for a UI).
+
+The video is rendered frame by frame rather than screen-recorded:
+Playwright's recorder captured frames mid-repaint, so scrolling showed
+stale strips of the previous position over the new one, which read as a
+shake. Here each frame is a screenshot taken once the page has painted,
+the scroll and the pointer move a fixed step per frame, and the frames are
+encoded at 25 per second: WebM with Playwright's bundled ffmpeg, MP4 with
+demo/frames_to_mp4.swift on macOS. Playwright draws no mouse pointer, so
+the page gets one injected.
 """
 
 from __future__ import annotations
 
 import argparse
 import functools
+import glob
 import http.server
+import os
 import shutil
 import socketserver
+import subprocess
 import sys
+import tempfile
 import threading
 from pathlib import Path
 
@@ -136,76 +148,155 @@ def screenshots(browser, base: str, out: Path) -> list[Path]:
     return written
 
 
-def walkthrough(browser, base: str, out: Path) -> Path:
+FPS = 25
+
+
+def ease(t: float) -> float:
+    return 4 * t * t * t if t < 0.5 else 1 - (-2 * t + 2) ** 3 / 2
+
+
+class Frames:
+    """A video built one finished frame at a time."""
+
+    def __init__(self, page, folder: Path):
+        self.page, self.folder, self.count = page, folder, 0
+        self.pointer = (720.0, 450.0)
+        self.last: bytes | None = None
+
+    def _write(self, data: bytes) -> None:
+        self.count += 1
+        (self.folder / f"{self.count:05d}.jpg").write_bytes(data)
+        self.last = data
+
+    def shot(self) -> None:
+        self._write(self.page.screenshot(type="jpeg", quality=92))
+
+    def hold(self, seconds: float) -> None:
+        if self.last is None:
+            self.shot()
+        for _ in range(round(seconds * FPS)):
+            self._write(self.last)
+
+    def scroll(self, dy: int, seconds: float = 1.1) -> None:
+        start = self.page.evaluate("window.scrollY")
+        steps = round(seconds * FPS)
+        for i in range(1, steps + 1):
+            self.page.evaluate(f"window.scrollTo(0, {start + dy * ease(i / steps):.1f})")
+            self.shot()
+
+    def glide(self, selector: str, seconds: float = 0.6) -> None:
+        box = self.page.locator(selector).first.bounding_box()
+        target = (box["x"] + box["width"] / 2, box["y"] + box["height"] / 2)
+        x0, y0 = self.pointer
+        steps = round(seconds * FPS)
+        for i in range(1, steps + 1):
+            t = ease(i / steps)
+            self.pointer = (x0 + (target[0] - x0) * t, y0 + (target[1] - y0) * t)
+            self.page.mouse.move(*self.pointer)
+            self.shot()
+
+    def click(self, selector: str) -> None:
+        self.glide(selector)
+        self.page.mouse.down()
+        self.hold(0.12)
+        self.page.mouse.up()             # the click itself, where the pointer is
+        settle(self.page)
+        self.page.mouse.move(*self.pointer)
+        self.shot()
+
+
+def encode(frames: Path, out: Path) -> list[Path]:
+    """WebM through Playwright's ffmpeg, MP4 through AVFoundation, and the
+    first frame as a poster -- whichever tools this machine has."""
+    written = []
+    files = sorted(frames.glob("*.jpg"))
+    ffmpeg = sorted(glob.glob(os.path.expanduser("~/Library/Caches/ms-playwright/ffmpeg-*/ffmpeg-*"))
+                    + glob.glob(os.path.expanduser("~/.cache/ms-playwright/ffmpeg-*/ffmpeg-*")))
+    if ffmpeg:
+        webm = out / "walkthrough.webm"
+        proc = subprocess.Popen([ffmpeg[-1], "-y", "-loglevel", "error", "-f", "image2pipe",
+                                 "-c:v", "mjpeg", "-r", str(FPS), "-i", "pipe:0", "-c:v", "libvpx",
+                                 "-b:v", "1500k", "-qmin", "2", "-qmax", "30", str(webm)],
+                                stdin=subprocess.PIPE)
+        for f in files:
+            proc.stdin.write(f.read_bytes())
+        proc.stdin.close()
+        if proc.wait() == 0:
+            written.append(webm)
+    if shutil.which("swift"):
+        mp4 = out / "walkthrough.mp4"
+        result = subprocess.run(["swift", str(ROOT / "demo" / "frames_to_mp4.swift"), str(frames),
+                                 str(mp4), str(FPS), "1200000"], capture_output=True, text=True)
+        if result.returncode == 0:
+            written.append(mp4)
+        else:
+            print(result.stderr[-400:])
+    poster = out / "walkthrough-poster.png"
+    try:
+        from PIL import Image
+        Image.open(files[0]).convert("RGB").save(poster, optimize=True)
+        shrink(poster)
+        written.append(poster)
+    except ImportError:
+        pass
+    return written
+
+
+def walkthrough(browser, base: str, out: Path) -> list[Path]:
     """About a minute: home and the brief, a theme's tabs, a company, Ask."""
     out.mkdir(parents=True, exist_ok=True)
-    raw = out / "raw"
-    context = browser.new_context(viewport=DESKTOP, record_video_dir=str(raw), record_video_size=DESKTOP)
+    context = browser.new_context(viewport=DESKTOP)
     context.add_init_script(POINTER_JS)
     page = context.new_page()
-    mouse = page.mouse
-
-    def glide(selector: str, index: int = 0) -> None:
-        box = page.locator(selector).nth(index).bounding_box()
-        mouse.move(box["x"] + box["width"] / 2, box["y"] + box["height"] / 2, steps=25)
-        page.wait_for_timeout(250)
-
-    def click(selector: str, index: int = 0) -> None:
-        glide(selector, index)
-        page.locator(selector).nth(index).click()
-        settle(page)
-
-    def scroll(pixels: int, pause: int = 900) -> None:
-        for _ in range(abs(pixels) // 60):
-            mouse.wheel(0, 60 if pixels > 0 else -60)
-            page.wait_for_timeout(30)
-        page.wait_for_timeout(pause)
+    folder = Path(tempfile.mkdtemp(prefix="walkthrough-"))
+    v = Frames(page, folder)
 
     page.goto(base + "#/")
     settle(page)
-    mouse.move(720, 450)
-    page.wait_for_timeout(1800)
-    scroll(500, 1600)                                 # the brief, then the theme cards
-    scroll(600, 1600)
-    scroll(-1100, 600)
+    page.mouse.move(*v.pointer)
+    v.shot()
+    v.hold(1.8)
+    v.scroll(500); v.hold(1.6)                       # the brief, then the theme cards
+    v.scroll(600); v.hold(1.6)
+    v.scroll(-1100, 1.0); v.hold(0.4)
 
-    click('.nav-themes a[href="#/theme/memory-storage"]')
-    page.wait_for_timeout(1800)
-    scroll(400, 1400)
-    scroll(-400, 400)
+    v.click('.nav-themes a[href="#/theme/memory-storage"]')
+    v.hold(1.8)
+    v.scroll(400); v.hold(1.4)
+    v.scroll(-400, 0.8); v.hold(0.3)
     for tab in ("performance", "earnings", "peers"):
-        click(f'.tabs a[href="#/theme/memory-storage/{tab}"]')
-        page.wait_for_timeout(1500)
-        scroll(450, 1300)
-        scroll(-450, 300)
+        v.click(f'.tabs a[href="#/theme/memory-storage/{tab}"]')
+        v.hold(1.5)
+        v.scroll(450); v.hold(1.3)
+        v.scroll(-450, 0.8); v.hold(0.3)
 
-    page.goto(base + "#/theme/memory-storage")
-    settle(page)
-    click('.theme-row[aria-label^="MU,"]')
-    page.wait_for_timeout(1500)
-    scroll(500, 1500)
-    scroll(-500, 300)
-    click('.tabs a[href="#/stock/MU/earnings"]')
-    page.wait_for_timeout(1300)
-    scroll(500, 1500)
-    scroll(-500, 300)
+    v.click('.tabs a[href="#/theme/memory-storage"]')
+    v.hold(0.6)
+    v.click('.theme-row[aria-label^="MU,"]')
+    v.hold(1.5)
+    v.scroll(500); v.hold(1.5)
+    v.scroll(-500, 0.8); v.hold(0.3)
+    v.click('.tabs a[href="#/stock/MU/earnings"]')
+    v.hold(1.3)
+    v.scroll(500); v.hold(1.5)
+    v.scroll(-500, 0.8); v.hold(0.3)
 
-    click('.nav-item[href="#/ask"]')
-    page.wait_for_timeout(900)
-    click(".starter")
-    page.wait_for_timeout(1200)
-    click(".trace summary")
-    page.wait_for_timeout(1500)
-    glide(".assistant-turn .bubble.agent")
-    page.wait_for_timeout(2500)
-
-    video = page.video.path()
+    v.click('.nav-item[href="#/ask"]')
+    v.hold(0.9)
+    v.click(".starter")
+    v.hold(1.2)
+    v.click(".trace summary")
+    v.hold(1.0)
+    v.glide(".assistant-turn .bubble.agent")
+    v.hold(3.0)
     context.close()
-    final = out / "walkthrough.webm"
-    shutil.move(video, final)
-    shutil.rmtree(raw, ignore_errors=True)
-    print(f"  {final.relative_to(ROOT)}")
-    return final
+
+    written = encode(folder, out)
+    shutil.rmtree(folder, ignore_errors=True)
+    for path in written:
+        print(f"  {path.relative_to(ROOT)}")
+    print(f"  ({v.count} frames, {v.count / FPS:.0f} seconds)")
+    return written
 
 
 def main() -> int:

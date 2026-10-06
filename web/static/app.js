@@ -133,15 +133,15 @@ function buildDemoBanner() {
   const banner = el("div", "demo-banner");
   banner.setAttribute("role", "note");
   banner.appendChild(el("strong", null, "Demo. "));
+  // Short on purpose: what it is, and the two ways it differs from the live
+  // app. The not-advice line already sits in the sidebar and under the brief.
   // Taken during trading hours, the prices are intraday, not the close.
-  const when = DEMO.captured_time
-    ? `${DEMO.captured_label} at ${DEMO.captured_time}` +
-      (DEMO.market_state === "open" ? ", before the close" : "")
-    : DEMO.captured_label || "";
+  const session = DEMO.snapshot_session ? formatSession(DEMO.snapshot_session) : "one day's";
+  const when = DEMO.market_state === "open" && DEMO.captured_time
+    ? `the ${session} session at ${DEMO.captured_time}, before the close`
+    : `the ${session} close`;
   banner.appendChild(document.createTextNode(
-    `A snapshot of the ${DEMO.snapshot_session ? formatSession(DEMO.snapshot_session) : "captured"} session, ` +
-    `taken ${when}. Prices don't update, the AI text was written when the snapshot was ` +
-    "taken, and Ask replays recorded conversations. Nothing here is financial advice."));
+    `A snapshot of ${when}. Prices don't update, and Ask replays recorded answers.`));
   if (DEMO.repo_url) {
     banner.appendChild(document.createTextNode(" "));
     const link = el("a", null, "How it's built ↗");
