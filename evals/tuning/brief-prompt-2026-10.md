@@ -3,7 +3,7 @@
 What changed in `BRIEF_SYSTEM` (web/app.py), why, and what it did to the
 eval. Model: claude-sonnet-4-5 throughout; 8 runs per scenario.
 
-## Setup (committed before the baseline, d4684a7)
+## Setup (committed before the baseline, 2d603a2)
 
 - **Train** (failures read, prompt changed against them): quiet_day,
   sector_selloff, outside_mover, theme_selloff_one_holds_up -- 32 trials.
@@ -19,7 +19,7 @@ eval. Model: claude-sonnet-4-5 throughout; 8 runs per scenario.
   isn't distinguishable from run-to-run variation.
 - Budget: $8 for the whole exercise; at most 3 rounds.
 
-## Baseline (d4684a7)
+## Baseline (2d603a2)
 
 | | judge pass |
 |---|---|
@@ -44,7 +44,7 @@ The prompt itself invites both. Its causation rule names only
 should prepare for" -- an instruction to tell the reader how to approach the
 week.
 
-## Round 1 -- the causation rule is about meaning (ec3e672)
+## Round 1 -- the causation rule is about meaning (db31ee0)
 
 Change: the rule now says any wording that makes a headline the thing moving
 prices states the cause, with generic examples ("on news that...", "is
@@ -71,7 +71,7 @@ Two failed rule (c) for "AAPL, MSFT and KO have nothing scheduled this week"
 word for word, the prompt's own example of how to state calendar facts.
 The prompt was teaching an ungrounded claim.
 
-## Round 2 -- end on a fact; describe the market, not the reader (485465a)
+## Round 2 -- end on a fact; describe the market, not the reader (05c0672)
 
 Change: outline item 4 asks for earnings in the next week as the data gives
 them, and to leave the item out rather than fill it with a verdict; the
@@ -94,7 +94,7 @@ instead of JSON (which counts as a failure by design), one an asserted cause
 ("pre-market volumes are typically light"), one borderline ("no
 company-specific news driving any of the three names").
 
-## Result: the held-out test set (485465a)
+## Result: the held-out test set (05c0672)
 
 Run once, after tuning stopped; none of these outputs had been read before.
 
@@ -130,7 +130,7 @@ What's left, and what would address it:
 Spend: about $5 of the $8 budget -- baseline $2, two train rounds about
 $0.9 each, the test run about $1, judge-stability checks about $0.1.
 
-## Afterwards: the two fixes outside the prompt (97176f2, 65a8e2d)
+## Afterwards: the two fixes outside the prompt (260cd05, a4e47fb)
 
 The leftovers above pointed at the harness and the brief's input rather than
 the prompt, so both were fixed and the eval rerun.
@@ -141,7 +141,7 @@ the prompt, so both were fixed and the eval rerun.
 - **Each name carries next_earnings_in_days** in the brief's input, null when
   no date is known; the prompt says how to read it.
 
-| | after tuning (485465a) | after the fixes (65a8e2d) |
+| | after tuning (05c0672) | after the fixes (a4e47fb) |
 |---|---|---|
 | Train | 27/32 (84%) | 30/32 (94%) |
 | Test | 31/40 (78%) | 38/40 (95%) |

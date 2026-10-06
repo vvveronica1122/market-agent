@@ -2,7 +2,7 @@
   "kind": "brief",
   "timestamp": "2026-10-05T19:20:55+00:00",
   "model": "claude-sonnet-4-5",
-  "commit": "65a8e2d",
+  "commit": "a4e47fb",
   "uncommitted_changes": false,
   "dry_run": false,
   "settings": {

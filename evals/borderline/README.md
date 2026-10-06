@@ -44,7 +44,7 @@ which situation you are in — and here it said the standard was solid.
 
 ## quiet_day_watch_not_react.txt
 
-From the first run of the expanded evals (bea95de), rule (b), for the closing
+From the first run of the expanded evals (d2e0ce7), rule (b), for the closing
 line: *"This looks like a week to watch for whether anything develops rather
 than react to what's already in motion."*
 

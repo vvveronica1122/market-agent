@@ -2,7 +2,7 @@
 
 `ANALYSIS_SYSTEM` (web/app.py) writes the paragraph on every stock page.
 Same method as [the brief](brief-prompt-2026-10.md): split committed before
-the baseline (04019ac), train failures read, one principle a round, the
+the baseline (d27aa68), train failures read, one principle a round, the
 held-out test set run once at the end. Model: claude-sonnet-4-5; 8 runs a
 scenario.
 
@@ -11,7 +11,7 @@ scenario.
 - **Test** (held out): theme_rally_with_upgrade_headline,
   mixed_move_report_tomorrow, company_rise_no_news -- written for this.
 
-## Baseline (04019ac)
+## Baseline (d27aa68)
 
 | | judge pass |
 |---|---|
@@ -38,7 +38,7 @@ The prompt invites it: its outline asks for "what the coverage says may be
 driving it, and what is coming up that's worth watching", and its causation
 rule is one line -- "may be related to" rather than "because of".
 
-## Round 1 -- report the coverage, don't explain the move (7d703de)
+## Round 1 -- report the coverage, don't explain the move (d95a4ac)
 
 Change: the outline asks for what the coverage reports, set beside the move,
 and the next dated event stated as a fact; the causation rule becomes the
@@ -59,7 +59,7 @@ outlook cut reported in the sentence after the move with no connective, and
 outlook, which is in the data, read by the judge as a cause for the share
 price.
 
-## Result: the held-out test set (7d703de, 16 runs a scenario)
+## Result: the held-out test set (d95a4ac, 16 runs a scenario)
 
 | Test scenario | baseline (8 runs) | after (16 runs) |
 |---|---|---|
