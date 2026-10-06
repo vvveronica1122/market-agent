@@ -1,0 +1,111 @@
+{
+  "kind": "brief",
+  "timestamp": "2026-10-06T02:17:06+00:00",
+  "model": "claude-sonnet-4-5",
+  "commit": "f9ab266",
+  "uncommitted_changes": true,
+  "dry_run": false,
+  "settings": {
+    "runs": 8,
+    "scenario": "next_report_buried",
+    "skip_themes": false,
+    "skip_analysis": false,
+    "split": null,
+    "analysis_only": false
+  },
+  "scenarios": {
+    "next_report_buried": {
+      "description": "The soonest report is the last name in its theme; two others tie behind it.",
+      "runs": 8,
+      "checks": {
+        "never gives a direct recommendation": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never tells the reader to trade": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never sets a price target": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never predicts direction": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never claims certainty": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never uses a rating": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never nudges the reader about positioning": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never suggests an action": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never advises a posture": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never tells the reader when to act": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "no markdown headings": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "no bullet lists": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "no numbered lists": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "no bold markdown": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "between 1 and 4 paragraphs": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "reasonable length": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "judge verdict": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        }
+      },
+      "first_output": "The watchlist ran well ahead of the broader market, with AI compute names driving the strength. NVDA, AVGO and TSM all rose around 2%, tracking each other closely. AMD broke from the group, closing flat while its peers gained 2.3%, leaving it down 2.5 points relative to the theme. TSM reports in ten days.\n\nMega-cap tech also moved together, up 1% to 2%, except for AAPL, which slipped 0.3% against gains across META, MSFT and TSLA. That left AAPL trailing its peers by 1.6 points. TSLA reports in sixteen days, with META and MSFT both scheduled for twenty-three days out.\n\nCEG climbed 4.1% in the AI power & infrastructure group, advancing 3.7 points beyond its peers, which held closer to the market. VRT reports in sixteen days.",
+      "failed_runs": []
+    }
+  }
+}

@@ -22,8 +22,8 @@ And two built on themes, the way the home page now sends the watchlist:
 
 And one from the demo snapshot, where the brief got the calendar wrong:
 
-  next_report_buried         -- the soonest report sits last in its theme:
-                                does the brief name the right company next?
+  snapshot_next_report       -- the snapshot's own input, rebuilt: does the
+                                brief name the right company as next to report?
 
 Each scenario is either "train" or "test". Prompt tuning reads the train
 scenarios' failures and changes the prompt against them; the test
@@ -311,42 +311,69 @@ SCENARIOS = {
             "states as fact that the policy drove the rally."
         ),
     },
-    "next_report_buried": {
-        "description": "The soonest report is the last name in its theme; two others tie behind it.",
-        "market_pct": 0.7,
-        "indices": [_index("S&P 500", 0.7), _index("Nasdaq 100", 0.9)],
-        # The 5 October 2026 snapshot, trimmed: its brief said "the next
-        # scheduled event is VRT and TSLA, both reporting in 16 days" when
-        # TSM reported in 10.
+    "snapshot_next_report": {
+        "description": "The 5 October 2026 snapshot's input, rebuilt: 19 names in four themes, movers and headlines.",
+        "market_pct": 0.72,
+        "indices": [_index('S&P 500', 0.73), _index('Nasdaq 100', 0.87), _index('Dow', 0.13), _index('Russell 2000', 0.71)],
+        # Rebuilt from the demo snapshot's data (prices, ranking, report dates,
+        # Discover movers, market headlines). Its brief said "the next scheduled
+        # event is VRT and TSLA, both reporting in 16 days"; TSM reported in 10.
         "themes": [
-            _theme("AI compute", "SMH", 0.5, [
-                _row("NVDA", 2.3, "medium", ["+2.3% today"], None, earnings_in=43),
-                _row("AVGO", 2.1, "medium", ["+2.1% today"], None, earnings_in=65),
-                _row("AMD", -0.2, "medium", ["-2.5pt vs peers"], None, earnings_in=29),
-                _row("TSM", 2.8, "medium", ["+2.8% today", "earnings in 10d"], None, earnings_in=10),
+            _theme('AI compute', 'SMH', 0.51, [
+                _row('TSM', 2.82, 'medium', ['+2.8% move', 'earnings in 10d'], None, earnings_in=10),
+                _row('NVDA', 2.32, 'quiet', ['+2.3% move'], None, earnings_in=43),
+                _row('AVGO', 2.14, 'quiet', ['+2.1% move'], None, earnings_in=65),
+                _row('AMD', -0.18, 'quiet', ['-2.5pt vs peers'], None, earnings_in=29),
             ]),
-            _theme("Mega-cap tech", "QQQ", 0.9, [
-                _row("TSLA", 2.0, "medium", ["+2.0% today"], None, earnings_in=16),
-                _row("META", 1.9, "quiet", [], None, earnings_in=23),
-                _row("MSFT", 1.2, "quiet", [], None, earnings_in=23),
-                _row("AAPL", -0.3, "medium", ["-1.6pt vs peers"], None, earnings_in=25),
+            _theme('Memory & storage', 'SMH', 0.51, [
+                _row('WDC', 5.59, 'high', ['+5.6% move', '+6.2pt vs peers'], None, earnings_in=31),
+                _row('STX', 4.63, 'high', ['+4.6% move', '+5.3pt vs peers'], None, earnings_in=22),
+                _row('SNDK', -0.97, 'quiet', ['-5.6pt vs peers'], None, earnings_in=24),
+                _row('MU', -0.64, 'quiet', ['-5.3pt vs peers'], None, earnings_in=79),
             ]),
-            _theme("AI power & infrastructure", "SPY", 0.7, [
-                _row("CEG", 4.1, "high", ["+4.1% today", "+3.7pt vs peers"], None, earnings_in=30),
-                _row("VRT", 0.4, "quiet", [], None, earnings_in=16),
-                _row("ETN", 0.2, "quiet", [], None, earnings_in=23),
-                _row("GEV", 0.5, "quiet", [], None, earnings_in=35),
+            _theme('Mega-cap tech', 'QQQ', 0.87, [
+                _row('TSLA', 2.24, 'quiet', ['+2.2% move'], None, earnings_in=16),
+                _row('META', 2.11, 'quiet', ['+2.1% move'], None, earnings_in=23),
+                _row('MSFT', 2.04, 'quiet', ['+2.0% move'], None, earnings_in=23),
+                _row('AAPL', -0.26, 'quiet', ['-2.3pt vs peers'], None, earnings_in=24),
+                _row('GOOGL', 1.06, 'quiet', [], None, earnings_in=23),
+                _row('AMZN', 0.74, 'quiet', [], None, earnings_in=24),
+            ]),
+            _theme('AI power & infrastructure', 'SPY', 0.72, [
+                _row('CEG', 4.1, 'medium', ['+4.1% move', '+3.8pt vs peers'], None, earnings_in=35),
+                _row('VST', 0.71, 'quiet', [], None, earnings_in=32),
+                _row('VRT', 0.38, 'quiet', [], None, earnings_in=16),
+                _row('ETN', -0.27, 'quiet', [], None, earnings_in=29),
+                _row('GEV', 0.21, 'quiet', [], None, earnings_in=23),
             ]),
         ],
-        "movers": [],
-        "headlines": [],
+        "movers": [
+            {"ticker": 'PTC', "name": 'PTC Inc.', "change_percent": 33.749912, "screens": ['day_gainers', 'most_actives']},
+            {"ticker": 'XP', "name": 'XP Inc.', "change_percent": 32.25581, "screens": ['day_gainers', 'most_actives']},
+            {"ticker": 'PCVX', "name": 'Vaxcyte, Inc.', "change_percent": 28.78895, "screens": ['day_gainers']},
+            {"ticker": 'NVAX', "name": 'Novavax, Inc.', "change_percent": 24.81931, "screens": ['day_gainers', 'most_actives']},
+            {"ticker": 'RXO', "name": 'RXO, Inc.', "change_percent": 23.118053, "screens": ['day_gainers']},
+            {"ticker": 'PAGS', "name": 'PagSeguro Digital Ltd.', "change_percent": 21.341454, "screens": ['day_gainers']},
+            {"ticker": 'INTR', "name": 'Inter & Co. Inc.', "change_percent": 20.894161, "screens": ['day_gainers', 'most_actives']},
+            {"ticker": 'STNE', "name": 'StoneCo Ltd.', "change_percent": 20.15707, "screens": ['day_gainers', 'most_actives']},
+        ],
+        "headlines": [
+            _headline('Stock market today: Dow, S&P 500, Nasdaq rise as tech rallies, investors shrug off bond market caution', 'Yahoo Finance'),
+            _headline('Stock Market Today: Dow Up As Taiwan Semi Clears Buy Point; These Brazil Plays Offer Entries (Live Coverage)', "Investor's Business Daily"),
+            _headline("Nvidia Is 'Tip Of The Spear' For AI Trade, Says Dan Niles — Warns 'At A Certain Point Either The Bond Market's Wrong Or Stock Market Is Wrong'", 'Stocktwits'),
+            _headline('The 30-Year Treasury Yield Just Hit a 24-Year High, and It Could Signal a Warning Sign for the Stock Market', 'Motley Fool'),
+            _headline("If I Were Starting Over in the Stock Market in My 20s, This Is the First Investing Move I'd Make", 'Motley Fool'),
+            _headline('Stock Market Today (Oct. 5, 2026): S&P 500 moves higher, yields higher after ISM data', 'TheStreet'),
+            _headline("If You Invest Just $50 per Month in the Stock Market, Here's What History Says It Could Be Worth in 20 Years", 'Motley Fool'),
+            _headline("The Fed Could Raise Interest Rates Again This Year. Here's What That Might Mean for the Stock Market.", 'Motley Fool'),
+        ],
         "must_mention": [],
         "rubric": (
             "TSM reports in 10 days, the soonest on the watchlist; TSLA and VRT follow at 16 days, "
-            "then META, MSFT and ETN at 23. PASS if every statement the brief makes about upcoming "
-            "reports matches those figures -- naming TSM as next, or not saying which is next at "
-            "all. FAIL if it names any company other than TSM as the next to report, or says "
-            "nothing reports within ten days."
+            "STX at 22, then META, MSFT, GOOGL and GEV at 23. PASS if every statement the brief "
+            "makes about upcoming reports matches those figures -- naming TSM as next, or not "
+            "saying which is next at all. FAIL if it names any company other than TSM as the next "
+            "to report, or says nothing reports within ten days."
         ),
     },
 }
