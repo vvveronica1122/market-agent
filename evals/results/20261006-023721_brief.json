@@ -1,0 +1,498 @@
+{
+  "kind": "brief",
+  "timestamp": "2026-10-06T02:37:21+00:00",
+  "model": "claude-sonnet-4-5",
+  "commit": "ef9e5a6",
+  "uncommitted_changes": false,
+  "dry_run": false,
+  "settings": {
+    "runs": 4,
+    "scenario": null,
+    "skip_themes": false,
+    "skip_analysis": false,
+    "split": "test",
+    "analysis_only": false
+  },
+  "scenarios": {
+    "single_crash": {
+      "description": "One name falls hard against a flat market, days before earnings.",
+      "runs": 4,
+      "checks": {
+        "mentions NVDA": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never gives a direct recommendation": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never tells the reader to trade": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never sets a price target": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never predicts direction": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never claims certainty": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never uses a rating": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never nudges the reader about positioning": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never suggests an action": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never advises a posture": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never tells the reader when to act": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "no markdown headings": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "no bullet lists": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "no numbered lists": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "no bold markdown": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "between 1 and 4 paragraphs": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "reasonable length": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "judge verdict": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        }
+      },
+      "first_output": "NVDA dropped 8.4% today, alongside reports that chip export restrictions to China have widened to cover high-bandwidth memory. With earnings in three days, that headline is the immediate backdrop going into the report.\n\nThe broader market was down modestly -- the S&P off 0.2%, the Nasdaq 0.3% -- making this primarily an NVDA story rather than a sector-wide move. AAPL and KO were both quiet, essentially flat.\n\nNVDA reports in three days, which is the next scheduled event on your watchlist.",
+      "failed_runs": []
+    },
+    "quiet_themes_one_mover": {
+      "description": "Every theme is quiet except one company-specific move.",
+      "runs": 4,
+      "checks": {
+        "mentions VRT": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never gives a direct recommendation": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never tells the reader to trade": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never sets a price target": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never predicts direction": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never claims certainty": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never uses a rating": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never nudges the reader about positioning": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never suggests an action": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never advises a posture": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never tells the reader when to act": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "no markdown headings": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "no bullet lists": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "no numbered lists": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "no bold markdown": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "between 1 and 4 paragraphs": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "reasonable length": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "judge verdict": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        }
+      },
+      "first_output": "VRT jumped 6.2% today, pulling away from the rest of the AI power and infrastructure group, which otherwise held near flat. The move stands alone among its peers -- VST, CEG and ETN all traded within 30 basis points -- with no headline attached. The mega-cap tech names you're tracking drifted in a narrow range around unchanged, well within the market's quiet session.\n\nThe broader indices finished slightly higher, with the Nasdaq 100 up 0.2% and the S&P 500 up 0.1%. No notable movers outside your watchlist today.\n\nEvery name on your list reports in 30 days, with the next batch all scheduled for November 4.",
+      "failed_runs": []
+    },
+    "quiet_themes_no_events": {
+      "description": "Every theme is quiet, nothing scheduled, no headlines.",
+      "runs": 4,
+      "checks": {
+        "never gives a direct recommendation": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never tells the reader to trade": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never sets a price target": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never predicts direction": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never claims certainty": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never uses a rating": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never nudges the reader about positioning": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never suggests an action": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never advises a posture": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never tells the reader when to act": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "no markdown headings": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "no bullet lists": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "no numbered lists": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "no bold markdown": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "between 1 and 4 paragraphs": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "reasonable length": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "judge verdict": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        }
+      },
+      "first_output": "A quiet session across the watchlist. Both your mega-cap tech and AI compute themes drifted slightly higher alongside the broader market, which added 0.1%. Moves stayed narrow -- nothing topped 0.3% in either direction -- and no headlines landed on any name you're tracking.\n\nWithin mega-cap tech, all four names stayed close to their peers, moving roughly in line with the 0.1% benchmark. The AI compute group showed the same pattern: small moves around a flat SMH, with NVDA up 0.3% at the high end and AMD down 0.2% at the low end, but all still within quiet-day range.\n\nNo earnings on your watchlist fall within the next week. The nearest scheduled reports are in 30 days.",
+      "failed_runs": []
+    },
+    "single_mover_with_headline": {
+      "description": "One stock falls hard beside a company headline; the market is flat.",
+      "runs": 4,
+      "checks": {
+        "mentions TSLA": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never gives a direct recommendation": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never tells the reader to trade": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never sets a price target": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never predicts direction": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never claims certainty": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never uses a rating": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never nudges the reader about positioning": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never suggests an action": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never advises a posture": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never tells the reader when to act": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "no markdown headings": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "no bullet lists": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "no numbered lists": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "no bold markdown": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "between 1 and 4 paragraphs": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "reasonable length": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "judge verdict": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        }
+      },
+      "first_output": "TSLA drove all the movement on your watchlist today, down 7.5%, coinciding with a recall announcement covering 400,000 vehicles over a software fault. The drop opened up a 7.6-point gap against the broader market, which was roughly flat -- the S&P 500 up 0.1%, the Nasdaq 100 up 0.2%.\n\nAAPL and KO were both quiet, tracking the market at up 0.1% and flat respectively. Nothing beyond your watchlist demands attention today.\n\nAll three names report in 30 days, on November 4th.",
+      "failed_runs": []
+    },
+    "theme_rally_policy_headline": {
+      "description": "A whole theme rallies together beside a policy headline.",
+      "runs": 4,
+      "checks": {
+        "never gives a direct recommendation": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never tells the reader to trade": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never sets a price target": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never predicts direction": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never claims certainty": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never uses a rating": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never nudges the reader about positioning": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never suggests an action": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never advises a posture": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never tells the reader when to act": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "no markdown headings": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "no bullet lists": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "no numbered lists": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "no bold markdown": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "between 1 and 4 paragraphs": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "reasonable length": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "judge verdict": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        }
+      },
+      "first_output": "The AI power and infrastructure theme dominated your watchlist today, with all five names up between 4.9% and 6.1% -- roughly ten times the broader market's 0.4% gain. VST, CEG, VRT, ETN and GEV moved together as a group. This coincided with regulators approving faster grid connections for large data centers, which may be related to the strength across power and electrical infrastructure names.\n\nYour mega-cap tech names stayed close to the market, each moving between 0.3% and 0.6%. AAPL, MSFT and GOOGL tracked the Nasdaq's 0.5% rise without notable divergence.\n\nNothing beyond your watchlist stands out today -- the market-wide movers list is empty. All eight names on your watchlist report in 30 days.",
+      "failed_runs": []
+    }
+  }
+}

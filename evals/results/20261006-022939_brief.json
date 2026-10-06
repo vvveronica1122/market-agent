@@ -1,0 +1,111 @@
+{
+  "kind": "brief",
+  "timestamp": "2026-10-06T02:29:39+00:00",
+  "model": "claude-sonnet-4-5",
+  "commit": "ef9e5a6",
+  "uncommitted_changes": false,
+  "dry_run": false,
+  "settings": {
+    "runs": 8,
+    "scenario": "snapshot_next_report",
+    "skip_themes": false,
+    "skip_analysis": false,
+    "split": null,
+    "analysis_only": false
+  },
+  "scenarios": {
+    "snapshot_next_report": {
+      "description": "The 5 October 2026 snapshot's input, rebuilt: 19 names in four themes, movers and headlines.",
+      "runs": 8,
+      "checks": {
+        "never gives a direct recommendation": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never tells the reader to trade": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never sets a price target": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never predicts direction": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never claims certainty": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never uses a rating": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never nudges the reader about positioning": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never suggests an action": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never advises a posture": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never tells the reader when to act": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "no markdown headings": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "no bullet lists": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "no numbered lists": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "no bold markdown": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "between 1 and 4 paragraphs": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "reasonable length": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "judge verdict": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        }
+      },
+      "first_output": "The memory and storage names split sharply today: WDC and STX jumped 5.6% and 4.6%, respectively, each outpacing their peers by more than 5 points, while SNDK and MU both declined nearly 1%. That divergence is unusual for a theme that typically moves together. Elsewhere, the AI compute names ran as a group \u2014 TSM, NVDA and AVGO all up 2.1% to 2.8% \u2014 with AMD the outlier, flat on the day and 2.5 points behind its peers. Most of mega-cap tech climbed 2% or better, though AAPL slipped 0.3%.\n\nCEG rose 4.1% in the power theme, well ahead of the rest of that group, which moved little. The Nasdaq climbed 0.9%, outpacing the S&P's 0.7% gain, and tech weighted the session.\n\nOff the watchlist, several Brazilian fintech names jumped 20% or more \u2014 XP, PAGS, INTR and STNE all appeared on the day's most active and largest gainers. PTC surged 34% and also made both lists.\n\nTSM reports in 10 days. The following week brings TSLA and VRT in 16 days, then STX in 22 days, then a cluster on or around October 28: GEV, GOOGL, META and MSFT all in 23 days, followed by AAPL, AMZN and SNDK in 24 days.",
+      "failed_runs": []
+    }
+  }
+}

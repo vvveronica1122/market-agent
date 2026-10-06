@@ -148,3 +148,52 @@ that an accurate range is accurate. Without this, the judge was marking
 true statements wrong. The brief, the prompt and the input are unchanged
 from round 2, so this run re-measures round 2's code with a judge that can
 check what it reads.
+
+## Result (ef9e5a6)
+
+| Criterion | Needed | Result |
+|---|---|---|
+| 1. `snapshot_next_report` | 7/8 or better | **8/8** (and 3/4 more in the regression run, so 11/12 in all) |
+| 2. Other brief scenarios | 31/36, none below 3/4 | **36/36** |
+| 3. `margins_with_caveat` | 4/5 | **5/5** (and 3/3 more) |
+| 4. Other agent scenarios | 10/12 judge; at most one tool-check failure | **12/12**, no tool-check failures |
+
+**Before and after, with the same judge.** The baseline was rerun with the
+round-3 rubric, so both sides were graded identically:
+
+| Scenario | Before the fix | After |
+|---|---|---|
+| `snapshot_next_report` | **4/8** (20261006-023141_brief.json) | **8/8** |
+| `margins_with_caveat` | **0/3** | **5/5** |
+
+All four of the baseline's failures were calendar errors:
+
+- "four names report in the next week", followed by three;
+- "five more names", followed by nine;
+- "earnings begin next week" instead of naming TSM;
+- TSM and VRT paired, with TSLA left out.
+
+After the fix there were none. The one failure in the regression run was
+a judge error: it called "October 28" invented, but the date is in
+`upcoming_reports`.
+
+The samples are small; 4/8 against 8/8 would not pass a significance test
+on its own. Even so, the failures changed in kind: the errors the fix
+targets went from half the runs to none.
+
+**How criterion 1 was reached matters.** It took two rounds beyond the
+original fix:
+
+- **Round 2** removed the six-entry cut-off and added dates.
+- **Round 3** corrected a rubric that marked true ranges wrong.
+
+Both rounds ran against this one train scenario. The nine untouched
+scenarios (36/36) are the check that nothing else broke.
+
+A fixed agent answer, for the record: "MU (Micron) shows a net margin of
+58.2%, which appears highest, but that figure includes one-off gains that
+make it larger than the gross margin and overstates the underlying
+business."
+
+Spend: about **$3.04** of the $6 budget, metered from token counts at list
+prices.
