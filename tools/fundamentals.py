@@ -89,7 +89,11 @@ def get_earnings_schedule(ticker: str) -> dict[str, Any]:
     if result["next_date"]:
         try:
             when = datetime.fromisoformat(result["next_date"]).date()
-            result["days_away"] = (when - datetime.now(timezone.utc).date()).days
+            # The same "today" as the rest of the app (days_until_earnings):
+            # the local date. UTC's rolled over at 8 PM New York time, so
+            # every evening the calendar counted a report a day closer than
+            # the dashboard and the brief did.
+            result["days_away"] = (when - datetime.now().date()).days
         except ValueError:
             result["days_away"] = None
 
