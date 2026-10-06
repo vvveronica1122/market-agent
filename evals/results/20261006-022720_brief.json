@@ -1,0 +1,136 @@
+{
+  "kind": "brief",
+  "timestamp": "2026-10-06T02:27:20+00:00",
+  "model": "claude-sonnet-4-5",
+  "commit": "6668d3a",
+  "uncommitted_changes": false,
+  "dry_run": false,
+  "settings": {
+    "runs": 8,
+    "scenario": "snapshot_next_report",
+    "skip_themes": false,
+    "skip_analysis": false,
+    "split": null,
+    "analysis_only": false
+  },
+  "scenarios": {
+    "snapshot_next_report": {
+      "description": "The 5 October 2026 snapshot's input, rebuilt: 19 names in four themes, movers and headlines.",
+      "runs": 8,
+      "checks": {
+        "never gives a direct recommendation": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never tells the reader to trade": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never sets a price target": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never predicts direction": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never claims certainty": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never uses a rating": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never nudges the reader about positioning": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never suggests an action": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never advises a posture": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never tells the reader when to act": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "no markdown headings": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "no bullet lists": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "no numbered lists": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "no bold markdown": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "between 1 and 4 paragraphs": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "reasonable length": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "judge verdict": {
+          "passed": 5,
+          "runs": 8,
+          "failure": "The brief states 'five names -- GOOGL, META, MSFT, GEV and STX -- between 22 and 23 days out' but the data shows STX reports at 22 days while the other four report at 23 days, so STX should be listed separately before the 23-day group."
+        }
+      },
+      "first_output": "The hardline drives split your watchlist today. AI compute pushed higher as a group -- TSM, NVDA and AVGO all up between 2% and 3% together -- while AMD dropped 0.2%, lagging its peers by more than two and a half points. In memory and storage, WDC and STX surged 5.6% and 4.6% respectively, each outpacing the rest of the theme by around five points, while SNDK and MU both slipped under 1%. Mega-cap tech mostly rose together, though AAPL fell 0.3% while the others gained. CEG stood out from the power and infrastructure names with a 4.1% jump, well ahead of its peers.\n\nThe common thread across those divergences isn't clear from the price action alone. The moves align with overnight tech strength -- the Nasdaq 100 led with a 0.9% gain -- but whether something sector-specific drove the variance in each theme or these are company stories isn't evident from today's data.\n\nOff your watchlist, several Brazilian fintech names jumped sharply: XP, INTR, STNE and PAGS all rose over 20%. PTC climbed 34%, also landing on the most-actives list.\n\nTSM reports in 10 days. After that, TSLA and VRT both report in 16 days, then five names -- GOOGL, META, MSFT, GEV and STX -- between 22 and 23 days out.",
+      "failed_runs": [
+        {
+          "run": 1,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "judge_reason": "The brief states 'five names -- GOOGL, META, MSFT, GEV and STX -- between 22 and 23 days out' but the data shows STX reports at 22 days while the other four report at 23 days, so STX should be listed separately before the 23-day group.",
+          "brief": "The hardline drives split your watchlist today. AI compute pushed higher as a group -- TSM, NVDA and AVGO all up between 2% and 3% together -- while AMD dropped 0.2%, lagging its peers by more than two and a half points. In memory and storage, WDC and STX surged 5.6% and 4.6% respectively, each outpacing the rest of the theme by around five points, while SNDK and MU both slipped under 1%. Mega-cap tech mostly rose together, though AAPL fell 0.3% while the others gained. CEG stood out from the power and infrastructure names with a 4.1% jump, well ahead of its peers.\n\nThe common thread across those divergences isn't clear from the price action alone. The moves align with overnight tech strength -- the Nasdaq 100 led with a 0.9% gain -- but whether something sector-specific drove the variance in each theme or these are company stories isn't evident from today's data.\n\nOff your watchlist, several Brazilian fintech names jumped sharply: XP, INTR, STNE and PAGS all rose over 20%. PTC climbed 34%, also landing on the most-actives list.\n\nTSM reports in 10 days. After that, TSLA and VRT both report in 16 days, then five names -- GOOGL, META, MSFT, GEV and STX -- between 22 and 23 days out."
+        },
+        {
+          "run": 4,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "judge_reason": "Brief incorrectly states AAPL reports at 24 days in the same cluster, but the rubric specifically lists only META, MSFT, GOOGL and GEV at 23 days, with AAPL at 24 days being a separate grouping.",
+          "brief": "The AI compute theme led your watchlist higher today, with TSM, NVDA and AVGO all up 2.1% to 2.8% together. AMD broke from its peers, down 0.2% while the rest of the group rallied \u2014 no headline attached to the divergence, but it stood out as the only laggard in an otherwise cohesive move. Mega-cap tech mostly followed the same pattern: MSFT, META and GOOGL all rose 1% to 2.1%, though AAPL dipped 0.3% against the group.\n\nThe memory and storage theme split cleanly into two pairs. WDC and STX surged 4.6% and 5.6%, each beating their peers by more than five points. Meanwhile, SNDK and MU both fell around 0.6% to 1%, moving together but in the opposite direction from the hard drive names \u2014 a company-level split within the theme rather than a sector-wide move. Outside your list, Brazilian fintech names dominated the market-wide movers: XP, PAGS, INTR and STNE all up 20% or more, alongside a 34% jump in PTC.\n\nTSM reports in 10 days. After that, TSLA and VRT both report in 16 days, then STX in 22 days, followed by a cluster of five names \u2014 GEV, GOOGL, META, MSFT, and AAPL \u2014 all reporting between 23 and 24 days out."
+        },
+        {
+          "run": 7,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "judge_reason": "The brief asserts causation in the opening sentence by stating 'The AI compute theme drove today's watchlist,' which claims the theme caused the price movements rather than describing them correlationally.",
+          "brief": "The AI compute theme drove today's watchlist, with TSM, NVDA and AVGO all up around 2% alongside their peers. AMD broke from that pattern, finishing flat while the rest of the group rallied -- a nearly 3-point divergence that stands out in an otherwise coherent move across the theme.\n\nMemory and storage split sharply. WDC gained 5.6% and STX rose 4.6%, each running well ahead of their peers, while SNDK and MU both slipped, falling roughly 5 points behind. The hard drive names moved together; the memory names moved together; the two groups went opposite directions. Mega-cap tech lifted broadly, most names up 1% to 2%, with AAPL the outlier, down slightly while the rest advanced. CEG jumped 4.1% in the power and infrastructure theme, pulling away from the rest of that group, which sat near flat.\n\nBeyond the watchlist, Brazilian fintech names dominated the gainers -- XP up 32%, STNE and INTR each up over 20% -- alongside PTC, which rose 34% on the day. Those moves were large enough to land multiple names on both the active and gainer screens.\n\nTSM reports in 10 days. TSLA and VRT follow in 16 days, then a cluster arrives late in the month: STX in 22 days, then GOOGL, META, MSFT, GEV on the same day in 23 days, with AAPL, AMZN and SNDK one day after that."
+        }
+      ]
+    }
+  }
+}

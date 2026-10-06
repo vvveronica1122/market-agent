@@ -369,11 +369,14 @@ SCENARIOS = {
         ],
         "must_mention": [],
         "rubric": (
-            "TSM reports in 10 days, the soonest on the watchlist; TSLA and VRT follow at 16 days, "
-            "STX at 22, then META, MSFT, GOOGL and GEV at 23. PASS if every statement the brief "
-            "makes about upcoming reports matches those figures -- naming TSM as next, or not "
-            "saying which is next at all. FAIL if it names any company other than TSM as the next "
-            "to report, or says nothing reports within ten days."
+            "The full calendar, in days from today: TSM 10; TSLA and VRT 16; STX 22; GEV, GOOGL, "
+            "META and MSFT 23; AAPL, AMZN and SNDK 24; AMD and ETN 29; WDC 31; VST 32; CEG 35; "
+            "NVDA 43; AVGO 65; MU 79. PASS if every statement the brief makes about upcoming "
+            "reports agrees with this calendar. Grouping names under an accurate range ('between "
+            "22 and 23 days', 'in 23 to 24 days') agrees with it, and the brief needn't mention "
+            "every name. FAIL if it names any company other than TSM as the next to report, gives "
+            "a day count or date that contradicts the calendar, or says nothing reports within "
+            "ten days."
         ),
     },
 }

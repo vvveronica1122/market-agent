@@ -124,3 +124,27 @@ company as next. The five failures were new:
 well as its days away. The prompt says to take timing from that list and
 not to convert days into dates. Run on the same scenario before anything
 else.
+
+## After round 2 (6668d3a)
+
+`snapshot_next_report`: **5/8**. Still no run named the wrong company as
+next, and no converted dates. Of the three failures, two were the rubric's
+fault:
+
+- "GOOGL, META, MSFT, GEV and STX -- between 22 and 23 days out" is true,
+  and was failed for not listing STX separately.
+- Grouping AAPL (24 days) with the 23-day names was failed. The rubric
+  listed only part of the calendar, so the judge took its grouping as the
+  only correct one.
+
+The third was rule (a), a causation call, on "the AI compute theme drove
+today's watchlist". That is a known borderline in the brief, unrelated to
+the calendar.
+
+## Round 3: the rubric gets the whole calendar
+
+The rubric now states the full calendar, all 19 names, and says explicitly
+that an accurate range is accurate. Without this, the judge was marking
+true statements wrong. The brief, the prompt and the input are unchanged
+from round 2, so this run re-measures round 2's code with a judge that can
+check what it reads.
