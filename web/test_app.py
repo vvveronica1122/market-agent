@@ -578,10 +578,13 @@ def main() -> int:
                        0.2, [], [], [])
     sent = json.loads(server.client.messages.calls[0]["messages"][0]["content"])
     failures += not check("upcoming reports are soonest first, past dates dropped, ties by ticker",
-                          sent["upcoming_reports"] == [{"ticker": "FIRST", "days": 10},
-                                                       {"ticker": "LATE", "days": 16},
-                                                       {"ticker": "TIE", "days": 16}],
+                          [(u["ticker"], u["days"]) for u in sent["upcoming_reports"]]
+                          == [("FIRST", 10), ("LATE", 16), ("TIE", 16)],
                           str(sent["upcoming_reports"]))
+    failures += not check("each upcoming report carries its date, so the model never computes one",
+                          sent["upcoming_reports"][0]["date"]
+                          == (_date.today() + _days(days=10)).isoformat(),
+                          str(sent["upcoming_reports"][0]))
     server.client = FakeClient()
     server.build_brief([{"ticker": "CRASH", "price": fake_price("CRASH")}], 0.2, [], [], [])
     flat = server.client.messages.calls[0]["messages"][0]["content"]

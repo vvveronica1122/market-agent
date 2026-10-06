@@ -1096,10 +1096,11 @@ Cover, in this order:
 3. What's beyond their list: from the market-wide movers and headlines you're given, \
 anything genuinely worth their attention that isn't on their watchlist -- name the tickers. \
 Skip this if nothing out there is notable; don't manufacture a reason to mention something.
-4. Earnings in the next week: upcoming_reports lists the watchlist's known report dates, \
-soonest first, already sorted -- when you say which company reports next, take it from there \
-rather than working it out from the names. Each name also carries next_earnings_in_days (null \
-when no date is known). If none falls within seven days, one short sentence saying so is \
+4. Earnings in the next week: upcoming_reports lists every known report on the watchlist, \
+soonest first, with its date and the days until it. When you say which company reports next, \
+or when one reports, take it from that list -- don't work it out from the names, and don't \
+convert days into dates yourself. Each name also carries next_earnings_in_days (null when no \
+date is known). If none falls within seven days, one short sentence saying so is \
 enough, or leave it out -- don't put a judgement about what kind of week it is in its place.
 
 The watchlist is a list of names the reader is TRACKING. It is not a portfolio and this app
@@ -1228,12 +1229,17 @@ def build_brief(rows: list[dict], market_pct, indices: list[dict],
     # Sorted here, not left to the model: asked to find the soonest among
     # nineteen names spread over four themes, it named VRT and TSLA (16 days)
     # as the next to report when TSM, last in its theme, reported in 10.
+    # Every report, not the first few: a cut-off of six fell inside a group
+    # reporting the same day, and the brief then grouped the calendar wrongly.
+    # The date is given so the model never converts days to dates (it turned
+    # "in 22 days" into "January 27th").
     upcoming = []
     for r in rows:
         days = days_until_earnings(r.get("events"))
         if days is not None and days >= 0:
-            upcoming.append({"ticker": r["ticker"], "days": days})
-    payload["upcoming_reports"] = sorted(upcoming, key=lambda e: (e["days"], e["ticker"]))[:6]
+            when = str((r.get("events") or {}).get("next_earnings_date"))[:10]
+            upcoming.append({"ticker": r["ticker"], "date": when, "days": days})
+    payload["upcoming_reports"] = sorted(upcoming, key=lambda e: (e["days"], e["ticker"]))
     payload.update({
         "market_wide_movers_not_on_watchlist": [
             {

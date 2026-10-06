@@ -99,3 +99,28 @@ carries no caveat and is what a skimming reader keeps. That is strict, and
 deliberately so.
 
 Spend so far: about $0.54, measured from token counts at list prices.
+
+## After the fix, round 1 (1dd6c02)
+
+`snapshot_next_report`: **3/8**, which fails criterion 1. Criteria 2-4 were
+not run.
+
+The fix did what it was for: none of the eight runs named the wrong
+company as next. The five failures were new:
+
+- **Grouping errors, and the judge reading the cut list as the whole data
+  (4).** `upcoming_reports` was capped at six entries. The cut fell inside
+  the group reporting in 23 days: GEV and GOOGL were in, META and MSFT out.
+  Briefs that grouped the calendar ("META, MSFT and AAPL in 23 to 24
+  days") were then marked as inventing names missing from the list. Some
+  of those verdicts were judge errors, since every name carries its own
+  date. The cut list invited both mistakes.
+- **A converted date (1).** "STX on January 27th", for a report 22 days
+  away (27 October).
+
+## Round 2: every report, with its date
+
+`upcoming_reports` now lists every known report, each with its date as
+well as its days away. The prompt says to take timing from that list and
+not to convert days into dates. Run on the same scenario before anything
+else.
