@@ -232,3 +232,13 @@ was made for the new scenario; the snapshot is the observed failure.
 The dropped-answer fix is a prompt instruction, and the failure is
 intermittent (the probe didn't reproduce it). The rebuilt snapshot's answers
 are read to check it, but that is a check, not a measurement.
+
+**Result (abfa7e4).**
+
+- `foreign_currency`: **3/3**. One answer, verbatim: "TSM reported revenue
+  of TWD 1.27 trillion for the quarter ended June 30, 2026. That's up 12.0%
+  from TWD 1.13 trillion in the prior quarter."
+- The other five scenarios: **15/15**, with no tool-check failures.
+
+Both criteria are met. This run cost about $0.59. The whole exercise
+(evals, a probe and one snapshot rebuild) cost about $4.23.
