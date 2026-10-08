@@ -154,3 +154,30 @@ What the numbers can and can't say:
 
 Spend: about $1.80 for both rounds, estimated from prompt sizes at list
 prices rather than metered.
+
+## Follow-up: did the news change bring the multiples back?
+
+Planned and committed before running, after criterion 3 failed.
+
+**The question.** The multiples check failed in 2 of 64 runs after the fix
+and 0 of 64 before. Did the rewritten news paragraph weaken the gaps
+fix's rule against multiples, or is this its ordinary residue?
+
+**Runs.** The two scenarios where the multiples appeared, 24 runs each,
+on both sides:
+
+- Before: 10ec41e (the plan's commit, without the fix).
+- After: this section's commit, whose app code is aa85a70's.
+
+That is 48 runs a side, 96 in all, about $1.35. Only the multiples check
+decides; the judge's results are recorded but don't count.
+
+**Decision rule.** Merge if the after-fix runs state a multiple in **at
+most 2 of 48**, and **no more than 2 more** than the before-fix runs.
+Otherwise don't merge, and look for how the news paragraph interacts with
+the multiples rule.
+
+At the roughly 1% rate seen since the gaps fix, 3 or more in 48 would
+happen about 1% of the time by chance; at 10%, the kind of regression
+worth catching, about 87% of the time. The check is the narrowed one from
+c6b6212, on both sides.
