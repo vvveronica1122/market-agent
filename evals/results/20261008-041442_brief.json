@@ -1,0 +1,125 @@
+{
+  "kind": "brief",
+  "timestamp": "2026-10-08T04:14:42+00:00",
+  "model": "claude-sonnet-4-5",
+  "commit": "df00fa6",
+  "uncommitted_changes": false,
+  "dry_run": false,
+  "settings": {
+    "runs": 16,
+    "scenario": "mixed_move_report_tomorrow",
+    "skip_themes": false,
+    "skip_analysis": false,
+    "split": null,
+    "analysis_only": false
+  },
+  "scenarios": {
+    "analysis:mixed_move_report_tomorrow": {
+      "description": "Falls about twice as far as its peers, the day before reporting.",
+      "runs": 16,
+      "checks": {
+        "never gives a direct recommendation": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "never tells the reader to trade": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "never sets a price target": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "never predicts direction": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "never claims certainty": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "never uses a rating": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "never nudges the reader about positioning": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "never suggests an action": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "never advises a posture": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "never tells the reader when to act": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "no markdown headings": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "no bullet lists": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "no numbered lists": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "no bold markdown": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "between 1 and 4 paragraphs": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "reasonable length": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "never states a move as a multiple of another": {
+          "passed": 15,
+          "runs": 16,
+          "failure": "found 'twice'"
+        },
+        "judge verdict": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        }
+      },
+      "first_output": "AMD fell 4.2%, 3.6 points more than the market and 2.2 points more than the median of its AI compute peers, which declined around 2%. The only coverage item notes that the company reports third-quarter results after tomorrow's close, suggesting the move may reflect positioning ahead of the event rather than any specific news today. The stock has shown substantial reactions to earnings lately, with a median abnormal move of 6.1 percentage points in recent quarters, and notably, three of the last seven beats were followed by negative abnormal moves the next session\u2014including a 7.0-point abnormal decline after a 4.1% earnings surprise last quarter\u2014indicating that beating estimates has not reliably meant the stock rose.",
+      "failed_runs": [
+        {
+          "run": 4,
+          "failed_checks": [
+            "never states a move as a multiple of another"
+          ],
+          "judge_reason": null,
+          "analysis": "AMD fell 4.2%, 3.6 points more than the market and 2.2 points more than the median of its AI compute peers, which declined around 2%. The drop appears partly shared with the semiconductor sector but steeper than peers including NVDA, AVGO, and TSM, suggesting company-specific pressure alongside sector weakness. The only item in today's coverage notes that AMD reports third-quarter results tomorrow after the close. Recent earnings reactions have been volatile regardless of estimate beats: the stock typically moves around 6.1% beyond what its market model would predict on report days, and in the last three quarters it beat estimates each time yet posted negative abnormal moves twice, including a 7.0-point drop in August despite a 4.1% beat."
+        }
+      ]
+    }
+  }
+}

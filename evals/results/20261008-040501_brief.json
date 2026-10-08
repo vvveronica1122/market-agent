@@ -1,0 +1,149 @@
+{
+  "kind": "brief",
+  "timestamp": "2026-10-08T04:05:01+00:00",
+  "model": "claude-sonnet-4-5",
+  "commit": "f43b558",
+  "uncommitted_changes": false,
+  "dry_run": false,
+  "settings": {
+    "runs": 16,
+    "scenario": "mixed_move_report_tomorrow",
+    "skip_themes": false,
+    "skip_analysis": false,
+    "split": null,
+    "analysis_only": false
+  },
+  "scenarios": {
+    "analysis:mixed_move_report_tomorrow": {
+      "description": "Falls about twice as far as its peers, the day before reporting.",
+      "runs": 16,
+      "checks": {
+        "never gives a direct recommendation": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "never tells the reader to trade": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "never sets a price target": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "never predicts direction": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "never claims certainty": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "never uses a rating": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "never nudges the reader about positioning": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "never suggests an action": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "never advises a posture": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "never tells the reader when to act": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "no markdown headings": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "no bullet lists": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "no numbered lists": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "no bold markdown": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "between 1 and 4 paragraphs": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "reasonable length": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "never states a move as a multiple of another": {
+          "passed": 12,
+          "runs": 16,
+          "failure": "found 'twice'"
+        },
+        "judge verdict": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        }
+      },
+      "first_output": "AMD fell 4.2% to $161.30, underperforming both the broader market (SPY down 0.6%) and its AI compute peers, which declined a median of 2.0%. The stock's move appears mixed, falling more sharply than the semiconductor theme but in the same direction, while the only coverage notes that the company reports third-quarter earnings after the close tomorrow.\n\nThe earnings setup shows AMD typically moves around 6.1% (abnormal to its market model) on results, but beating estimates has not reliably driven the stock higher\u2014all seven recent reports beat expectations, yet three saw negative abnormal reactions the next session, including the last report in August (beat by 4.1%, fell 7.0% abnormal). AMD reports third-quarter results tomorrow, October 9th, after the close.",
+      "failed_runs": [
+        {
+          "run": 3,
+          "failed_checks": [
+            "never states a move as a multiple of another"
+          ],
+          "judge_reason": null,
+          "analysis": "AMD fell 4.2% to $161.30, underperforming both the broader market (SPY down 0.6%) and its AI compute peers, which had a median decline of 2.0%. The attribution is mixed, suggesting the move partly tracked the sector but also contained company-specific weakness, with AMD falling roughly twice as hard as semiconductor peers like NVDA, AVGO, and TSM.\n\nThe only coverage notes that AMD reports third-quarter results after tomorrow's close. The company's recent earnings pattern shows a typical abnormal move of about 6.1% following reports, though the direction has been unpredictable: all seven recent quarters beat estimates, yet three of those beats were followed by negative abnormal moves, including a 7.0% decline after the last report in August despite a 4.1% earnings beat."
+        },
+        {
+          "run": 7,
+          "failed_checks": [
+            "never states a move as a multiple of another"
+          ],
+          "judge_reason": null,
+          "analysis": "AMD fell 4.2% to $161.30, underperforming both the broader market (SPY down 0.6%) and its AI compute peers, which declined a median of 2.0%. The attribution shows a mixed picture: while semiconductor peers like NVDA, AVGO, and TSM declined 1.8% to 2.3%, AMD's move was roughly twice as large, suggesting company-specific pressure alongside the sector weakness.\n\nThe only coverage notes that AMD reports third-quarter results tomorrow after the close. The stock's recent earnings history shows a median abnormal move of around 6.1 percentage points \u2014 similar to the size of today's decline \u2014 though beating estimates hasn't reliably led to positive reactions: in the last three reports, AMD beat by 2.7% to 6.0% yet posted negative abnormal moves in two of those sessions, with the August report producing a -7.0 percentage point abnormal decline despite a 4.1% beat. The company reports tomorrow."
+        },
+        {
+          "run": 12,
+          "failed_checks": [
+            "never states a move as a multiple of another"
+          ],
+          "judge_reason": null,
+          "analysis": "AMD fell 4.2% to $161.30, underperforming both the broader market (SPY down 0.6%) and its AI compute peers, which declined a median of 2.0%. The drop appears mixed between company-specific factors and thematic weakness, as the stock fell about twice as much as semiconductor peers like NVDA and AVGO. The only coverage notes that AMD reports third-quarter earnings after tomorrow's close.\n\nThe stock typically moves around 6% in absolute terms following earnings (isolating for market effects), though beating estimates has not reliably led to gains\u2014across the seven most recent reports where all beat, three still produced negative abnormal moves the next session. Most recently in August, AMD beat by 4.1% but fell 7.0% beyond what the market model expected, suggesting the bar for a positive reaction may be high heading into tomorrow's report."
+        },
+        {
+          "run": 14,
+          "failed_checks": [
+            "never states a move as a multiple of another"
+          ],
+          "judge_reason": null,
+          "analysis": "AMD fell 4.2% to $161.30, underperforming both the broader market (SPY down 0.6%) and its AI compute peers (median down 2.0%). The move appears mixed -- partly in line with sector weakness, as peers including NVDA and TSM also declined, but AMD's drop was roughly twice as deep. The single coverage item simply notes that the company reports third-quarter results after the close tomorrow.\n\nThe stock has shown unusually volatile earnings reactions recently, with a typical abnormal move of around 6.1% beyond what its market model would predict. Of the last three reports, all three beat estimates but two were followed by negative abnormal moves of 6-7%, suggesting that beating expectations has not reliably translated into positive price action for AMD."
+        }
+      ]
+    }
+  }
+}
