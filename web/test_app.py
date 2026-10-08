@@ -26,6 +26,10 @@ sys.path.insert(0, str(PROJECT_ROOT / "web"))
 
 import app as server  # noqa: E402
 
+# The real one, for the tests that check what it sends the model;
+# install_stubs() replaces server.analyze for every route test.
+REAL_ANALYZE = server.analyze
+
 
 # --- fake data -------------------------------------------------------
 def fake_price(ticker):
@@ -807,6 +811,26 @@ def main() -> int:
                               any(n.get("is_video") for n in news))
     finally:
         server.analyze = real_analyze
+
+    print("\nThe analysis knows what day it is")
+    # Saved eval outputs called a report due tomorrow "nearly two years
+    # away": the model had the report's date but not today's.
+    from datetime import date, timedelta
+    server.client = FakeClient()
+    soon = {"next_earnings_date": str(date.today() + timedelta(days=3))}
+    REAL_ANALYZE("CRASH", {"price": fake_price("CRASH"), "events": soon})
+    REAL_ANALYZE("CRASH", {"price": fake_price("CRASH"), "events": {"next_earnings_date": None}})
+    sent = [json.loads(c["messages"][0]["content"]) for c in server.client.messages.calls]
+    failures += not check("the analysis is told today's date",
+                          sent[0].get("today") == date.today().isoformat(), str(sent[0].get("today")))
+    failures += not check("and the days to the report, counted from the same date",
+                          sent[0].get("next_earnings_in_days") == 3,
+                          str(sent[0].get("next_earnings_in_days")))
+    failures += not check("an unknown report date stays unknown, not zero days away",
+                          sent[1].get("next_earnings_in_days") is None,
+                          str(sent[1].get("next_earnings_in_days")))
+    failures += not check("the analysis prompt says to take timing from them",
+                          "next_earnings_in_days" in server.ANALYSIS_SYSTEM)
 
     from tools.market_data import _plain_text
     failures += not check("html is stripped from summary text",

@@ -396,6 +396,11 @@ Write 3-4 sentences covering: how the move looks in context (including versus th
 if that figure is provided), what the coverage reports, set beside the move, and the next \
 dated event in the data (a report date), stated as a fact.
 
+today is the date you are writing on, and next_earnings_in_days counts from it to the report \
+date in events (null when no date is known). Take any sense of how near or far a date is -- \
+"reports tomorrow", "in three weeks" -- from those two, never from your own idea of the \
+current date: that comes from training data that ends long before today.
+
 If theme_comparison is present, use it for the context: it gives the theme's benchmark ETF, \
 the median move of the company's peers in the same theme (excluding the company), and an \
 attribution -- "theme" when it tracked its peers, "company" when it diverged from them \
@@ -455,10 +460,16 @@ def analyze(ticker: str, data: dict) -> str:
 
     payload = {
         "ticker": ticker,
+        # Without these the model reads next_earnings_date against its own
+        # sense of "now", which is its training data's: saved eval outputs
+        # called a report due tomorrow "nearly two years away". The same
+        # local date days_until_earnings counts from, so the two agree.
+        "today": datetime.now().date().isoformat(),
         "price": data.get("price"),
         "market_comparison": data.get("market"),
         "news": data.get("news"),
         "events": data.get("events"),
+        "next_earnings_in_days": days_until_earnings(data.get("events")),
         "earnings_setup": data.get("setup"),
     }
     theme = data.get("theme")

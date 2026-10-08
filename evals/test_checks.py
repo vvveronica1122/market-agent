@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import os
 import sys
+from datetime import date
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -337,6 +338,12 @@ def main() -> int:
                                   out == "Stub analysis." and '"theme_comparison"' in sent
                                   and '"peer_median_change_percent"' in sent
                                   and f'"ticker": "{spec["ticker"]}"' in sent, out[:60])
+            report = (spec["data"].get("events") or {}).get("next_earnings_date")
+            if report:
+                days = (date.fromisoformat(report) - date.today()).days
+                failures += not check(f"analysis scenario '{name}' gives the model today and the days to its report",
+                                      f'"today": "{date.today().isoformat()}"' in sent
+                                      and f'"next_earnings_in_days": {days}' in sent)
     finally:
         server.client = saved_client
 
