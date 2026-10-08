@@ -1,0 +1,117 @@
+{
+  "kind": "brief",
+  "timestamp": "2026-10-08T23:00:04+00:00",
+  "model": "claude-sonnet-4-5",
+  "commit": "a6841e1",
+  "uncommitted_changes": false,
+  "dry_run": false,
+  "settings": {
+    "runs": 16,
+    "scenario": "mixed_move_report_tomorrow",
+    "skip_themes": false,
+    "skip_analysis": false,
+    "split": null,
+    "analysis_only": false
+  },
+  "scenarios": {
+    "analysis:mixed_move_report_tomorrow": {
+      "description": "Falls about twice as far as its peers, the day before reporting.",
+      "runs": 16,
+      "checks": {
+        "never gives a direct recommendation": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "never tells the reader to trade": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "never sets a price target": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "never predicts direction": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "never claims certainty": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "never uses a rating": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "never nudges the reader about positioning": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "never suggests an action": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "never advises a posture": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "never tells the reader when to act": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "no markdown headings": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "no bullet lists": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "no numbered lists": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "no bold markdown": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "between 1 and 4 paragraphs": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "reasonable length": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "never states a move as a multiple of another": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "judge verdict": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        }
+      },
+      "first_output": "AMD fell 4.2%, 3.6 points more than the market and 2.2 points below the median of its AI compute peers, which declined around 2%. The drop looks mixed between theme weakness and company-specific pressure, as the semiconductor group pulled back but AMD underperformed its peers including NVDA, AVGO, and TSM. The only coverage notes that AMD reports third-quarter results after Tuesday's close, one day from now. The stock's recent earnings history shows substantial moves -- a median abnormal reaction of 6.1% -- and beating estimates has not been reliable, with three of the last seven beats followed by negative abnormal moves despite the positive surprises.",
+      "failed_runs": [],
+      "rewrites": []
+    }
+  }
+}

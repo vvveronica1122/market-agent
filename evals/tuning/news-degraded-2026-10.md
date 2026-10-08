@@ -214,3 +214,12 @@ thin. A prompt rule that leaks under one change will leak under the
 next; the branch waits for a fix to that, planned on its own.
 
 Spend for the follow-up: about $1.35, estimated, not metered.
+
+## Merged with the guard
+
+The fix for the multiples was planned and run on its own
+([analysis-guard-2026-10.md](analysis-guard-2026-10.md)): the analysis is
+now checked for multiples in code and rewritten once on a hit. Built on
+this branch, its 88 runs re-measured this change too, and all its criteria
+held: `headlines_only` passed the judge in 21 of 24, the multiples check
+in 88 of 88. This branch merges with it.

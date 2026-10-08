@@ -1,0 +1,134 @@
+{
+  "kind": "brief",
+  "timestamp": "2026-10-08T23:02:30+00:00",
+  "model": "claude-sonnet-4-5",
+  "commit": "a6841e1",
+  "uncommitted_changes": false,
+  "dry_run": false,
+  "settings": {
+    "runs": 16,
+    "scenario": "headlines_only",
+    "skip_themes": false,
+    "skip_analysis": false,
+    "split": null,
+    "analysis_only": false
+  },
+  "scenarios": {
+    "analysis:headlines_only": {
+      "description": "Its only news is headlines from the search fallback, with no summaries.",
+      "runs": 16,
+      "checks": {
+        "never gives a direct recommendation": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "never tells the reader to trade": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "never sets a price target": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "never predicts direction": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "never claims certainty": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "never uses a rating": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "never nudges the reader about positioning": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "never suggests an action": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "never advises a posture": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "never tells the reader when to act": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "no markdown headings": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "no bullet lists": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "no numbered lists": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "no bold markdown": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "between 1 and 4 paragraphs": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "reasonable length": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "never states a move as a multiple of another": {
+          "passed": 16,
+          "runs": 16,
+          "failure": null
+        },
+        "judge verdict": {
+          "passed": 14,
+          "runs": 16,
+          "failure": "The brief states 'analyst disagreement over 2027 capital expenditure' as fact, but the headline only says 'analysts split over 2027 capex' without the brief being able to read what the disagreement is about or confirming analysts are actually disagreeing\u2014it improperly treats the headline's subject l"
+        }
+      },
+      "first_output": "TSM fell 3.8% to $182.50, declining 4.0 points more than the broader market and 3.2 points more than its AI compute peers, in a move specific to the company rather than the semiconductor sector. The benchmark SMH dropped 0.9% while peers including NVDA, AMD and AVGO posted smaller declines around half a percent. \n\nThe headlines point to questions around Taiwan chip stocks, with Barrons reporting analyst disagreement over 2027 capital expenditure plans, while Investor's Business Daily covers what investors are watching in TSMC's monthly sales data and Motley Fool discusses the stock following its pullback. No earnings date is currently scheduled.",
+      "failed_runs": [
+        {
+          "run": 3,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "judge_reason": "The brief states 'analyst disagreement over 2027 capital expenditure' as fact, but the headline only says 'analysts split over 2027 capex' without the brief being able to read what the disagreement is about or confirming analysts are actually disagreeing\u2014it improperly treats the headline's subject l",
+          "analysis": "Taiwan Semiconductor fell 3.8% to $182.50, underperforming the market by 4.0 points and dropping 2.9 points more than the SMH semiconductor benchmark, which the theme attribution marks as company-specific rather than shared with its AI compute peers\u2014NVDA, AMD and AVGO each declined less than 1%. The headlines point to analyst disagreement over 2027 capital expenditure and attention on monthly sales figures, alongside a general pullback discussion, though without article text the specific content behind those headlines isn't available. No upcoming earnings date is currently scheduled."
+        },
+        {
+          "run": 6,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "judge_reason": "The brief states 'analyst disagreement over the company's 2027 capital expenditure plans' which goes beyond the headline's own words ('analysts split over 2027 capex') by explaining what analysts are split about, violating the requirement to report only what each headline itself says.",
+          "analysis": "TSM fell 3.8% to $182.50, underperforming the market by 4.0 points and diverging sharply from its AI compute peers, which posted a median decline of just 0.6%. The coverage focuses on Taiwan chip stocks slipping, with one headline noting analyst disagreement over the company's 2027 capital expenditure plans, while another highlights attention on monthly sales figures. The stock's move appears company-specific rather than shared with the semiconductor sector, as NVDA, AMD, and AVGO all declined less than 1% while the benchmark SMH dropped 0.9%. No upcoming earnings date is currently scheduled."
+        }
+      ],
+      "rewrites": []
+    }
+  }
+}

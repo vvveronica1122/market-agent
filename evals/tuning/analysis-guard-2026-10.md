@@ -58,3 +58,61 @@ all five hold:
 
 The rewrite rate is reported as a cost, with no bar: each rewrite is one
 more model call on that page.
+
+## After the fix (a6841e1)
+
+| Run | Judge | Multiples check | Rewrites |
+|---|---|---|---|
+| Seven scenarios, 8 each (20261008-225702_brief.json) | 54/56 | 56/56 | 1 |
+| `mixed_move_report_tomorrow`, 16 more (20261008-230004_brief.json) | 16/16 | 16/16 | 0 |
+| `headlines_only`, 16 more (20261008-230230_brief.json) | 14/16 | 16/16 | 0 |
+
+**The one rewrite**, in `headlines_only`, changed one sentence and nothing
+else:
+
+- Before: "peers including Nvidia, AMD, and Broadcom declined less than 1%,
+  while TSM dropped nearly four times that amount". That is wrong: 4.75 to
+  9.5 times.
+- After: "peers including Nvidia, AMD, and Broadcom declined less than 1%,
+  with TSM falling 3.2 points more than the median peer", which is
+  `vs_peers`.
+
+That run then passed the judge.
+
+**The judge's failures**, read against the data:
+
+- `headlines_only`, three of 24. Two look like the judge's errors: each
+  attributes its points to headlines ("the headlines point to analyst
+  disagreement over 2027 capital expenditure"), and one adds "without
+  article text the specific content behind those headlines isn't
+  available". The third is real if small: "analyst disagreement over the
+  company's 2027 capital expenditure plans", where the headline is about
+  Taiwan chip stocks, not TSM's own plans.
+- `company_drop_peers_flat`, one of 8: "suggests the weakness is tied to
+  Western Digital's customer base", rule (a), the known borderline.
+
+## Result
+
+| Criterion | Needed | Result |
+|---|---|---|
+| 1. Multiples check | at most 1 of 88 | **0 of 88** |
+| 2. `headlines_only` judge | 21/24 | **21/24** (two failures probably the judge's) |
+| 3. Other six scenarios | 42/48, none below 6/8; 13/16 extra | **47/48**, lowest 7/8; **16/16** |
+| 4. Other deterministic checks | all 88 runs | **all pass** |
+| 5. Rewrites add nothing | every rewrite | **1 rewrite, one sentence changed, correctly** |
+
+All five hold, so this branch, and `news-degraded` with it, can merge.
+
+Multiples in the shown text went from 5 in 112 runs without the guard to
+0 in 88 with it (Fisher's exact test, two-sided, p = 0.07). Most of that
+gap is the model's own variation, not the guard: in these 88 runs the
+model wrote a multiple only once, and the guard caught that one. So the
+run shows the mechanism working on the case it met, not a measured rate.
+What the mechanism changes is structural: for a multiple to reach the
+page, the model now has to write one twice in a row.
+
+The guard asked for a rewrite in 1 of 88 analyses, so its cost is about
+one extra model call per hundred stock pages.
+
+Spend: about $1.30, estimated from prompt sizes at list prices rather than
+metered.
