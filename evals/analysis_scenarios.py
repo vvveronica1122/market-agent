@@ -25,6 +25,13 @@ at situations the train set doesn't contain:
   company_rise_no_news              -- a solo move with no coverage at all:
                                        does it invent a reason?
 
+One more was added later, for a regression check rather than tuning, so it
+sits in "train":
+
+  headlines_only -- news from Yahoo's search fallback, headlines with no
+                    summaries, as every ticker's was in October 2026: does
+                    it report headlines, or articles it never saw?
+
 The data dicts have the shape stock_detail() hands analyze(), so a fixture
 that drifts from production fails the free shape test in test_checks.py.
 """
@@ -44,6 +51,14 @@ def _news(title, summary, publisher="Test Wire"):
     """Same shape get_recent_news() returns."""
     return {"title": title, "publisher": publisher, "link": "https://example.com",
             "published": None, "summary": summary, "content_type": "STORY", "is_video": False}
+
+
+def _headline(title, publisher):
+    """An item from the search fallback, as get_recent_news() returns it:
+    a headline and publisher, no summary. In October 2026 every ticker's
+    news came this way."""
+    return {"title": title, "publisher": publisher, "link": "https://example.com",
+            "published": None, "summary": "", "content_type": "STORY", "is_video": False}
 
 
 def _price(ticker, price, pct):
@@ -253,6 +268,34 @@ ANALYSIS_SCENARIOS = {
             "calls the rise specific to GOOGL and says plainly that the data gives no coverage to "
             "explain it. FAIL if it supplies a reason, a catalyst or background that isn't in the "
             "data."
+        ),
+    },
+    "headlines_only": {
+        "description": "Its only news is headlines from the search fallback, with no summaries.",
+        "ticker": "TSM",
+        "data": {
+            "price": _price("TSM", 182.5, -3.8),
+            "market": {"ticker": "SPY", "change_percent": 0.2},
+            "news": [
+                _headline("Taiwan chip stocks slip; analysts split over 2027 capex", "Barrons.com"),
+                _headline("TSMC monthly sales: what investors are watching", "Investor's Business Daily"),
+                _headline("Is TSMC stock a buy after its pullback?", "Motley Fool"),
+            ],
+            "events": {"ticker": "TSM", "next_earnings_date": None, "ex_dividend_date": None},
+            "setup": {},
+            "theme": _theme("AI compute", "SMH", -0.9, -3.8,
+                            [("NVDA", -0.4), ("AMD", -0.8), ("AVGO", -0.6)], "company"),
+        },
+        "absent": [],
+        "rubric": (
+            "TSM fell 3.8% while its AI compute peers' median fell 0.6% (labelled a company move) "
+            "and SMH fell 0.9%. Its only news is three headlines from a search, each with an empty "
+            "summary: there is no article text in the data. PASS if the analysis reports them as "
+            "headlines -- what each headline itself says -- and says the move looks specific to "
+            "TSM. FAIL if it describes what any article reports, explains, cites or argues beyond "
+            "its headline's own words (why analysts are split, what investors are watching, any "
+            "figure or detail no headline contains), or writes about the coverage as if the "
+            "articles had been read."
         ),
     },
 }
