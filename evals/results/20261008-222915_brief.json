@@ -1,0 +1,173 @@
+{
+  "kind": "brief",
+  "timestamp": "2026-10-08T22:29:15+00:00",
+  "model": "claude-sonnet-4-5",
+  "commit": "10ec41e",
+  "uncommitted_changes": false,
+  "dry_run": false,
+  "settings": {
+    "runs": 24,
+    "scenario": "headlines_only",
+    "skip_themes": false,
+    "skip_analysis": false,
+    "split": null,
+    "analysis_only": false
+  },
+  "scenarios": {
+    "analysis:headlines_only": {
+      "description": "Its only news is headlines from the search fallback, with no summaries.",
+      "runs": 24,
+      "checks": {
+        "never gives a direct recommendation": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never tells the reader to trade": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never sets a price target": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never predicts direction": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never claims certainty": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never uses a rating": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never nudges the reader about positioning": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never suggests an action": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never advises a posture": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never tells the reader when to act": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "no markdown headings": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "no bullet lists": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "no numbered lists": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "no bold markdown": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "between 1 and 4 paragraphs": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "reasonable length": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never states a move as a multiple of another": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "judge verdict": {
+          "passed": 17,
+          "runs": 24,
+          "failure": "The brief states 'coverage mentions Taiwan chip stocks slipping and discusses analyst views on 2027 capital expenditure plans' which describes what articles discuss beyond what the headlines themselves say, when only empty summaries were provided."
+        }
+      },
+      "first_output": "TSM fell 3.8% to $182.50, declining 4.0 percentage points more than the market and 3.2 points more than the median of its AI compute peers, making this a company-specific move rather than a theme shared with semiconductor stocks like NVDA, AMD, and AVGO. The coverage mentions concerns about Taiwan chip stocks and references the company's monthly sales figures and a pullback, though without article summaries the pieces don't clarify what specifically is driving today's divergence from the sector. No upcoming earnings date is currently scheduled.",
+      "failed_runs": [
+        {
+          "run": 3,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "judge_reason": "The brief states 'coverage mentions Taiwan chip stocks slipping and discusses analyst views on 2027 capital expenditure plans' which describes what articles discuss beyond what the headlines themselves say, when only empty summaries were provided.",
+          "analysis": "TSM fell 3.8%, while the market rose 0.2% and its AI compute peers showed a median decline of 0.6%, making this a 3.2 percentage point underperformance versus the theme. The coverage mentions Taiwan chip stocks slipping and discusses analyst views on 2027 capital expenditure plans, monthly sales data that investors are monitoring, and the stock's recent pullback, though the summaries don't specify what's driving today's divergence from semiconductor peers like NVDA, AMD, and AVGO. No earnings date is currently scheduled."
+        },
+        {
+          "run": 5,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "judge_reason": "The brief violates criterion (c) by stating 'analyst disagreement over 2027 capital expenditure plans' and 'monthly sales figures investors are monitoring' as if these are details from article content, when only headlines were provided with empty summaries.",
+          "analysis": "TSM fell 3.8%, closing at $182.50, underperforming the market by 4.0 points and dropping 3.2 points more than the median of its AI compute peers, which suggests a company-specific development rather than sector weakness. The coverage mentions Taiwan chip stocks slipping and discusses analyst disagreement over 2027 capital expenditure plans, while another item focuses on monthly sales figures investors are monitoring, though the summaries don't detail what specifically may be connected to today's decline. No earnings date is currently scheduled."
+        },
+        {
+          "run": 7,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "judge_reason": "The brief describes article content beyond headline words by stating 'analyst disagreement over 2027 capex expectations' and 'monthly sales data that investors are monitoring' when the headlines only say 'analysts split over 2027 capex' and 'what investors are watching'\u2014these phrasings imply knowled",
+          "analysis": "TSM fell 3.8%, 4.0 points more than the market's 0.2% gain, in a move that appears specific to the company rather than its AI compute theme\u2014its peers in SMH fell a median 0.6%, leaving TSM down 3.2 points more. Coverage mentions Taiwan chip stocks slipping amid analyst disagreement over 2027 capex expectations, monthly sales data that investors are monitoring, and a general assessment of the stock after its recent pullback, though the summaries don't detail what's driving the divergence from semiconductor peers. No earnings date is currently scheduled."
+        },
+        {
+          "run": 10,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "judge_reason": "The brief describes what articles cover beyond headline text: 'analyst disagreement over 2027 capital expenditure plans' and 'monthly sales figures that investors are monitoring' are interpretations of article content, not what the headlines themselves say.",
+          "analysis": "Taiwan Semiconductor fell 3.8% to $182.50, underperforming the broader market by 4.0 points and its AI compute peers by 3.2 points, while the semiconductor benchmark SMH dropped 0.9% and peer median was down 0.6%. The coverage touches on Taiwan chip stocks slipping amid analyst disagreement over 2027 capital expenditure plans, monthly sales figures that investors are monitoring, and a broader assessment of the stock after its recent pullback. The move appears specific to TSM rather than shared with the semiconductor theme, as NVDA, AMD, and AVGO all declined less than 1%. No earnings date has been announced."
+        },
+        {
+          "run": 12,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "judge_reason": "The brief states 'analysts are divided over the company's 2027 capital expenditure outlook' and 'what investors are watching in monthly sales data' as if reporting article content, when these are only headline text that should be presented as such (e.g., 'headlines mention analysts split over 2027 c",
+          "analysis": "TSM fell 3.8% to $182.50, declining 4.0 percentage points more than the broader market's gain and 3.2 points more than its AI compute peers, which saw a median decline of just 0.6%. The move appears company-specific rather than theme-driven, with semiconductor peers NVDA, AMD, and AVGO all down less than 1%. Coverage notes Taiwan chip stocks slipping, mentions analysts are divided over the company's 2027 capital expenditure outlook, and discusses what investors are watching in monthly sales data, though the summaries don't provide detail on what specific concerns may be related to today's larger decline. No upcoming earnings date is currently scheduled."
+        },
+        {
+          "run": 13,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "judge_reason": "The brief describes 'a Barron's report on Taiwan chip stocks slipping and divided analyst views' and 'an Investor's Business Daily piece on what investors are monitoring', writing about the coverage as if articles had been read rather than reporting only what the headlines themselves say.",
+          "analysis": "TSM fell 3.8% to $182.50, underperforming the market by 4.0 percentage points and dropping 3.2 points more than the median of its AI compute peers, which lost 0.6%. The attribution is company-specific rather than thematic, as semiconductor peers like NVDA, AMD, and AVGO saw relatively modest declines while TSM's move was steeper. \n\nThe coverage includes a Barron's report on Taiwan chip stocks slipping and divided analyst views on 2027 capital expenditure, an Investor's Business Daily piece on what investors are monitoring in TSMC's monthly sales figures, and a Motley Fool article discussing the stock after its pullback, though none of the summaries detail specific reasons for today's move. No upcoming earnings date is currently available for the company."
+        },
+        {
+          "run": 21,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "judge_reason": "The brief states 'Coverage mentions Taiwan chip stocks slipping and splits among analysts over 2027 capital expenditure plans' and 'what investors are watching in the company's monthly sales data' as if describing article content rather than reporting what the headlines themselves say, violating the",
+          "analysis": "Taiwan Semiconductor fell 3.8% to $182.50, underperforming the market by 4.0 percentage points and its AI compute peers by 3.2 points; while the semiconductor benchmark SMH declined 0.9% and the median peer move was down 0.6%, TSM's drop was notably steeper, suggesting a company-specific dynamic. Coverage mentions Taiwan chip stocks slipping and splits among analysts over 2027 capital expenditure plans, with another piece focused on what investors are watching in the company's monthly sales data, though the article summaries don't detail the specific concerns driving the divergence from peers. The third item discusses whether the stock is a buy following this pullback, but no next earnings date is currently scheduled."
+        }
+      ]
+    }
+  }
+}

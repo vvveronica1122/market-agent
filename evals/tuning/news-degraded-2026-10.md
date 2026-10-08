@@ -181,3 +181,36 @@ At the roughly 1% rate seen since the gaps fix, 3 or more in 48 would
 happen about 1% of the time by chance; at 10%, the kind of regression
 worth catching, about 87% of the time. The check is the narrowed one from
 c6b6212, on both sides.
+
+## Follow-up result
+
+| Scenario, 24 runs each | Before (10ec41e) | After (d730a21) |
+|---|---|---|
+| `mixed_move_report_tomorrow`, multiples | 1 (20261008-222558_brief.json) | 1 (20261008-223313_brief.json) |
+| `headlines_only`, multiples | 0 (20261008-222915_brief.json) | **2** (20261008-223629_brief.json) |
+| **Total** | **1 of 48** | **3 of 48** |
+
+**3 of 48 is more than 2, so by the rule the branch is not merged.**
+
+Every extra multiple came from `headlines_only`: "TSM's drop was more than
+five times steeper" and "nearly four times steeper", after "nearly four
+times as much" in the first after-fix run. Counting both rounds, that
+scenario stated a multiple in 0 of 40 runs before the fix and 3 of 40
+after (p = 0.24). The AMD scenario stayed at 1 in 24 on both sides.
+
+A likely reading, not a demonstrated one: before the fix the model spent
+its sentences describing "the coverage"; told to keep to the headlines,
+it has less to say about the news and more about the move, and TSM's
+3.8% fall against peers' 0.4-0.8% invites a multiple. Two of the three
+were wrong ("nearly four times"; it is 4.75 to 9.5).
+
+The judge, which doesn't decide here: `headlines_only` passed 17 of 24
+before and 19 of 24 after; with the first round, 27 of 40 against 33 of
+40 (p = 0.20).
+
+So the news change does what it was for, and the prompt's rule against
+multiples, which held at about 1% elsewhere, leaks more when the news is
+thin. A prompt rule that leaks under one change will leak under the
+next; the branch waits for a fix to that, planned on its own.
+
+Spend for the follow-up: about $1.35, estimated, not metered.

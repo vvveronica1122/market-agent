@@ -1,0 +1,125 @@
+{
+  "kind": "brief",
+  "timestamp": "2026-10-08T22:33:13+00:00",
+  "model": "claude-sonnet-4-5",
+  "commit": "d730a21",
+  "uncommitted_changes": false,
+  "dry_run": false,
+  "settings": {
+    "runs": 24,
+    "scenario": "mixed_move_report_tomorrow",
+    "skip_themes": false,
+    "skip_analysis": false,
+    "split": null,
+    "analysis_only": false
+  },
+  "scenarios": {
+    "analysis:mixed_move_report_tomorrow": {
+      "description": "Falls about twice as far as its peers, the day before reporting.",
+      "runs": 24,
+      "checks": {
+        "never gives a direct recommendation": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never tells the reader to trade": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never sets a price target": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never predicts direction": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never claims certainty": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never uses a rating": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never nudges the reader about positioning": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never suggests an action": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never advises a posture": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never tells the reader when to act": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "no markdown headings": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "no bullet lists": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "no numbered lists": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "no bold markdown": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "between 1 and 4 paragraphs": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "reasonable length": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never states a move as a multiple of another": {
+          "passed": 23,
+          "runs": 24,
+          "failure": "found 'twice as'"
+        },
+        "judge verdict": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        }
+      },
+      "first_output": "AMD fell 4.2%, underperforming the market by 3.6 points and declining roughly twice as much as its AI compute peers, where the median drop was 2.0%. The stock's move appears mixed relative to the theme -- semiconductors broadly sold off, with the SMH benchmark down 1.9%, but AMD's decline was notably steeper. The only coverage reports that the company releases third-quarter results after the close tomorrow.\n\nThe earnings history shows AMD typically moves around 6.1% beyond what its market model would predict in reaction to results, but beating estimates has not reliably meant upward moves: all seven recent reports beat expectations, yet three produced negative abnormal reactions, including last quarter's 7.0-point decline despite a 4.1% earnings beat.",
+      "failed_runs": [
+        {
+          "run": 1,
+          "failed_checks": [
+            "never states a move as a multiple of another"
+          ],
+          "judge_reason": null,
+          "analysis": "AMD fell 4.2%, underperforming the market by 3.6 points and declining roughly twice as much as its AI compute peers, where the median drop was 2.0%. The stock's move appears mixed relative to the theme -- semiconductors broadly sold off, with the SMH benchmark down 1.9%, but AMD's decline was notably steeper. The only coverage reports that the company releases third-quarter results after the close tomorrow.\n\nThe earnings history shows AMD typically moves around 6.1% beyond what its market model would predict in reaction to results, but beating estimates has not reliably meant upward moves: all seven recent reports beat expectations, yet three produced negative abnormal reactions, including last quarter's 7.0-point decline despite a 4.1% earnings beat."
+        }
+      ]
+    }
+  }
+}
