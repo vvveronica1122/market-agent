@@ -831,6 +831,19 @@ def main() -> int:
                           str(sent[1].get("next_earnings_in_days")))
     failures += not check("the analysis prompt says to take timing from them",
                           "next_earnings_in_days" in server.ANALYSIS_SYSTEM)
+    failures += not check("today is the local date by default", server.local_today() == date.today())
+    real_today = server.local_today
+    try:
+        # The evals pin it for a whole run; both readings must follow.
+        server.local_today = lambda: date(2026, 10, 8)
+        server.client = FakeClient()
+        REAL_ANALYZE("CRASH", {"price": fake_price("CRASH"), "events": {"next_earnings_date": "2026-10-10"}})
+        pinned = json.loads(server.client.messages.calls[0]["messages"][0]["content"])
+        failures += not check("the analysis's date and day count both come from local_today()",
+                              pinned.get("today") == "2026-10-08" and pinned.get("next_earnings_in_days") == 2,
+                              f"{pinned.get('today')}, {pinned.get('next_earnings_in_days')}")
+    finally:
+        server.local_today = real_today
 
     print("\nThe analysis gets its gap to the market")
     # A saved analysis called a 4.2% fall "twice" the market's 0.6% drop:

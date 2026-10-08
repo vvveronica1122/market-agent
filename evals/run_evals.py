@@ -34,6 +34,7 @@ sys.path.insert(0, str(PROJECT_ROOT / "web"))
 sys.path.insert(0, str(PROJECT_ROOT / "evals"))
 
 import app as server  # noqa: E402
+import analysis_scenarios  # noqa: E402
 from analysis_scenarios import ANALYSIS_SCENARIOS  # noqa: E402
 from checks import (  # noqa: E402
     check_absent,
@@ -45,6 +46,7 @@ from checks import (  # noqa: E402
     judge,
 )
 from results import save_run, summarize  # noqa: E402
+import scenarios  # noqa: E402
 from scenarios import SCENARIOS  # noqa: E402
 
 GREEN, RED, DIM, RESET = "\033[32m", "\033[31m", "\033[2m", "\033[0m"
@@ -162,6 +164,19 @@ def run_scenario(name: str, spec: dict, runs: int) -> dict:
     return {"checks": len(totals), "failed": failed, "record": record}
 
 
+def pin_run_date() -> date:
+    """Hold the app's "today" at the day the fixtures were built, for the
+    whole run. Their report dates are offsets from that day, while the app
+    read the clock on every call: a run that crossed midnight put one
+    scenario's report "today" instead of tomorrow
+    (evals/tuning/analysis-gaps-2026-10.md)."""
+    day = analysis_scenarios.TODAY
+    if scenarios.TODAY != day:
+        raise SystemExit("The fixture modules were built on different days; run again.")
+    server.local_today = lambda: day
+    return day
+
+
 def run_analysis_scenario(name: str, spec: dict, runs: int) -> dict:
     """The stock page's analysis, against one fixed data set."""
     print(f"\n{'=' * 74}\nanalysis:{name}  {DIM}{spec['description']}{RESET}\n{'=' * 74}")
@@ -192,10 +207,10 @@ def run_analysis_scenario(name: str, spec: dict, runs: int) -> dict:
         results += check_format(text)
         results += check_absent(text, spec.get("absent", []))
         results += check_no_multiples(text)
-        # The fixtures' report dates are offsets from date.today(), and the
-        # app counts days from the same local date.
+        # The app's date, which a run pins to the day the fixtures were
+        # built, so the judge and the analysis can't disagree on it.
         passed, reason = judge(server.client, server.MODEL, text, spec["rubric"], evidence,
-                               today=date.today().isoformat())
+                               today=server.local_today().isoformat())
         results.append((passed, "judge verdict", reason))
 
         for ok, label, detail in results:
@@ -352,6 +367,7 @@ def main() -> int:
         print("Use --dry-run to exercise the harness without it.")
         return 1
     server.client = Recorder(server.client)
+    pin_run_date()
 
     if args.judge_stability:
         record = judge_stability(args.scenario or "quiet_day", args.judge_stability, args.text)

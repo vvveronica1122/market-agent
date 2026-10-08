@@ -48,6 +48,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from tools.relative import relative_rows, theme_summary
 
+# Report dates are offsets from this one reading of today, which the eval
+# runner pins the app to for the whole run.
+TODAY = date.today()
+
 
 def _row(ticker, pct, level, reasons, headline, earnings_in=30):
     """A watchlist row as fetch_row() builds it.
@@ -57,7 +61,7 @@ def _row(ticker, pct, level, reasons, headline, earnings_in=30):
     Scenarios about an imminent report set it, and None means no date is
     known.
     """
-    when = None if earnings_in is None else (date.today() + timedelta(days=earnings_in)).isoformat()
+    when = None if earnings_in is None else (TODAY + timedelta(days=earnings_in)).isoformat()
     return {
         "ticker": ticker,
         "price": {"ticker": ticker, "price": 100.0, "change_percent": pct},

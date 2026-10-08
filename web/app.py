@@ -26,7 +26,7 @@ import sys
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
-from datetime import datetime
+from datetime import date, datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -203,6 +203,13 @@ def market_status() -> dict:
 # alphabetically (which makes the reader do the work of finding what
 # matters), each name is scored on how much it deserves attention today
 # and the list is sorted by that score.
+def local_today() -> date:
+    """The app's "today": the local date, read in one place so the evals can
+    pin it for a whole run. Read per call, an eval run that crossed midnight
+    moved its fixtures' reports a day nearer than written."""
+    return datetime.now().date()
+
+
 def days_until_earnings(events: dict | None) -> int | None:
     raw = (events or {}).get("next_earnings_date")
     if not raw:
@@ -211,7 +218,7 @@ def days_until_earnings(events: dict | None) -> int | None:
     for fmt in ("%Y-%m-%d %H:%M:%S", "%Y-%m-%d"):
         try:
             when = datetime.strptime(text, fmt).date()
-            return (when - datetime.now().date()).days
+            return (when - local_today()).days
         except ValueError:
             continue
     return None
@@ -483,7 +490,7 @@ def analyze(ticker: str, data: dict) -> str:
         # sense of "now", which is its training data's: saved eval outputs
         # called a report due tomorrow "nearly two years away". The same
         # local date days_until_earnings counts from, so the two agree.
-        "today": datetime.now().date().isoformat(),
+        "today": local_today().isoformat(),
         "price": data.get("price"),
         "market_comparison": market,
         "news": data.get("news"),

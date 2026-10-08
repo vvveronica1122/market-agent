@@ -46,6 +46,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from tools.relative import attribute
 
+# Every report date below is an offset from this one reading of today. The
+# eval runner pins the app's "today" (and the judge's) to it, so a run that
+# crosses midnight sees the reports exactly as far off as written.
+TODAY = date.today()
+
 
 def _news(title, summary, publisher="Test Wire"):
     """Same shape get_recent_news() returns for the ticker's own feed."""
@@ -89,8 +94,8 @@ def _theme(name, bench, bench_pct, own, peers, attribution):
 # Report dates are offsets from today, so any weekday a headline names is
 # taken from the same date -- a fixed "next Wednesday" contradicts the date
 # on most days, and the judge passes the model for repeating both.
-_TOMORROW = date.today() + timedelta(days=1)
-_IN_THREE_DAYS = date.today() + timedelta(days=3)
+_TOMORROW = TODAY + timedelta(days=1)
+_IN_THREE_DAYS = TODAY + timedelta(days=3)
 
 ANALYSIS_SCENARIOS = {
     "theme_drop_before_earnings": {
@@ -203,7 +208,7 @@ ANALYSIS_SCENARIOS = {
                       "A brokerage raised its rating on Vertiv, pointing to orders for data-center "
                       "power and cooling equipment."),
             ],
-            "events": {"ticker": "VRT", "next_earnings_date": str(date.today() + timedelta(days=24)),
+            "events": {"ticker": "VRT", "next_earnings_date": str(TODAY + timedelta(days=24)),
                        "ex_dividend_date": None},
             "setup": {},
             "theme": _theme("AI power & infrastructure", "SPY", 0.5, 5.6,
@@ -263,7 +268,7 @@ ANALYSIS_SCENARIOS = {
             "price": _price("GOOGL", 251.7, 3.4),
             "market": {"ticker": "SPY", "change_percent": -0.4},
             "news": [],
-            "events": {"ticker": "GOOGL", "next_earnings_date": str(date.today() + timedelta(days=21)),
+            "events": {"ticker": "GOOGL", "next_earnings_date": str(TODAY + timedelta(days=21)),
                        "ex_dividend_date": None},
             "setup": {},
             "theme": _theme("Mega-cap tech", "QQQ", -0.5, 3.4,

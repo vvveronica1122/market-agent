@@ -446,6 +446,37 @@ def main() -> int:
     finally:
         server.client = saved_client
 
+    print("\nAn eval run holds one date")
+    # Read per call, a run that crossed midnight put a report "today" that
+    # the fixtures had written as tomorrow.
+    import analysis_scenarios as _as
+    real_today = server.local_today
+
+    class _Seen2:
+        def __init__(self):
+            self.messages, self.prompts = self, []
+        def create(self, **kw):
+            self.prompts.append(kw["messages"][0]["content"])
+            return _R('{"pass": true, "reason": "ok"}' if len(self.prompts) > 1 else "Stub analysis.")
+
+    try:
+        day = run_evals.pin_run_date()
+        failures += not check("a run is pinned to the day its fixtures were built",
+                              day == _as.TODAY and server.local_today() == day)
+        server.local_today = lambda: date(2031, 1, 2)   # as if the clock had moved on
+        seen = _Seen2()
+        server.client = Recorder(seen)
+        with contextlib.redirect_stdout(io.StringIO()):
+            run_evals.run_analysis_scenario("company_rise_no_news",
+                                            ANALYSIS_SCENARIOS["company_rise_no_news"], 1)
+        failures += not check("the analysis and the judge both use the app's date, not the clock",
+                              '"today": "2031-01-02"' in seen.prompts[0]
+                              and "TODAY'S DATE, when the brief was written: 2031-01-02" in seen.prompts[1],
+                              seen.prompts[1][:120])
+    finally:
+        server.local_today = real_today
+        server.client = saved_client
+
     print("\nJudge evidence")
     # The first saved baseline failed a correct answer as "invented" because
     # the judge never saw the tool results. These pin the fix in place.
