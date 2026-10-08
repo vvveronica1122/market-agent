@@ -88,8 +88,10 @@ def check_absent(text: str, patterns: list[tuple[str, str]]) -> list[tuple[bool,
 # called AMD's 4.2% fall "roughly twice as much as the broader market's
 # 0.6% drop", which is seven times. And a multiple of a small move
 # exaggerates even when it's right. Moves are compared in points instead.
+# "Twice" needs a comparison after it: alone it can be a count, as in
+# "posted negative abnormal moves twice", which the first version flagged.
 MULTIPLES = [
-    r"\b(twice|thrice)\b",
+    r"\b(twice|thrice)\s+(as|the|that|what|its|their)\b",
     r"\b(double|triple|quadruple)\b(?![- ]digit)",
     r"\b(\w+|\d+(\.\d+)?)\s+times\s+(as|more|less|larger|bigger|smaller|steeper|the|its|that|what)\b",
     r"\b\d+(\.\d+)?x\b",

@@ -336,6 +336,8 @@ def main() -> int:
         "It beat in all seven recent reports, yet three of those beats were followed by declines.",
         "The company has reported three times this year.",
         "Revenue growth has been double-digit.",
+        # A count, flagged by the first version of the check in a real run.
+        "It beat estimates each time yet posted negative abnormal moves twice, including August.",
     ]
     for text in multiples:
         failures += not check(f"catches: {text[:55]}...", not check_no_multiples(text)[0][0])
