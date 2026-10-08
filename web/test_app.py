@@ -867,6 +867,56 @@ def main() -> int:
                           'source "search"' in server.ANALYSIS_SYSTEM
                           and "no article text" in server.ANALYSIS_SYSTEM)
 
+    print("\nMultiples are checked in code, not only forbidden in the prompt")
+    # The prompt's rule held in about 1% of analyses, then leaked in 3 of 40
+    # when the news was thin. A multiple now gets one rewrite.
+    class _Scripted:
+        def __init__(self, *replies):
+            self.replies, self.calls, self.messages = list(replies), [], self
+
+        def create(self, **kwargs):
+            self.calls.append(kwargs)
+            reply = self.replies.pop(0)
+            if isinstance(reply, Exception):
+                raise reply
+            return _Response(reply)
+
+    bad = ("TSM fell 3.8%, 3.2 points more than its peers. NVDA, AMD and AVGO fell less than 1% "
+           "while TSM's drop was nearly four times steeper. No report date is scheduled.")
+    fixed = "TSM fell 3.8%, 3.2 points more than its peers. NVDA, AMD and AVGO fell less than 1%."
+    tsm = {"price": fake_price("CRASH")}
+
+    server.client = _Scripted(fixed)
+    out = REAL_ANALYZE("CRASH", tsm)
+    failures += not check("an analysis with no multiple costs one call and is kept as written",
+                          out == fixed and len(server.client.calls) == 1, out)
+
+    server.client = _Scripted(bad, fixed)
+    out = REAL_ANALYZE("CRASH", tsm)
+    calls = server.client.calls
+    failures += not check("one with a multiple gets a rewrite, and the rewrite is shown",
+                          out == fixed and len(calls) == 2, out)
+    ask = calls[-1]["messages"] if len(calls) == 2 else []
+    failures += not check("the rewrite sees the data, its first answer, and the sentence to fix",
+                          len(ask) == 3 and ask[0] == calls[0]["messages"][0]
+                          and ask[1] == {"role": "assistant", "content": bad}
+                          and "while TSM's drop was nearly four times steeper." in ask[2]["content"]
+                          and "No report date" not in ask[2]["content"], str(ask[2:]))
+
+    server.client = _Scripted(bad, bad.replace("four", "five"))
+    failures += not check("a rewrite that still has a multiple isn't used: the first text stands",
+                          REAL_ANALYZE("CRASH", tsm) == bad)
+    server.client = _Scripted(bad, RuntimeError("overloaded"))
+    failures += not check("a failed rewrite call leaves the first text, not an error",
+                          REAL_ANALYZE("CRASH", tsm) == bad)
+
+    from guards import find_multiple, sentence_around
+    text = "AMD fell 4.2%. It fell roughly twice as much as its peers, down 2.0%. The report is tomorrow."
+    failures += not check("the quoted sentence is the one with the multiple, decimals and all",
+                          sentence_around(text, find_multiple(text))
+                          == "It fell roughly twice as much as its peers, down 2.0%.",
+                          sentence_around(text, find_multiple(text)))
+
     from tools.market_data import _plain_text
     failures += not check("html is stripped from summary text",
                           _plain_text("<p>Apple (<a href='x'>AAPL</a>) rose.</p>") == "Apple ( AAPL ) rose.",

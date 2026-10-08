@@ -81,8 +81,14 @@ class Recorder:
         self.inner = inner
         self.messages = self
         self.last_input = None
+        # Counted so the analysis evals can see when the app asked for a
+        # rewrite (a second call), and keep what it replaced.
+        self.calls = 0
+        self.last_messages = None
 
     def create(self, **kwargs):
+        self.calls += 1
+        self.last_messages = kwargs["messages"]
         self.last_input = kwargs["messages"][0]["content"]
         return self.inner.messages.create(**kwargs)
 
@@ -162,9 +168,18 @@ def run_analysis_scenario(name: str, spec: dict, runs: int) -> dict:
     totals: dict[str, list[tuple[bool, str]]] = {}
     first_text = ""
     failed_runs: list[dict] = []
+    rewrites: list[dict] = []
     for attempt in range(runs):
+        calls = server.client.calls
         text = server.analyze(spec["ticker"], copy.deepcopy(spec["data"]))
         evidence = server.client.last_input
+        # A second call means the app's guard found a multiple and asked for
+        # a rewrite; keep the first text beside the final one, so what the
+        # guard changed can be read rather than taken on trust.
+        if server.client.calls - calls > 1:
+            rewrites.append({"run": attempt + 1,
+                             "original": server.client.last_messages[1]["content"],
+                             "final": text})
         if attempt == 0:
             first_text = text
             print(f"\n{DIM}--- what the model wrote ---{RESET}")
@@ -201,8 +216,10 @@ def run_analysis_scenario(name: str, spec: dict, runs: int) -> dict:
             print(f"        {DIM}{detail}{RESET}")
 
     failed = sum(1 for outcomes in totals.values() if not all(ok for ok, _ in outcomes))
+    if rewrites:
+        print(f"  {DIM}guard asked for a rewrite in {len(rewrites)} of {runs} runs{RESET}")
     record = {"description": spec["description"], "runs": runs, "checks": summarize(totals),
-              "first_output": first_text, "failed_runs": failed_runs}
+              "first_output": first_text, "failed_runs": failed_runs, "rewrites": rewrites}
     return {"checks": len(totals), "failed": failed, "record": record}
 
 

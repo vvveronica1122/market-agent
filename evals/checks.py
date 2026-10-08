@@ -16,6 +16,12 @@ from __future__ import annotations
 
 import json
 import re
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+from guards import find_multiple  # noqa: E402
 
 # Phrasings that would make this investment advice. The prompts forbid
 # them; these checks verify the prompt actually held, because a prompt is
@@ -83,25 +89,10 @@ def check_absent(text: str, patterns: list[tuple[str, str]]) -> list[tuple[bool,
     return results
 
 
-# A move stated as a multiple of another. The analysis has no calculator,
-# so a multiple is arithmetic done in the model's head: a saved analysis
-# called AMD's 4.2% fall "roughly twice as much as the broader market's
-# 0.6% drop", which is seven times. And a multiple of a small move
-# exaggerates even when it's right. Moves are compared in points instead.
-# "Twice" needs a comparison after it: alone it can be a count, as in
-# "posted negative abnormal moves twice", which the first version flagged.
-MULTIPLES = [
-    r"\b(twice|thrice)\s+(as|the|that|what|its|their)\b",
-    r"\b(double|triple|quadruple)\b(?![- ]digit)",
-    r"\b(\w+|\d+(\.\d+)?)\s+times\s+(as|more|less|larger|bigger|smaller|steeper|the|its|that|what)\b",
-    r"\b\d+(\.\d+)?x\b",
-    r"\bhalf as\b",
-    r"\b\w+-fold\b",
-]
-
-
+# Shared with the app, which rewrites what it finds (guards.py): the
+# evals measure exactly what production enforces.
 def check_no_multiples(text: str) -> list[tuple[bool, str, str]]:
-    hit = next((m for p in MULTIPLES for m in [re.search(p, text, re.IGNORECASE)] if m), None)
+    hit = find_multiple(text)
     return [(hit is None, "never states a move as a multiple of another",
              "" if hit is None else f"found {hit.group(0)!r}")]
 

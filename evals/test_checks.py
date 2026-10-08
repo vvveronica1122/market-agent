@@ -380,6 +380,35 @@ def main() -> int:
     finally:
         server.client = saved_client
 
+    print("\nThe analysis evals keep what the guard rewrote")
+    import contextlib
+    import io
+    import run_evals
+
+    class _GuardStub:
+        def __init__(self):
+            self.messages = self
+            self.replies = ["AMD fell twice as much as its peers.",
+                            "AMD fell 2.2 points more than its peers.",
+                            '{"pass": true, "reason": "ok"}']
+        def create(self, **kw): return _R(self.replies.pop(0))
+
+    try:
+        server.client = Recorder(_GuardStub())
+        with contextlib.redirect_stdout(io.StringIO()):
+            outcome = run_evals.run_analysis_scenario(
+                "mixed_move_report_tomorrow", ANALYSIS_SCENARIOS["mixed_move_report_tomorrow"], 1)
+        rewrites = outcome["record"].get("rewrites")
+        failures += not check("a rewrite is recorded with the text it replaced",
+                              rewrites == [{"run": 1, "original": "AMD fell twice as much as its peers.",
+                                            "final": "AMD fell 2.2 points more than its peers."}],
+                              str(rewrites))
+        failures += not check("and the checks grade the final text",
+                              outcome["record"]["checks"]["never states a move as a multiple of another"]
+                              ["passed"] == 1)
+    finally:
+        server.client = saved_client
+
     print("\nJudge evidence")
     # The first saved baseline failed a correct answer as "invented" because
     # the judge never saw the tool results. These pin the fix in place.

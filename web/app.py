@@ -37,6 +37,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
 from config import MODEL
+from guards import find_multiple, sentence_around
 import themes as theme_store
 from themes import ThemeError
 from tools.relative import relative_rows, theme_summary
@@ -501,16 +502,57 @@ def analyze(ticker: str, data: dict) -> str:
             "attribution": theme["attribution"],
             "peers": theme["peers"],
         }
+    content = json.dumps(payload, indent=2, default=str)
     try:
         response = client.messages.create(
             model=MODEL,
             max_tokens=350,
             system=ANALYSIS_SYSTEM,
-            messages=[{"role": "user", "content": json.dumps(payload, indent=2, default=str)}],
+            messages=[{"role": "user", "content": content}],
         )
-        return "".join(b.text for b in response.content if b.type == "text").strip()
+        text = "".join(b.text for b in response.content if b.type == "text").strip()
     except Exception as exc:
         return ai_unavailable("The analysis", exc)
+    return without_multiples(content, text)
+
+
+REWRITE_MULTIPLE = (
+    'This sentence states one move as a multiple of another: "{sentence}" Rewrite the briefing '
+    "so that moves are compared only by the gaps in points the data gives (vs_market, vs_peers, "
+    "vs_benchmark) or by their own percentages. Keep everything else as it was, and reply with "
+    "the briefing only."
+)
+
+
+def without_multiples(content: str, text: str) -> str:
+    """The analysis, with a move stated as a multiple of another rewritten.
+
+    The prompt forbids multiples, and that held in about 1% of analyses
+    until a change left the model less news to write about; then it leaked
+    in 3 of 40. So the code checks, with the patterns the evals use
+    (guards.py), and asks once for a rewrite, quoting the sentence. If the
+    rewrite still has one, or the call fails, the first text stands: an
+    analysis with a multiple is better than none, and the evals count it.
+    """
+    match = find_multiple(text)
+    if match is None:
+        return text
+    try:
+        response = client.messages.create(
+            model=MODEL,
+            max_tokens=350,
+            system=ANALYSIS_SYSTEM,
+            messages=[
+                {"role": "user", "content": content},
+                {"role": "assistant", "content": text},
+                {"role": "user", "content": REWRITE_MULTIPLE.format(
+                    sentence=sentence_around(text, match))},
+            ],
+        )
+        rewrite = "".join(b.text for b in response.content if b.type == "text").strip()
+    except Exception:
+        return text
+    return rewrite if rewrite and find_multiple(rewrite) is None else text
 
 
 # --- routes -----------------------------------------------------------
