@@ -355,10 +355,15 @@ def main() -> int:
     cap = _Capture()
     judge(cap, "m", "answer", "rubric", evidence='{"eps_actual": 1.35}')
     judge(cap, "m", "answer", "rubric")
+    judge(cap, "m", "answer", "rubric", today="2026-10-07")
     failures += not check("evidence reaches the judge's prompt",
                           '"eps_actual": 1.35' in cap.messages.prompts[0])
     failures += not check("without evidence, the prompt has no data section",
                           "DATA THE BRIEF" not in cap.messages.prompts[1])
+    failures += not check("today's date reaches the judge's prompt when given",
+                          "2026-10-07" in cap.messages.prompts[2])
+    failures += not check("without it, the prompt claims no date",
+                          "TODAY'S DATE" not in cap.messages.prompts[0])
 
     import agent_scenarios
     handlers = agent_scenarios.build_handlers()

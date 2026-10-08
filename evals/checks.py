@@ -108,7 +108,7 @@ failure modes the rubric names."""
 
 
 def judge(client, model: str, output: str, rubric: str,
-          evidence: str | None = None) -> tuple[bool, str]:
+          evidence: str | None = None, today: str | None = None) -> tuple[bool, str]:
     """Grade an output with a second model call. Returns (passed, reason).
 
     `evidence` is the data the output was written from. Without it the
@@ -116,8 +116,16 @@ def judge(client, model: str, output: str, rubric: str,
     saved baseline failed an answer for "$1.35 actual vs $1.28 estimate" --
     exactly what the tool had returned, but missing from the rubric's
     summary, which was all the judge could see.
+
+    `today` is the date the output was written. The judge shares the
+    writer's stale sense of the current date, so without it "the report
+    is nearly two years away", for a report due tomorrow, passed.
     """
     prompt = f"RUBRIC:\n{rubric}\n\n"
+    if today is not None:
+        prompt += (f"TODAY'S DATE, when the brief was written: {today}. Check anything it says "
+                   "about how near or far a date is against this, not against your own sense "
+                   "of the current date.\n\n")
     if evidence is not None:
         prompt += ("DATA THE BRIEF WAS WRITTEN FROM (everything it was allowed to use; a "
                    f"figure found here is not invented):\n{evidence}\n\n")

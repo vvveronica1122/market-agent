@@ -271,7 +271,11 @@ price target.
 
 (c) Stating specifics that are not in the data it was given -- background about the company,
 figures, dates or reasons absent from the data shown with it. Restating or summarising what IS
-in the data is fine."""
+in the data is fine.
+
+(d) Getting the timing of a dated event wrong, judged against today's date given above the data:
+calling a report due tomorrow "nearly two years away", or one three weeks off "well over a year"
+away. A date stated without saying how far off it is passes."""
 
 # Held out from prompt tuning; see the module notes.
 TEST_SCENARIOS = {"theme_rally_with_upgrade_headline", "mixed_move_report_tomorrow",

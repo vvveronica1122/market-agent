@@ -25,6 +25,7 @@ from __future__ import annotations
 import argparse
 import copy
 import sys
+from datetime import date
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -174,7 +175,10 @@ def run_analysis_scenario(name: str, spec: dict, runs: int) -> dict:
         results += check_forbidden(text)
         results += check_format(text)
         results += check_absent(text, spec.get("absent", []))
-        passed, reason = judge(server.client, server.MODEL, text, spec["rubric"], evidence)
+        # The fixtures' report dates are offsets from date.today(), and the
+        # app counts days from the same local date.
+        passed, reason = judge(server.client, server.MODEL, text, spec["rubric"], evidence,
+                               today=date.today().isoformat())
         results.append((passed, "judge verdict", reason))
 
         for ok, label, detail in results:
