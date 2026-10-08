@@ -86,6 +86,12 @@ def _theme(name, bench, bench_pct, own, peers, attribution):
             "peers": [{"ticker": t, "change_percent": p} for t, p in peers]}
 
 
+# Report dates are offsets from today, so any weekday a headline names is
+# taken from the same date -- a fixed "next Wednesday" contradicts the date
+# on most days, and the judge passes the model for repeating both.
+_TOMORROW = date.today() + timedelta(days=1)
+_IN_THREE_DAYS = date.today() + timedelta(days=3)
+
 ANALYSIS_SCENARIOS = {
     "theme_drop_before_earnings": {
         "description": "Falls with its whole theme three days before reporting.",
@@ -97,10 +103,10 @@ ANALYSIS_SCENARIOS = {
                 _news("Memory stocks slide as NAND contract prices fall again",
                       "Storage and memory makers fell together after an industry survey showed "
                       "contract prices for NAND flash fell for a second straight month.", "Reuters"),
-                _news("Micron to report fiscal first-quarter results next week",
-                      "Micron will report after the close next Wednesday.", "Business Wire"),
+                _news(f"Micron to report fiscal first-quarter results on {_IN_THREE_DAYS:%A}",
+                      f"Micron will report after the close on {_IN_THREE_DAYS:%A}.", "Business Wire"),
             ],
-            "events": {"ticker": "MU", "next_earnings_date": str(date.today() + timedelta(days=3)),
+            "events": {"ticker": "MU", "next_earnings_date": str(_IN_THREE_DAYS),
                        "ex_dividend_date": None},
             "setup": {
                 "reactions": [
@@ -219,10 +225,10 @@ ANALYSIS_SCENARIOS = {
             "price": _price("AMD", 161.3, -4.2),
             "market": {"ticker": "SPY", "change_percent": -0.6},
             "news": [
-                _news("AMD to report third-quarter results after Tuesday's close",
-                      "AMD will publish third-quarter results after the market closes on Tuesday."),
+                _news(f"AMD to report third-quarter results after {_TOMORROW:%A}'s close",
+                      f"AMD will publish third-quarter results after the market closes on {_TOMORROW:%A}."),
             ],
-            "events": {"ticker": "AMD", "next_earnings_date": str(date.today() + timedelta(days=1)),
+            "events": {"ticker": "AMD", "next_earnings_date": str(_TOMORROW),
                        "ex_dividend_date": None},
             "setup": {
                 "reactions": [

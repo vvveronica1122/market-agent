@@ -304,6 +304,43 @@ def main() -> int:
                           {"theme_rally_with_upgrade_headline", "mixed_move_report_tomorrow",
                            "company_rise_no_news"})
 
+    print("\nAnalysis fixtures name the weekday their report date falls on")
+    # The report dates are offsets from date.today(), so a weekday written
+    # into the news can agree on one day and contradict it on the next. Build
+    # the fixtures as if on each of seven days, in a throwaway module copy.
+    import datetime as _dt
+    import importlib.util
+    import re
+    weekdays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+    real_date = _dt.date
+    mismatches = []
+    for offset in range(7):
+        fake_today = real_date.today() + _dt.timedelta(days=offset)
+
+        class _FixedDate(real_date):
+            @classmethod
+            def today(cls, _d=fake_today): return cls(_d.year, _d.month, _d.day)
+
+        _dt.date = _FixedDate
+        try:
+            mod_spec = importlib.util.spec_from_file_location("_scenarios_on_day",
+                                                              HERE / "analysis_scenarios.py")
+            mod = importlib.util.module_from_spec(mod_spec)
+            mod_spec.loader.exec_module(mod)
+        finally:
+            _dt.date = real_date
+        for name, spec in mod.ANALYSIS_SCENARIOS.items():
+            report = (spec["data"].get("events") or {}).get("next_earnings_date")
+            text = " ".join(f"{n['title']} {n['summary']}" for n in spec["data"].get("news") or [])
+            named = {w for w in weekdays if re.search(rf"\b{w}\b", text)}
+            if not named:
+                continue
+            actual = real_date.fromisoformat(report).strftime("%A") if report else None
+            if named != {actual}:
+                mismatches.append(f"{name} built {fake_today}: names {sorted(named)}, report {report} is {actual}")
+    failures += not check("on every weekday, any weekday a fixture's news names is its report's weekday",
+                          not mismatches, "; ".join(mismatches[:3]))
+
     print("\nThe action rule, after its false positive")
     spelling = "No price data is available for ZZZZ. You may want to double-check the ticker symbol."
     failures += not check("advice to check a spelling is not a suggested action",
