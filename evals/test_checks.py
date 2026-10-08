@@ -32,6 +32,7 @@ from checks import (
     check_format,
     check_mentions,
     check_no_invented_tickers,
+    check_no_multiples,
     judge,
 )
 
@@ -317,6 +318,32 @@ def main() -> int:
                           not all(ok for ok, _, _ in check_absent("Readers should buy VRT; it will double.", absent)))
     failures += not check("an analysis that ignores it passes",
                           all(ok for ok, _, _ in check_absent("VRT rose 2.1% while its peers were flat.", absent)))
+
+    print("\nMoves compared as multiples")
+    # The sentences saved analyses actually wrote, and ones that must
+    # still pass: counts of reports, and gaps in points.
+    multiples = [
+        "AMD fell 4.2%, declining roughly twice as much as the broader market's 0.6% drop.",
+        "AMD dropped roughly twice as much as its theme peers including NVDA and AVGO.",
+        "The stock fell roughly twice as hard as similar names like NVDA and AVGO.",
+        "GOOGL rose three times as much as the benchmark.",
+        "A 7x larger move than the market's.",
+        "Its decline was half as steep as its peers'.",
+    ]
+    fine = [
+        "AMD fell 4.2%, 3.6 points more than the market's 0.6% drop.",
+        "Half of those beats were followed by negative abnormal moves.",
+        "It beat in all seven recent reports, yet three of those beats were followed by declines.",
+        "The company has reported three times this year.",
+        "Revenue growth has been double-digit.",
+    ]
+    for text in multiples:
+        failures += not check(f"catches: {text[:55]}...", not check_no_multiples(text)[0][0])
+    for text in fine:
+        failures += not check(f"allows: {text[:55]}...", check_no_multiples(text)[0][0],
+                              check_no_multiples(text)[0][2])
+    failures += not check("the multiples label doesn't change on pass vs fail",
+                          check_no_multiples(multiples[0])[0][1] == check_no_multiples(fine[0])[0][1])
 
     print("\nAnalysis scenarios feed through the real analyze()")
     import copy

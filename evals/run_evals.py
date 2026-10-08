@@ -41,6 +41,7 @@ from checks import (  # noqa: E402
     check_format,
     check_mentions,
     check_no_invented_tickers,
+    check_no_multiples,
     judge,
 )
 from results import save_run, summarize  # noqa: E402
@@ -175,6 +176,7 @@ def run_analysis_scenario(name: str, spec: dict, runs: int) -> dict:
         results += check_forbidden(text)
         results += check_format(text)
         results += check_absent(text, spec.get("absent", []))
+        results += check_no_multiples(text)
         # The fixtures' report dates are offsets from date.today(), and the
         # app counts days from the same local date.
         passed, reason = judge(server.client, server.MODEL, text, spec["rubric"], evidence,
