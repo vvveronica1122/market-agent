@@ -56,3 +56,56 @@ reproduce the failure, and this run can't show that the fix does anything.
 That is recorded as such. The change can still merge on criteria 2 and 3,
 as a preventive fix backed by the saved outputs above, but no improvement
 is claimed.
+
+## Before the fix (c419e7a)
+
+**47/48** judge passes (20261008-020224_brief.json). No run failed rule
+(d): the 32 runs of the four dated scenarios all passed. The scenarios did
+not reproduce the failure, which the saved outputs had suggested was
+likely: six of the seven came from the prompt before the analysis tuning.
+
+The one failure was `company_drop_peers_flat`, a scenario with no report
+date: "Reuters reports the company lowered its quarterly revenue outlook"
+set beside the move without a correlational link, rule (a).
+
+## After the fix (7f8a99f)
+
+**47/48** (20261008-020920_brief.json). The one failure was again
+`company_drop_peers_flat` under rule (a), on nearly the same sentence.
+
+## Result
+
+| Criterion | Needed | Result |
+|---|---|---|
+| 1. No timing errors after the fix | 0 | **0** rule (d) failures |
+| 2. Judge passes after the fix | 42/48, none below 6/8 | **47/48**, lowest 7/8 |
+| 3. Deterministic checks | all 48 runs | **all pass** |
+
+All three hold. **No improvement is claimed**: the before run had no
+timing errors either, so these scores can't show the fix doing anything.
+It merges as a preventive change, backed by the saved outputs above and by
+the absence of any regression.
+
+**What did change, in the outputs that can be read.** The runner keeps
+each scenario's first output and its failures, so 46 of the 96 analyses
+were graded by the judge alone. In the four dated scenarios' first
+outputs, the before run gave dates only ("scheduled for October 31,
+2026"); the after run said how far off each report was, and was right
+every time: "in three days, on October 10th", "in 24 days on October
+31st", "after tomorrow's close", "October 28, in three weeks". Distance is
+the claim that went wrong before, and it is now taken from the data. Four
+outputs are an observation, not a rate.
+
+**A fixture problem, found along the way.** Two scenarios set the report
+date as an offset from the day the evals run, while their headlines name
+a weekday: "Micron will report after the close next Wednesday" beside a
+date three days out, "after Tuesday's close" beside one a day out. Run on a
+Wednesday, those dates fall on a Saturday and a Thursday. The before run
+repeated both mismatches ("next Wednesday, October 10"; "Tuesday's close,
+which coincides with ... October 8") and the judge passed them, since
+each half is in the data. The after run's AMD output said "tomorrow's
+close", from `next_earnings_in_days`, over the headline's weekday. The
+scenarios are left as they are here, so both runs saw identical input.
+
+Spend: about $1.40 for both rounds, estimated from prompt sizes at list
+prices rather than metered.
