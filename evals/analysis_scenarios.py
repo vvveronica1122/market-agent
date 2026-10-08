@@ -48,9 +48,10 @@ from tools.relative import attribute
 
 
 def _news(title, summary, publisher="Test Wire"):
-    """Same shape get_recent_news() returns."""
+    """Same shape get_recent_news() returns for the ticker's own feed."""
     return {"title": title, "publisher": publisher, "link": "https://example.com",
-            "published": None, "summary": summary, "content_type": "STORY", "is_video": False}
+            "published": None, "summary": summary, "content_type": "STORY", "is_video": False,
+            "source": "feed"}
 
 
 def _headline(title, publisher):
@@ -58,7 +59,8 @@ def _headline(title, publisher):
     a headline and publisher, no summary. In October 2026 every ticker's
     news came this way."""
     return {"title": title, "publisher": publisher, "link": "https://example.com",
-            "published": None, "summary": "", "content_type": "STORY", "is_video": False}
+            "published": None, "summary": "", "content_type": "STORY", "is_video": False,
+            "source": "search"}
 
 
 def _price(ticker, price, pct):

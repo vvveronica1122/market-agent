@@ -88,15 +88,20 @@ def get_recent_news(ticker: str, limit: int = 5) -> list[dict[str, Any]]:
     should treat that as "nothing notable right now", not a failure.
 
     When the ticker's own feed is empty, Yahoo's search endpoint is tried;
-    see _search_news.
+    see _search_news. Each item's `source` says which it came from: "feed"
+    items carry a summary, "search" items are a headline and publisher
+    only. An empty summary alone didn't say why it was empty, and the
+    analysis prompt went on telling the model every headline had one.
     """
     t = yf.Ticker(ticker)
     try:
         raw_items = t.news or []
     except Exception:
         raw_items = []
+    source = "feed"
     if not raw_items:
         raw_items = _search_news(ticker, limit)
+        source = "search"
 
     items: list[dict[str, Any]] = []
     for entry in raw_items[:limit]:
@@ -130,6 +135,7 @@ def get_recent_news(ticker: str, limit: int = 5) -> list[dict[str, Any]]:
                 "summary": summary,
                 "content_type": content_type or "STORY",
                 "is_video": content_type == "VIDEO",
+                "source": source,
             }
         )
 

@@ -68,6 +68,8 @@ def main() -> int:
                               and items[0]["summary"] == "Micron raised its outlook."
                               and items[0]["publisher"] == "Wire", str(items))
         failures += not check("search isn't asked when the feed has stories", not FakeSearch.calls)
+        failures += not check("feed items say they came from the feed",
+                              items and items[0].get("source") == "feed", str(items))
 
         print("\nThe search fallback")
         FakeTicker.feed = []
@@ -79,6 +81,8 @@ def main() -> int:
         failures += not check("the flat format parses, with no invented summary",
                               items and items[0]["publisher"] == "Barrons.com" and not items[0]["summary"]
                               and items[0]["link"] == "https://example.com/b", str(items))
+        failures += not check("search items say they came from search, so a missing summary is explained",
+                              items and items[0].get("source") == "search", str(items))
         FakeSearch.results = [dict(FLAT_TAGGED, type="VIDEO")]
         items = market_data.get_recent_news("MU")
         failures += not check("a flat-format video is marked as one", items and items[0]["is_video"], str(items))

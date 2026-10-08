@@ -1694,6 +1694,13 @@ function buildAnalysisNews(data) {
   newsPanel.style.marginTop = "16px";
   newsPanel.appendChild(el("h2", null, "Recent news"));
   if (data.news && data.news.length) {
+    // Without this, headlines with nothing under them look like a short
+    // feed rather than a thin one.
+    if (data.news.some((item) => item.source === "search")) {
+      newsPanel.appendChild(el("p", "metric-note",
+        `Headlines only: Yahoo's news feed for ${data.ticker} is empty, so these come from its ` +
+        "search, which gives no summaries. The analysis has the same headlines and nothing more."));
+    }
     const list = el("ul", "news-list");
     data.news.forEach((item) => {
       const li = el("li");

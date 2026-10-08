@@ -852,6 +852,21 @@ def main() -> int:
                           "vs_market" in server.ANALYSIS_SYSTEM
                           and "never as multiples" in server.ANALYSIS_SYSTEM)
 
+    print("\nHeadline-only news is said as such")
+    # In October 2026 every ticker's news came from the search fallback,
+    # with no summaries, while the prompt said every headline had one.
+    server.client = FakeClient()
+    headline = {"title": "Chip stocks slip", "publisher": "Wire", "summary": "", "source": "search"}
+    REAL_ANALYZE("CRASH", {"price": fake_price("CRASH"), "news": [headline]})
+    sent_news = json.loads(server.client.messages.calls[0]["messages"][0]["content"])["news"]
+    failures += not check("a headline's source reaches the model",
+                          sent_news and sent_news[0].get("source") == "search", str(sent_news))
+    failures += not check("the analysis prompt no longer says every headline has a summary",
+                          "Each headline now comes with a short summary" not in server.ANALYSIS_SYSTEM)
+    failures += not check("it says search items are headlines only",
+                          'source "search"' in server.ANALYSIS_SYSTEM
+                          and "no article text" in server.ANALYSIS_SYSTEM)
+
     from tools.market_data import _plain_text
     failures += not check("html is stripped from summary text",
                           _plain_text("<p>Apple (<a href='x'>AAPL</a>) rose.</p>") == "Apple ( AAPL ) rose.",
