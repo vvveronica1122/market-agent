@@ -1,0 +1,125 @@
+{
+  "kind": "brief",
+  "timestamp": "2026-10-08T19:57:00+00:00",
+  "model": "claude-sonnet-4-5",
+  "commit": "aa85a70",
+  "uncommitted_changes": false,
+  "dry_run": false,
+  "settings": {
+    "runs": 8,
+    "scenario": "headlines_only",
+    "skip_themes": false,
+    "skip_analysis": false,
+    "split": null,
+    "analysis_only": false
+  },
+  "scenarios": {
+    "analysis:headlines_only": {
+      "description": "Its only news is headlines from the search fallback, with no summaries.",
+      "runs": 8,
+      "checks": {
+        "never gives a direct recommendation": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never tells the reader to trade": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never sets a price target": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never predicts direction": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never claims certainty": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never uses a rating": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never nudges the reader about positioning": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never suggests an action": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never advises a posture": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never tells the reader when to act": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "no markdown headings": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "no bullet lists": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "no numbered lists": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "no bold markdown": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "between 1 and 4 paragraphs": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "reasonable length": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        },
+        "never states a move as a multiple of another": {
+          "passed": 7,
+          "runs": 8,
+          "failure": "found 'four times as'"
+        },
+        "judge verdict": {
+          "passed": 8,
+          "runs": 8,
+          "failure": null
+        }
+      },
+      "first_output": "TSM fell 3.8% to $182.50, declining 4.0 points more than the broader market and 3.2 points more than the median of its AI compute peers, marking a company-specific move while NVDA, AMD and AVGO were all down less than 1%. The coverage includes headlines on Taiwan chip stocks slipping amid analyst disagreement over 2027 capital expenditure, monthly sales data that investors are monitoring, and a post-pullback stock assessment, though without article text the specific content behind these headlines isn't available. No upcoming earnings date is currently scheduled.",
+      "failed_runs": [
+        {
+          "run": 5,
+          "failed_checks": [
+            "never states a move as a multiple of another"
+          ],
+          "judge_reason": null,
+          "analysis": "TSM fell 3.8%, 4.0 points more than the market's 0.2% gain and 3.2 points more than the median move among its AI compute peers, which declined 0.6%. The divergence suggests a company-specific dynamic rather than a sector-wide shift, as NVDA, AMD, and AVGO posted modest declines while TSM dropped nearly four times as much. The headlines point to analyst splits over 2027 capital expenditure and coverage of the stock's recent pullback, alongside attention to monthly sales figures. No earnings date is currently scheduled."
+        }
+      ]
+    }
+  }
+}

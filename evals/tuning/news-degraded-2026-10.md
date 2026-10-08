@@ -69,3 +69,88 @@ scenario didn't reproduce a failure, and these runs can't show the fix
 doing anything for the analysis. That is recorded as such; the change can
 still merge on criteria 2 and 3, since the item mark and the page note
 are true statements about the data whatever the model does.
+
+## Before the fix (10ec41e)
+
+| Run | `headlines_only` judge | Other six, judge | Deterministic checks |
+|---|---|---|---|
+| All seven scenarios, 8 each (20261008-194622_brief.json) | 5/8 | 44/48 | all pass |
+| `headlines_only`, 8 more (20261008-194732_brief.json) | 5/8 | -- | all pass |
+
+**The failure reproduced: `headlines_only` passed 10 of 16.** All six
+failures wrote about the headlines as articles that had been read: "the
+coverage ... discusses divided analyst views on 2027 capital
+expenditure", "another piece focused on what investors are watching in
+monthly sales data", "Coverage mentions uncertainty around the company's
+2027 capital expenditure plans". Several said in the same breath that
+"the summaries don't detail" more, so the model saw the empty summaries
+and described the articles anyway.
+
+Of the other six scenarios, `company_drop_peers_flat` passed 5 of 8: all
+three failures were rule (a) on the company's own reason for its outlook
+cut ("citing slower hard-drive orders"), the borderline the analysis
+tuning already recorded. `theme_drop_before_earnings` lost one run for
+misreading the setup ("four of the last four beats" lagged; it was four of
+eight).
+
+## After the fix (aa85a70)
+
+| Run | `headlines_only` judge | Other six, judge | Deterministic checks |
+|---|---|---|---|
+| All seven scenarios, 8 each (20261008-195550_brief.json) | 6/8 | 48/48 | multiples check 1 failure |
+| `headlines_only`, 8 more (20261008-195700_brief.json) | 8/8 | -- | multiples check 1 failure |
+
+**`headlines_only`: 14 of 16.** Read against the data:
+
+- One failure looks like the judge's error. "One headline noting analyst
+  disagreement over 2027 capital expenditure plans, while another
+  references investor focus on monthly sales figures" attributes each
+  point to a headline and paraphrases it.
+- One is borderline. It too says "one headline noting analysts are split",
+  but then "a third piece discusses the stock after its pullback", which
+  writes about an article as if read.
+- The judge passed one output that opens "The coverage addresses Taiwan
+  chip stocks slipping amid analyst disagreement...", the old way of
+  writing. So the judge is noisy at this boundary in both directions.
+
+The change in kind is clearer than the count. Of the five saved
+after-fix outputs, four attribute their points to headlines ("one headline
+noting...", "the headlines point to...", "headlines on..."), and one says
+outright that "without article text the specific content behind these
+headlines isn't available". Before the fix, every saved output wrote
+about "the coverage" or "another piece".
+
+**The multiples check failed twice**, after 0 failures in the 64 runs
+before:
+
+- `mixed_move_report_tomorrow`: "declining roughly twice as much as its AI
+  compute peers", about right (4.2 against 2.0).
+- `headlines_only`: "TSM dropped nearly four times as much" as NVDA, AMD
+  and AVGO, which fell 0.4% to 0.8%. That is wrong: 4.75 to 9.5 times.
+
+## Result
+
+| Criterion | Needed | Result |
+|---|---|---|
+| 1. `headlines_only` judge after the fix | 14/16 | **14/16** (one failure probably the judge's) |
+| 2. Other six scenarios | 42/48, none below 6/8 | **48/48** |
+| 3. Every deterministic check, all 64 runs | 64/64 | **62/64**: the multiples check failed twice |
+
+**Criterion 3 fails, so by this plan the branch is not merged.**
+
+What the numbers can and can't say:
+
+- `headlines_only` went from 6 failures in 16 to 2 (Fisher's exact test,
+  two-sided, p = 0.22). That is not significant on its own; the change in
+  how the analyses describe the headlines is the stronger evidence.
+- The multiples went from 0 of 64 to 2 of 64 (p = 0.50). That doesn't show
+  the change caused them. Across all three runs since the gaps fix the
+  rate is 2 in 192, about 1%, against 6 in 24 on the AMD scenario before
+  it. The prompt edit here touched only the news paragraph.
+- Criterion 3 was written to include the multiples check, at zero
+  tolerance. Relaxing it now, having seen the result, is what this method
+  exists to prevent, so the branch waits for a decision on a new,
+  separately planned check rather than merging on a reading of this one.
+
+Spend: about $1.80 for both rounds, estimated from prompt sizes at list
+prices rather than metered.
