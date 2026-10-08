@@ -832,6 +832,26 @@ def main() -> int:
     failures += not check("the analysis prompt says to take timing from them",
                           "next_earnings_in_days" in server.ANALYSIS_SYSTEM)
 
+    print("\nThe analysis gets its gap to the market")
+    # A saved analysis called a 4.2% fall "twice" the market's 0.6% drop:
+    # comparing two moves was left to the model's head.
+    server.client = FakeClient()
+    spy = {"ticker": "SPY", "change_percent": 0.2}
+    REAL_ANALYZE("CRASH", {"price": fake_price("CRASH"), "market": spy})
+    REAL_ANALYZE("CRASH", {"price": fake_price("CRASH"), "market": None})
+    sent = [json.loads(c["messages"][0]["content"]) for c in server.client.messages.calls]
+    gap = (sent[0].get("market_comparison") or {}).get("vs_market")
+    failures += not check("the gap is computed, in points: -6.0 against +0.2 is -6.2",
+                          gap == -6.2, str(gap))
+    failures += not check("the market's own figures are kept beside it",
+                          (sent[0].get("market_comparison") or {}).get("change_percent") == 0.2)
+    failures += not check("the caller's data isn't modified", "vs_market" not in spy)
+    failures += not check("no market figure, no gap and no error",
+                          sent[1].get("market_comparison") is None)
+    failures += not check("the analysis prompt says to compare in points, never as multiples",
+                          "vs_market" in server.ANALYSIS_SYSTEM
+                          and "never as multiples" in server.ANALYSIS_SYSTEM)
+
     from tools.market_data import _plain_text
     failures += not check("html is stripped from summary text",
                           _plain_text("<p>Apple (<a href='x'>AAPL</a>) rose.</p>") == "Apple ( AAPL ) rose.",

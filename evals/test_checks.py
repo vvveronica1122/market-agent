@@ -365,6 +365,10 @@ def main() -> int:
                                   out == "Stub analysis." and '"theme_comparison"' in sent
                                   and '"peer_median_change_percent"' in sent
                                   and f'"ticker": "{spec["ticker"]}"' in sent, out[:60])
+            own = spec["data"]["price"]["change_percent"]
+            gap = round(own - spec["data"]["market"]["change_percent"], 2)
+            failures += not check(f"analysis scenario '{name}' gives the model its gap to the market",
+                                  f'"vs_market": {gap}' in sent, str(gap))
             report = (spec["data"].get("events") or {}).get("next_earnings_date")
             if report:
                 days = (date.fromisoformat(report) - date.today()).days

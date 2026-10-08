@@ -401,6 +401,12 @@ date in events (null when no date is known). Take any sense of how near or far a
 "reports tomorrow", "in three weeks" -- from those two, never from your own idea of the \
 current date: that comes from training data that ends long before today.
 
+vs_market in market_comparison, and vs_peers and vs_benchmark in theme_comparison, are the \
+company's move minus the other one, in percentage points, already computed. Compare moves \
+with those gaps -- "fell 4.2%, 3.6 points more than the market" -- and never as multiples: \
+not "twice as much", "three times", "half as steep". A multiple of a small move exaggerates, \
+and it would be arithmetic done in your head, where you are unreliable without knowing it.
+
 If theme_comparison is present, use it for the context: it gives the theme's benchmark ETF, \
 the median move of the company's peers in the same theme (excluding the company), and an \
 attribution -- "theme" when it tracked its peers, "company" when it diverged from them \
@@ -458,6 +464,14 @@ def analyze(ticker: str, data: dict) -> str:
     if not data.get("price") and not data.get("news"):
         return "Not enough data available for this ticker to say anything useful."
 
+    # The gap to the market, computed here like vs_peers and vs_benchmark,
+    # so the model never compares two moves in its head. Left to itself it
+    # called AMD's 4.2% fall "twice" the market's 0.6% drop.
+    market = data.get("market")
+    own = (data.get("price") or {}).get("change_percent")
+    if market and own is not None and market.get("change_percent") is not None:
+        market = dict(market, vs_market=rounded(own - market["change_percent"]))
+
     payload = {
         "ticker": ticker,
         # Without these the model reads next_earnings_date against its own
@@ -466,7 +480,7 @@ def analyze(ticker: str, data: dict) -> str:
         # local date days_until_earnings counts from, so the two agree.
         "today": datetime.now().date().isoformat(),
         "price": data.get("price"),
-        "market_comparison": data.get("market"),
+        "market_comparison": market,
         "news": data.get("news"),
         "events": data.get("events"),
         "next_earnings_in_days": days_until_earnings(data.get("events")),
