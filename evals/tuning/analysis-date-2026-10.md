@@ -87,8 +87,8 @@ It merges as a preventive change, backed by the saved outputs above and by
 the absence of any regression.
 
 **What did change, in the outputs that can be read.** The runner keeps
-each scenario's first output and its failures, so 46 of the 96 analyses
-were graded by the judge alone. In the four dated scenarios' first
+each scenario's first output and its failures, so 83 of the 96 analyses
+were seen by the judge alone. In the four dated scenarios' first
 outputs, the before run gave dates only ("scheduled for October 31,
 2026"); the after run said how far off each report was, and was right
 every time: "in three days, on October 10th", "in 24 days on October
