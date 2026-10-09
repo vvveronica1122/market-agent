@@ -114,13 +114,18 @@ def run_scenario(name: str, spec: dict, runs: int) -> dict:
     totals: dict[str, list[bool]] = {}
     first_brief = ""
     failed_runs: list[dict] = []
+    rewrites: list[dict] = []
     for attempt in range(runs):
+        calls = server.client.calls
         brief = server.build_brief(
             spec["rows"], spec["market_pct"], spec["indices"], spec["movers"], spec["headlines"],
             themes=spec.get("themes"),
         )
 
         evidence = server.client.last_input  # the payload build_brief just sent
+        rewrite = _rewrite_record(calls, attempt, brief)
+        if rewrite:
+            rewrites.append(rewrite)
 
         if attempt == 0:
             first_brief = brief
@@ -133,6 +138,7 @@ def run_scenario(name: str, spec: dict, runs: int) -> dict:
         results += check_mentions(brief, spec["must_mention"])
         results += check_forbidden(brief)
         results += check_format(brief)
+        results += check_no_multiples(brief)
 
         passed, reason = judge(server.client, server.MODEL, brief, spec["rubric"], evidence)
         results.append((passed, "judge verdict", reason))
@@ -158,10 +164,22 @@ def run_scenario(name: str, spec: dict, runs: int) -> dict:
             print(f"        {DIM}{detail}{RESET}")
 
     failed = sum(1 for outcomes in totals.values() if not all(ok for ok, _ in outcomes))
+    if rewrites:
+        print(f"  {DIM}guard asked for a rewrite in {len(rewrites)} of {runs} runs{RESET}")
     record = {"description": spec["description"], "runs": runs,
               "checks": summarize(totals), "first_output": first_brief,
-              "failed_runs": failed_runs}
+              "failed_runs": failed_runs, "rewrites": rewrites}
     return {"checks": len(totals), "failed": failed, "record": record}
+
+
+def _rewrite_record(calls_before: int, attempt: int, final: str) -> dict | None:
+    """When the app's guard found a multiple it made a second call, asking
+    for a rewrite. Keep the first text beside the final one, so what the
+    guard changed can be read rather than taken on trust."""
+    if server.client.calls - calls_before > 1:
+        return {"run": attempt + 1, "original": server.client.last_messages[1]["content"],
+                "final": final}
+    return None
 
 
 def pin_run_date() -> date:
@@ -188,13 +206,9 @@ def run_analysis_scenario(name: str, spec: dict, runs: int) -> dict:
         calls = server.client.calls
         text = server.analyze(spec["ticker"], copy.deepcopy(spec["data"]))
         evidence = server.client.last_input
-        # A second call means the app's guard found a multiple and asked for
-        # a rewrite; keep the first text beside the final one, so what the
-        # guard changed can be read rather than taken on trust.
-        if server.client.calls - calls > 1:
-            rewrites.append({"run": attempt + 1,
-                             "original": server.client.last_messages[1]["content"],
-                             "final": text})
+        rewrite = _rewrite_record(calls, attempt, text)
+        if rewrite:
+            rewrites.append(rewrite)
         if attempt == 0:
             first_text = text
             print(f"\n{DIM}--- what the model wrote ---{RESET}")

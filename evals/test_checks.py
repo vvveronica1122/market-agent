@@ -446,6 +446,28 @@ def main() -> int:
     finally:
         server.client = saved_client
 
+    print("\nThe brief evals check for multiples too")
+    from scenarios import SCENARIOS as _BRIEFS
+
+    class _BriefStub:
+        def __init__(self, *replies):
+            self.messages, self.replies = self, list(replies)
+        def create(self, **kw): return _R(self.replies.pop(0))
+
+    try:
+        server.client = Recorder(_BriefStub(
+            "The Nasdaq 100 fell 1.2%, more than triple the S&P's 0.4% decline.",
+            '{"pass": true, "reason": "ok"}'))
+        with contextlib.redirect_stdout(io.StringIO()):
+            outcome = run_evals.run_scenario("sector_selloff", _BRIEFS["sector_selloff"], 1)
+        multiples = outcome["record"]["checks"].get("never states a move as a multiple of another", {})
+        failures += not check("a brief stating a multiple fails the check, and is kept to read",
+                              multiples.get("passed") == 0
+                              and outcome["record"]["failed_runs"][0]["brief"].startswith("The Nasdaq"),
+                              str(multiples))
+    finally:
+        server.client = saved_client
+
     print("\nAn eval run holds one date")
     # Read per call, a run that crossed midnight put a report "today" that
     # the fixtures had written as tomorrow.
