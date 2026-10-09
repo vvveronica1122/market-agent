@@ -930,6 +930,33 @@ def main() -> int:
                           == "It fell roughly twice as much as its peers, down 2.0%.",
                           sentence_around(text, find_multiple(text)))
 
+    print("\nThe home brief gets the same guard")
+    # Saved briefs had "more than triple the S&P's -0.4%" for a 1.2% fall,
+    # exactly triple. The brief's prompt is unchanged; only a brief with a
+    # multiple costs a second call.
+    rows = [{"ticker": "CRASH", "price": fake_price("CRASH"), "top_headline": None, "events": {},
+             "attention": {"level": "high", "factors": []}}]
+    spx = [{"label": "S&P 500", "change_percent": -0.4}]
+    bad_brief = "CRASH fell 6%. The Nasdaq 100 fell 1.2%, more than triple the S&P's 0.4% decline."
+    fixed_brief = "CRASH fell 6%. The Nasdaq 100 fell 1.2% and the S&P 500 0.4%."
+
+    server.client = _Scripted(fixed_brief)
+    out = server.build_brief(rows, -0.4, spx, [], [])
+    failures += not check("a brief with no multiple costs one call and is kept as written",
+                          out == fixed_brief and len(server.client.calls) == 1, out)
+
+    server.client = _Scripted(bad_brief, fixed_brief)
+    out = server.build_brief(rows, -0.4, spx, [], [])
+    calls = server.client.calls
+    failures += not check("a brief with a multiple gets a rewrite, and the rewrite is shown",
+                          out == fixed_brief and len(calls) == 2, out)
+    retry = calls[-1] if len(calls) == 2 else {}
+    failures += not check("the rewrite uses the brief's own prompt and length, and quotes the sentence",
+                          retry.get("system") == server.BRIEF_SYSTEM and retry.get("max_tokens") == 700
+                          and "more than triple the S&P's 0.4% decline." in retry["messages"][2]["content"]
+                          and "side by side" in retry["messages"][2]["content"],
+                          str(retry.get("messages", [])[2:]))
+
     from tools.market_data import _plain_text
     failures += not check("html is stripped from summary text",
                           _plain_text("<p>Apple (<a href='x'>AAPL</a>) rose.</p>") == "Apple ( AAPL ) rose.",

@@ -531,15 +531,18 @@ REWRITE_MULTIPLE = (
 )
 
 
-def without_multiples(content: str, text: str) -> str:
-    """The analysis, with a move stated as a multiple of another rewritten.
+def without_multiples(content: str, text: str, system: str = ANALYSIS_SYSTEM,
+                      max_tokens: int = 350, ask: str = REWRITE_MULTIPLE) -> str:
+    """AI text, with a move stated as a multiple of another rewritten.
 
-    The prompt forbids multiples, and that held in about 1% of analyses
-    until a change left the model less news to write about; then it leaked
-    in 3 of 40. So the code checks, with the patterns the evals use
-    (guards.py), and asks once for a rewrite, quoting the sentence. If the
-    rewrite still has one, or the call fails, the first text stands: an
-    analysis with a multiple is better than none, and the evals count it.
+    The analysis prompt forbids multiples, and that held in about 1% of
+    analyses until a change left the model less news to write about; then
+    it leaked in 3 of 40. The brief's prompt never forbade them, and saved
+    briefs had "more than triple" for exactly triple. So the code checks,
+    with the patterns the evals use (guards.py), and asks once for a
+    rewrite, quoting the sentence. If the rewrite still has one, or the call
+    fails, the first text stands: text with a multiple is better than none,
+    and the evals count it.
     """
     match = find_multiple(text)
     if match is None:
@@ -547,13 +550,12 @@ def without_multiples(content: str, text: str) -> str:
     try:
         response = client.messages.create(
             model=MODEL,
-            max_tokens=350,
-            system=ANALYSIS_SYSTEM,
+            max_tokens=max_tokens,
+            system=system,
             messages=[
                 {"role": "user", "content": content},
                 {"role": "assistant", "content": text},
-                {"role": "user", "content": REWRITE_MULTIPLE.format(
-                    sentence=sentence_around(text, match))},
+                {"role": "user", "content": ask.format(sentence=sentence_around(text, match))},
             ],
         )
         rewrite = "".join(b.text for b in response.content if b.type == "text").strip()
@@ -1331,16 +1333,28 @@ def build_brief(rows: list[dict], market_pct, indices: list[dict],
         "market_headlines": [h["title"] for h in headlines[:10]],
     })
 
+    content = json.dumps(payload, indent=2, default=str)
     try:
         response = client.messages.create(
             model=MODEL,
             max_tokens=700,
             system=BRIEF_SYSTEM,
-            messages=[{"role": "user", "content": json.dumps(payload, indent=2, default=str)}],
+            messages=[{"role": "user", "content": content}],
         )
-        return "".join(b.text for b in response.content if b.type == "text").strip()
+        text = "".join(b.text for b in response.content if b.type == "text").strip()
     except Exception as exc:
         return ai_unavailable("The AI brief", exc)
+    # The prompt is left as it was, so a brief without a multiple comes from
+    # the same single call as before; only a brief with one is rewritten.
+    return without_multiples(content, text, system=BRIEF_SYSTEM, max_tokens=700,
+                             ask=REWRITE_MULTIPLE_BRIEF)
+
+
+REWRITE_MULTIPLE_BRIEF = (
+    'This sentence states one move as a multiple of another: "{sentence}" Rewrite the brief so '
+    "those moves are given side by side as their own percentages, never as a multiple. Keep "
+    "everything else as it was, and reply with the brief only."
+)
 
 
 # --- earnings calendar ------------------------------------------------

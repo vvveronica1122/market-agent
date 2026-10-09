@@ -454,10 +454,12 @@ def main() -> int:
             self.messages, self.replies = self, list(replies)
         def create(self, **kw): return _R(self.replies.pop(0))
 
+    bad = "The Nasdaq 100 fell 1.2%, more than triple the S&P's 0.4% decline."
+    fixed = "The Nasdaq 100 fell 1.2% and the S&P 0.4%."
     try:
-        server.client = Recorder(_BriefStub(
-            "The Nasdaq 100 fell 1.2%, more than triple the S&P's 0.4% decline.",
-            '{"pass": true, "reason": "ok"}'))
+        # The app's guard rewrites once; a rewrite that still has a multiple
+        # leaves the first brief, which the check then fails.
+        server.client = Recorder(_BriefStub(bad, bad, '{"pass": true, "reason": "ok"}'))
         with contextlib.redirect_stdout(io.StringIO()):
             outcome = run_evals.run_scenario("sector_selloff", _BRIEFS["sector_selloff"], 1)
         multiples = outcome["record"]["checks"].get("never states a move as a multiple of another", {})
@@ -465,6 +467,13 @@ def main() -> int:
                               multiples.get("passed") == 0
                               and outcome["record"]["failed_runs"][0]["brief"].startswith("The Nasdaq"),
                               str(multiples))
+
+        server.client = Recorder(_BriefStub(bad, fixed, '{"pass": true, "reason": "ok"}'))
+        with contextlib.redirect_stdout(io.StringIO()):
+            outcome = run_evals.run_scenario("sector_selloff", _BRIEFS["sector_selloff"], 1)
+        failures += not check("a brief the guard rewrote is recorded beside its original",
+                              outcome["record"]["rewrites"] == [{"run": 1, "original": bad, "final": fixed}],
+                              str(outcome["record"]["rewrites"]))
     finally:
         server.client = saved_client
 
