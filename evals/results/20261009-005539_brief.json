@@ -1,0 +1,148 @@
+{
+  "kind": "brief",
+  "timestamp": "2026-10-09T00:55:39+00:00",
+  "model": "claude-sonnet-4-5",
+  "commit": "c19c8da",
+  "uncommitted_changes": false,
+  "dry_run": false,
+  "settings": {
+    "runs": 24,
+    "scenario": "sector_selloff",
+    "skip_themes": false,
+    "skip_analysis": false,
+    "split": null,
+    "analysis_only": false
+  },
+  "scenarios": {
+    "sector_selloff": {
+      "description": "Three chip names fall together -- one story, not three.",
+      "runs": 24,
+      "checks": {
+        "mentions NVDA": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "mentions AMD": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "mentions MU": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never gives a direct recommendation": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never tells the reader to trade": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never sets a price target": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never predicts direction": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never claims certainty": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never uses a rating": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never nudges the reader about positioning": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never suggests an action": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never advises a posture": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never tells the reader when to act": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "no markdown headings": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "no bullet lists": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "no numbered lists": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "no bold markdown": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "between 1 and 4 paragraphs": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "reasonable length": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never states a move as a multiple of another": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "judge verdict": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        }
+      },
+      "first_output": "The semiconductor names you're tracking took a sharp hit today -- NVDA down 6.1%, AMD off 5.4%, and MU leading the losses at 7.2% -- alongside headlines about widening chip export rules. All three moved together, with the sector index posting its worst session since March. KO was flat at +0.2%.\n\nThis was a tech-heavy selloff, with the Nasdaq 100 down 1.2% versus 0.4% for the broader S&P 500. The headlines point to tightening memory rules specifically, which may be related to MU's steeper decline, though all three chip names saw substantial volume.\n\nNothing notable beyond your watchlist today. The next earnings on your list is AMD in 30 days on November 7th, with KO, MU, and NVDA all reporting the same day.",
+      "failed_runs": [],
+      "rewrites": [
+        {
+          "run": 2,
+          "original": "Semiconductors took the hardest hit on your watchlist today, with MU down 7.2%, NVDA down 6.1%, and AMD down 5.4%. All three fell alongside reports that chip export rules have widened, and the semiconductor index posted its worst day since March. KO held flat at +0.2%.\n\nThe tech-heavy Nasdaq 100 closed down 1.2%, more than twice the S&P 500's 0.4% decline, reflecting the weight semiconductors carry in that index.\n\nAll four names on your watchlist report in 30 days.",
+          "final": "Semiconductors took the hardest hit on your watchlist today, with MU down 7.2%, NVDA down 6.1%, and AMD down 5.4%. All three fell alongside reports that chip export rules have widened, and the semiconductor index posted its worst day since March. KO held flat at +0.2%.\n\nThe Nasdaq 100 closed down 1.2% while the S&P 500 fell 0.4%, with tech-heavy names driving the gap.\n\nAll four names on your watchlist report in 30 days."
+        },
+        {
+          "run": 10,
+          "original": "The story today is chips: export rules reportedly widened, and the three semiconductor names you're tracking all fell sharply. MU dropped 7.2%, NVDA 6.1%, AMD 5.4%, coinciding with headlines about tightening restrictions on memory and broader chip exports. The semiconductor index posted its worst session since March.\n\nThe Nasdaq 100 closed down 1.2%, twice the S&P's decline, as tech took the brunt. KO held flat at +0.2%, the only name on your watchlist in positive territory.\n\nAll four companies report in thirty days.",
+          "final": "The story today is chips: export rules reportedly widened, and the three semiconductor names you're tracking all fell sharply. MU dropped 7.2%, NVDA 6.1%, AMD 5.4%, coinciding with headlines about tightening restrictions on memory and broader chip exports. The semiconductor index posted its worst session since March.\n\nThe Nasdaq 100 closed down 1.2%, while the S&P fell 0.4%, as tech took the brunt. KO held flat at +0.2%, the only name on your watchlist in positive territory.\n\nAll four companies report in thirty days."
+        },
+        {
+          "run": 12,
+          "original": "The semiconductor names you're tracking all fell sharply: NVDA down 6.1%, AMD down 5.4%, and MU down 7.2%. The moves coincided with headlines reporting widened export rules for chip makers, and the broader semiconductor index posted its worst day since March. This is the story across the whole sector today, not something specific to any one company.\n\nKO held flat at +0.2%, the only name on your watchlist outside the semiconductor group.\n\nBeyond your list, the Nasdaq 100 dropped 1.2%, roughly double the S&P 500's 0.4% decline, consistent with tech-heavy selling.\n\nAll four names on your watchlist report in 30 days.",
+          "final": "The semiconductor names you're tracking all fell sharply: NVDA down 6.1%, AMD down 5.4%, and MU down 7.2%. The moves coincided with headlines reporting widened export rules for chip makers, and the broader semiconductor index posted its worst day since March. This is the story across the whole sector today, not something specific to any one company.\n\nKO held flat at +0.2%, the only name on your watchlist outside the semiconductor group.\n\nBeyond your list, the Nasdaq 100 dropped 1.2% while the S&P 500 fell 0.4%, with tech names bearing more of the selling.\n\nAll four names on your watchlist report in 30 days."
+        }
+      ]
+    }
+  }
+}

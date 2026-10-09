@@ -1,0 +1,158 @@
+{
+  "kind": "brief",
+  "timestamp": "2026-10-09T00:59:29+00:00",
+  "model": "claude-sonnet-4-5",
+  "commit": "c19c8da",
+  "uncommitted_changes": false,
+  "dry_run": false,
+  "settings": {
+    "runs": 24,
+    "scenario": "theme_rally_policy_headline",
+    "skip_themes": false,
+    "skip_analysis": false,
+    "split": null,
+    "analysis_only": false
+  },
+  "scenarios": {
+    "theme_rally_policy_headline": {
+      "description": "A whole theme rallies together beside a policy headline.",
+      "runs": 24,
+      "checks": {
+        "never gives a direct recommendation": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never tells the reader to trade": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never sets a price target": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never predicts direction": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never claims certainty": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never uses a rating": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never nudges the reader about positioning": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never suggests an action": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never advises a posture": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never tells the reader when to act": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "no markdown headings": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "no bullet lists": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "no numbered lists": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "no bold markdown": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "between 1 and 4 paragraphs": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "reasonable length": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never states a move as a multiple of another": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "judge verdict": {
+          "passed": 21,
+          "runs": 24,
+          "failure": "The brief fails rule (a) by asserting causation in the final paragraph: 'the power names were already benefiting from AI data center demand' states as fact a causal relationship not present in the data."
+        }
+      },
+      "first_output": "The entire AI power and infrastructure group surged today, up roughly 5% across the board. VST led at +6.1%, followed closely by CEG (+5.8%), VRT (+5.5%), ETN (+5.2%), and GEV (+4.9%) -- all moving together as a theme, well ahead of the broader market's 0.4%. This move coincided with regulators approving faster grid connections for large data centers.\n\nThe mega-cap tech names tracked the market. MSFT was up 0.6%, AAPL +0.4%, and GOOGL +0.3% -- all quiet, no standouts.\n\nBeyond your watchlist, nothing else moved notably market-wide today. The headline about grid connection approvals may be related to the infrastructure theme's strength, though the power names were already benefiting from AI data center demand.\n\nAll eight names on your watchlist report in 30 days.",
+      "failed_runs": [
+        {
+          "run": 1,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "judge_reason": "The brief fails rule (a) by asserting causation in the final paragraph: 'the power names were already benefiting from AI data center demand' states as fact a causal relationship not present in the data.",
+          "brief": "The entire AI power and infrastructure group surged today, up roughly 5% across the board. VST led at +6.1%, followed closely by CEG (+5.8%), VRT (+5.5%), ETN (+5.2%), and GEV (+4.9%) -- all moving together as a theme, well ahead of the broader market's 0.4%. This move coincided with regulators approving faster grid connections for large data centers.\n\nThe mega-cap tech names tracked the market. MSFT was up 0.6%, AAPL +0.4%, and GOOGL +0.3% -- all quiet, no standouts.\n\nBeyond your watchlist, nothing else moved notably market-wide today. The headline about grid connection approvals may be related to the infrastructure theme's strength, though the power names were already benefiting from AI data center demand.\n\nAll eight names on your watchlist report in 30 days."
+        },
+        {
+          "run": 13,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "judge_reason": "The brief reports the five power and infrastructure names as separate company stories ('VST and CEG led at 6.1% and 5.8%, while VRT, ETN and GEV all gained between 4.9% and 5.5%') instead of telling it once as one theme-level story.",
+          "brief": "Your AI power and infrastructure theme surged today, with all five names up 5% to 6%. VST and CEG led at 6.1% and 5.8%, while VRT, ETN and GEV all gained between 4.9% and 5.5%. The move coincided with a regulatory approval for faster grid connections to large data centers.\n\nYour mega-cap tech names tracked the broader market, all moving between 0.3% and 0.6% alongside the Nasdaq 100's 0.5% gain.\n\nNo earnings on your watchlist land within the next seven days. The soonest scheduled reports are in 30 days, with all eight names reporting on the same date."
+        },
+        {
+          "run": 14,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "judge_reason": "The brief frames the grid connection story twice\u2014once with acceptable hedge ('alongside a headline') but then again asserting 'the one market-wide headline...which may be related' when that headline was already positioned as merely coincident, creating narrative drift toward causation.",
+          "brief": "The entire AI power and infrastructure theme surged, with all five names rising between 4.9% and 6.1%. VST led at +6.1%, CEG followed at +5.8%, and VRT, ETN, and GEV all gained above 4.9%. The group moved tightly together, far outpacing the broader market's 0.4%, alongside a headline about regulators approving faster grid connections for large data centers.\n\nMega-cap tech tracked the market, with AAPL, MSFT, and GOOGL each up between 0.3% and 0.6% -- close enough to one another and to the Nasdaq's 0.5% that the moves carry no individual meaning.\n\nThe one market-wide headline concerns faster grid connections for large data centers, which may be related to the power infrastructure theme's strength today.\n\nNo earnings on the watchlist fall within the next seven days."
+        }
+      ],
+      "rewrites": [
+        {
+          "run": 15,
+          "original": "The AI power and infrastructure theme dominated your watchlist today, with all five names up between 4.9% and 6.1% -- VST, CEG, VRT, ETN and GEV each rose at least ten times the broader market's gain. The move coincided with regulatory approval for faster grid connections to large data centers, which may be related to the group's strength. These names tracked each other closely, with the spread from bottom to top just 1.2 percentage points across the theme.\n\nYour mega-cap tech names moved roughly in line with the Nasdaq 100's 0.5% gain. MSFT added 0.6%, AAPL rose 0.4%, and GOOGL climbed 0.3% -- all quiet relative to the power infrastructure theme.\n\nNo earnings are scheduled within the next week on your watchlist.",
+          "final": "The AI power and infrastructure theme dominated your watchlist today, with all five names up between 4.9% and 6.1% while the broader market gained 0.4%. VST, CEG, VRT, ETN and GEV each rose sharply, and the move coincided with regulatory approval for faster grid connections to large data centers, which may be related to the group's strength. These names tracked each other closely, with the spread from bottom to top just 1.2 percentage points across the theme.\n\nYour mega-cap tech names moved roughly in line with the Nasdaq 100's 0.5% gain. MSFT added 0.6%, AAPL rose 0.4%, and GOOGL climbed 0.3% -- all quiet relative to the power infrastructure theme.\n\nNo earnings are scheduled within the next week on your watchlist."
+        },
+        {
+          "run": 18,
+          "original": "Your AI power and infrastructure theme had a standout day, with all five names up between 4.9% and 6.1% as a group -- more than ten times the broader market's gain. VST, CEG, VRT, ETN and GEV moved tightly together, each well ahead of SPY's 0.4%. This strength coincided with regulatory approval of faster grid connections for large data centers, a headline that may be related to the theme's move.\n\nThe mega-cap tech names you're tracking drifted sideways in comparison: AAPL, MSFT and GOOGL each moved less than 0.6%, roughly in line with the Nasdaq 100's 0.5% gain. No meaningful divergence within the group.\n\nBeyond your watchlist, no notable market-wide movers today. No earnings reports scheduled within the next seven days on the names you're tracking.",
+          "final": "Your AI power and infrastructure theme had a standout day, with all five names up between 4.9% and 6.1% as a group, while the broader market gained 0.4%. VST, CEG, VRT, ETN and GEV moved tightly together, each well ahead of SPY. This strength coincided with regulatory approval of faster grid connections for large data centers, a headline that may be related to the theme's move.\n\nThe mega-cap tech names you're tracking drifted sideways in comparison: AAPL, MSFT and GOOGL each moved less than 0.6%, roughly in line with the Nasdaq 100's 0.5% gain. No meaningful divergence within the group.\n\nBeyond your watchlist, no notable market-wide movers today. No earnings reports scheduled within the next seven days on the names you're tracking."
+        },
+        {
+          "run": 22,
+          "original": "The AI power and infrastructure theme surged together today, with all five names up between 4.9% and 6.1%, more than ten times the broad market's gain. VST, CEG, VRT, ETN and GEV moved as a group, which may be related to regulators approving faster grid connections for large data centers. The mega-cap tech names you're tracking tracked the Nasdaq's half-point gain, with MSFT, AAPL and GOOGL all in a tight range around +0.3% to +0.6%.\n\nAll eight names on your watchlist report earnings in 30 days.",
+          "final": "The AI power and infrastructure theme surged together today, with all five names up between 4.9% and 6.1% while the broad market gained 0.4%. VST, CEG, VRT, ETN and GEV moved as a group, which may be related to regulators approving faster grid connections for large data centers. The mega-cap tech names you're tracking tracked the Nasdaq's half-point gain, with MSFT, AAPL and GOOGL all in a tight range around +0.3% to +0.6%.\n\nAll eight names on your watchlist report earnings in 30 days."
+        }
+      ]
+    }
+  }
+}
