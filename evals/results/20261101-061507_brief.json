@@ -1,0 +1,387 @@
+{
+  "kind": "brief",
+  "timestamp": "2026-11-01T06:15:07+00:00",
+  "model": "claude-sonnet-4-5",
+  "commit": "c830486",
+  "uncommitted_changes": false,
+  "dry_run": false,
+  "settings": {
+    "runs": 24,
+    "scenario": "company_drop_peers_flat,theme_name_data_failed",
+    "skip_themes": false,
+    "skip_analysis": false,
+    "split": null,
+    "analysis_only": false
+  },
+  "scenarios": {
+    "theme_name_data_failed": {
+      "description": "A theme falls together; one quiet name's news and calendar failed to load.",
+      "runs": 24,
+      "checks": {
+        "never gives a direct recommendation": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never tells the reader to trade": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never sets a price target": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never predicts direction": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never claims certainty": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never uses a rating": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never nudges the reader about positioning": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never suggests an action": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never advises a posture": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never tells the reader when to act": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "no markdown headings": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "no bullet lists": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "no numbered lists": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "no bold markdown": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "between 1 and 4 paragraphs": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "reasonable length": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never states a move as a multiple of another": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "judge verdict": {
+          "passed": 19,
+          "runs": 24,
+          "failure": "The brief says 'the capex headline is hitting the two groups differently' which asserts causation (the headline hitting/affecting the groups) rather than using correlational framing."
+        }
+      },
+      "first_output": "AI compute took the hardest hit today, with NVDA, AMD and AVGO all down between 2.6% and 3.1% -- roughly in line with each other and the SMH benchmark, which fell 2.4%. The session's headline was a cloud provider trimming its 2027 capex outlook, which may be related to the sector-wide sell-off. These names moved as a group, with no standouts among them.\n\nMemory and storage held up better. MU, WDC and STX each gave up less than a percent and stayed close to their peers, a quiet day for the theme while the rest of the semiconductor space fell harder.\n\nThe broader market closed down 0.6% on the S&P 500 and 1.1% on the Nasdaq 100. Nothing outside the watchlist moved enough to stand out.\n\nFive names on the watchlist -- NVDA, AMD, AVGO, MU and WDC -- all report in 30 days, on December 1st. STX's date couldn't be loaded.",
+      "failed_runs": [
+        {
+          "run": 5,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "judge_reason": "The brief says 'the capex headline is hitting the two groups differently' which asserts causation (the headline hitting/affecting the groups) rather than using correlational framing.",
+          "brief": "Your AI compute names took the worst of today's selling, down around 3% as a group while the Nasdaq fell 1.1%. NVDA dropped 3.1%, AMD 2.8%, AVGO 2.6%, all tracking each other and well beyond the 2.4% decline in SMH. The move coincided with a cloud provider trimming its 2027 capex outlook, which may be related to the weakness across the group.\n\nMemory and storage held up by comparison. MU, WDC and STX all dropped less than half a percent, staying well clear of the broader semiconductor selloff. That divergence -- compute hardware falling hard while memory barely moved -- suggests the capex headline is hitting the two groups differently, or that memory is simply having a quieter session.\n\nNothing outside your watchlist moved enough to note today.\n\nThe next earnings on your list are AMD, AVGO, MU, NVDA and WDC, all in 30 days. STX's date couldn't be loaded."
+        },
+        {
+          "run": 10,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "judge_reason": "The brief says 'No earnings reports land in the next week for any name on the list' without excepting STX, whose date is unknown, turning the failed lookup into an apparent fact about STX's calendar.",
+          "brief": "AI compute took the hardest hit on your watchlist, with NVDA, AMD and AVGO all moving together and down harder than their SMH benchmark -- between -2.6% and -3.1% -- on a weak day for tech overall. The Nasdaq 100 fell 1.1%, and semis led the decline. A headline today showed a cloud provider trimming its capex outlook, which may be related to the sector move, though chip stocks fell across the board.\n\nMemory and storage held up by comparison. MU, WDC and STX stayed well inside -1%, tracking each other rather than the broader SMH sell-off. All three landed around their peer medians in a quiet session for the group, with STX's events and news data unavailable.\n\nNo earnings reports land in the next week for any name on the list. AMD, AVGO, MU, NVDA and WDC all report in 30 days, and STX's next date couldn't be loaded."
+        },
+        {
+          "run": 12,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "judge_reason": "The brief says 'STX all declined less than half a percent' and includes it in the list of 'memory and storage names [that] held up much better', which turns the failed lookups into factual claims about STX being a quiet name when its news and calendar data were unavailable.",
+          "brief": "The AI compute names you're tracking moved together, falling 2.6% to 3.1% alongside a 2.4% drop in SMH. NVDA, AMD and AVGO all tracked the same weakness, which may be related to a cloud provider trimming its 2027 capex outlook. The memory and storage names held up much better -- MU, WDC and STX all declined less than half a percent -- showing that not every part of the chip complex is responding to the same pressures today.\n\nThe broader market fell 0.6%, with the Nasdaq down 1.1%, putting the AI compute theme's losses in context: those names underperformed the tech-heavy index by roughly 2 points. Your watchlist split cleanly, with the three compute stocks moving as a group on one side and the three memory names barely budging on the other.\n\nThe next earnings on this list all land in 30 days: AMD, AVGO, MU, NVDA and WDC all report on the same date, December 1st. STX's date couldn't be loaded."
+        },
+        {
+          "run": 15,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "judge_reason": "The brief fails because it says 'No earnings reports land in the next week -- everything on the list sits 30 days out on December 1st' without excepting STX, whose date is unknown, turning the failed lookup into an implicit factual claim that STX also reports on December 1st.",
+          "brief": "The AI compute theme took the brunt of today's selling -- NVDA, AMD and AVGO all dropped between 2.6% and 3.1%, moving together and well below the broader market. A headline about a cloud provider trimming its capex outlook circulated alongside those moves. SMH fell 2.4%.\n\nMemory and storage held up notably better. MU, WDC and STX each slipped less than a percent, staying quiet while their AI compute peers sold off sharply. That divergence is the story today: the two themes split, with the capex news coinciding only with pressure in AI compute names.\n\nBeyond your watchlist, nothing else stands out -- the Nasdaq fell 1.1% and the S&P 500 dropped 0.6%, but the movers were concentrated in the areas you're already tracking.\n\nNo earnings reports land in the next week -- everything on the list sits 30 days out on December 1st, though STX's date couldn't be loaded."
+        },
+        {
+          "run": 17,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "judge_reason": "The brief says 'No company-specific news appeared for any of them' about MU, WDC and STX, which turns STX's failed news lookup into a factual claim that there was no news, violating the rubric.",
+          "brief": "The AI compute names -- NVDA, AMD, AVGO -- fell as a group, down around 2.6% to 3.1%, tracking the SMH's 2.4% decline. That move coincided with a headline about a cloud provider trimming its capex outlook, which may be related to the selling pressure across the theme. The broader market was down too, with the Nasdaq off 1.1%, but the AI compute names fell harder than the indices.\n\nMemory and storage held up much better. MU, WDC and STX each dropped less than a percent, staying well above the benchmark and diverging sharply from the AI compute theme. No company-specific news appeared for any of them.\n\nNothing notable moved outside your watchlist today.\n\nThe next earnings on your list are AMD, AVGO, MU, NVDA and WDC, all reporting in 30 days. STX's date couldn't be loaded."
+        }
+      ],
+      "rewrites": [
+        {
+          "run": 8,
+          "original": "The AI compute names you're tracking -- NVDA, AMD and AVGO -- fell together, down 2.6% to 3.1%, and all underperformed the SMH benchmark. NVDA dropped 3.1% alongside a headline about a cloud provider trimming its capex outlook, which may be related to the move. The theme took a harder hit than the broader market: Nasdaq 100 fell 1.1%, while these three shed roughly triple that.\n\nMemory and storage held up: MU, WDC and STX all declined between 0.3% and 0.6%, quiet moves that beat SMH by roughly two percentage points. The theme stayed intact -- all three moved within a narrow band -- but diverged sharply from AI compute, despite both groups living in the same semiconductor space.\n\nNothing notable beyond the watchlist. The one market headline, about cloud capex being trimmed, is the same one appearing beside NVDA.\n\nAll five names with known earnings dates report in 30 days, on December 1st. STX's date couldn't be loaded.",
+          "final": "The AI compute names you're tracking -- NVDA, AMD and AVGO -- fell together, down 2.6% to 3.1%, and all underperformed the SMH benchmark. NVDA dropped 3.1% alongside a headline about a cloud provider trimming its capex outlook, which may be related to the move. The theme declined around 2.8% on average while the Nasdaq 100 fell 1.1%, a meaningfully wider drop.\n\nMemory and storage held up: MU, WDC and STX all declined between 0.3% and 0.6%, quiet moves that beat SMH by roughly two percentage points. The theme stayed intact -- all three moved within a narrow band -- but diverged sharply from AI compute, despite both groups living in the same semiconductor space.\n\nNothing notable beyond the watchlist. The one market headline, about cloud capex being trimmed, is the same one appearing beside NVDA.\n\nAll five names with known earnings dates report in 30 days, on December 1st. STX's date couldn't be loaded."
+        },
+        {
+          "run": 13,
+          "original": "AI compute took the worst of it today, with NVDA, AMD and AVGO all down between 2.6% and 3.1%, tracking their benchmark SMH down 2.4%. A cloud provider trimming its 2027 capex outlook may be related to the chip sell-off. The sector move pulled the Nasdaq 100 down 1.1%, twice the S&P 500's loss.\n\nMemory and storage names held up: MU, WDC and STX each lost half a percent or less, well ahead of the broader chip drop. Nothing company-specific showed up in their headlines -- they simply didn't follow the AI compute theme lower.\n\nAll five names with known report dates -- NVDA, AMD, AVGO, MU and WDC -- report in 30 days on December 1. STX's date couldn't be loaded.",
+          "final": "AI compute took the worst of it today, with NVDA, AMD and AVGO all down between 2.6% and 3.1%, tracking their benchmark SMH down 2.4%. A cloud provider trimming its 2027 capex outlook may be related to the chip sell-off. The Nasdaq 100 fell 1.1% while the S&P 500 lost 0.6%.\n\nMemory and storage names held up: MU, WDC and STX each lost half a percent or less, well ahead of the broader chip drop. Nothing company-specific showed up in their headlines -- they simply didn't follow the AI compute theme lower.\n\nAll five names with known report dates -- NVDA, AMD, AVGO, MU and WDC -- report in 30 days on December 1. STX's date couldn't be loaded."
+        },
+        {
+          "run": 14,
+          "original": "AI compute took the worst of it today, with NVDA, AMD and AVGO all down between 2.6% and 3.1% alongside a report that a cloud provider trimmed its capex outlook. The three tracked each other and SMH closely -- down 2.4% -- in a session that hit tech harder than the broader market.\n\nMemory and storage held up markedly better. MU, WDC and STX each fell less than a percent in quiet trading, all beating SMH by roughly two percentage points while the AI compute names sold off. That gap suggests something company- or subsector-specific rather than broad semiconductor weakness.\n\nThe Nasdaq 100 fell 1.1%, nearly double the S&P 500's 0.6% decline.\n\nNothing on this watchlist reports in the next week -- the nearest is in 30 days, when AMD, AVGO, MU, NVDA and WDC all report. STX's date couldn't be loaded.",
+          "final": "AI compute took the worst of it today, with NVDA, AMD and AVGO all down between 2.6% and 3.1% alongside a report that a cloud provider trimmed its capex outlook. The three tracked each other and SMH closely -- down 2.4% -- in a session that hit tech harder than the broader market.\n\nMemory and storage held up markedly better. MU, WDC and STX each fell less than a percent in quiet trading, all beating SMH by roughly two percentage points while the AI compute names sold off. That gap suggests something company- or subsector-specific rather than broad semiconductor weakness.\n\nThe Nasdaq 100 fell 1.1% while the S&P 500 dropped 0.6%.\n\nNothing on this watchlist reports in the next week -- the nearest is in 30 days, when AMD, AVGO, MU, NVDA and WDC all report. STX's date couldn't be loaded."
+        },
+        {
+          "run": 18,
+          "original": "AI compute names sold off sharply with the sector -- NVDA down 3.1%, AMD off 2.8%, AVGO down 2.6% -- all tracking one another in a rough session for chips. SMH fell 2.4% and the Nasdaq dropped 1.1%. The move coincided with a headline about a cloud provider trimming its 2027 capex outlook, which may be related to the selling pressure across the group.\n\nMemory and storage held up much better. MU, WDC and STX stayed quiet, each down less than 1% while their AI compute peers fell three to five times as hard. The divergence is notable: these names sit in the same benchmark but didn't follow the sector down.\n\nThe next scheduled earnings across your watchlist fall in 30 days -- AMD, AVGO, MU, NVDA and WDC all report on the same date. STX's date couldn't be loaded.",
+          "final": "AI compute names sold off sharply with the sector -- NVDA down 3.1%, AMD off 2.8%, AVGO down 2.6% -- all tracking one another in a rough session for chips. SMH fell 2.4% and the Nasdaq dropped 1.1%. The move coincided with a headline about a cloud provider trimming its 2027 capex outlook, which may be related to the selling pressure across the group.\n\nMemory and storage held up much better. MU, WDC and STX stayed quiet, each down less than 1%, while their AI compute peers fell between 2.6% and 3.1%. The divergence is notable: these names sit in the same benchmark but didn't follow the sector down.\n\nThe next scheduled earnings across your watchlist fall in 30 days -- AMD, AVGO, MU, NVDA and WDC all report on the same date. STX's date couldn't be loaded."
+        }
+      ],
+      "outputs": [
+        "AI compute took the hardest hit today, with NVDA, AMD and AVGO all down between 2.6% and 3.1% -- roughly in line with each other and the SMH benchmark, which fell 2.4%. The session's headline was a cloud provider trimming its 2027 capex outlook, which may be related to the sector-wide sell-off. These names moved as a group, with no standouts among them.\n\nMemory and storage held up better. MU, WDC and STX each gave up less than a percent and stayed close to their peers, a quiet day for the theme while the rest of the semiconductor space fell harder.\n\nThe broader market closed down 0.6% on the S&P 500 and 1.1% on the Nasdaq 100. Nothing outside the watchlist moved enough to stand out.\n\nFive names on the watchlist -- NVDA, AMD, AVGO, MU and WDC -- all report in 30 days, on December 1st. STX's date couldn't be loaded.",
+        "The AI compute names moved together today, down around 3%, tracking SMH's 2.4% drop. NVDA fell 3.1% alongside a headline that a cloud provider trimmed its capex outlook -- the kind of demand signal worth noting for the whole compute theme. AMD and AVGO followed at similar magnitudes.\n\nMemory and storage held up. MU, WDC and STX each shed less than 1%, a much lighter day than their AI compute peers or the SMH benchmark. That divergence between the two semiconductor themes is the clearest structure in the session.\n\nThe next earnings on this list all land in 30 days: AMD, AVGO, MU, NVDA and WDC all report on the same date. STX's date couldn't be loaded.",
+        "The AI compute theme took the biggest hit on your watchlist, all three names down between 2.6% and 3.1% alongside a headline about a cloud provider trimming its capex outlook. NVDA, AMD and AVGO moved together with their sector and slightly worse than SMH's 2.4% drop. The broader market fell too -- the Nasdaq down 1.1%, the S&P down 0.6% -- so this wasn't isolated to chips, but the compute stocks led the decline.\n\nMemory and storage held up much better. MU, WDC and STX each fell less than a percent, well clear of the 2.4% semiconductor benchmark and their compute peers. That divergence suggests the capex concern may be more about the high-end AI buildout than memory demand broadly, though these names were quiet enough that the move could simply be sector rotation playing out unevenly.\n\nThe next five reports all land in 30 days -- AMD, AVGO, MU, NVDA and WDC all scheduled for December 1st. STX's date couldn't be loaded.",
+        "The AI compute names moved together today, down around 3%, tracking the broader chip selloff. NVDA fell 3.1%, AMD dropped 2.8%, and AVGO lost 2.6%, all in line with SMH's 2.4% decline. A headline about a cloud provider trimming its capex outlook coincided with the chip sector weakness.\n\nMemory and storage names held up better. MU, WDC and STX all stayed within half a percent, well ahead of the 2.4% benchmark decline, though nothing specific appears to be driving the divergence.\n\nThe broader market was down, with the Nasdaq falling 1.1% and the S&P 500 off 0.6%. Nothing outside the watchlist moved notably.\n\nAll five names with known dates report in 30 days, on December 1st. STX's date couldn't be loaded.",
+        "Your AI compute names took the worst of today's selling, down around 3% as a group while the Nasdaq fell 1.1%. NVDA dropped 3.1%, AMD 2.8%, AVGO 2.6%, all tracking each other and well beyond the 2.4% decline in SMH. The move coincided with a cloud provider trimming its 2027 capex outlook, which may be related to the weakness across the group.\n\nMemory and storage held up by comparison. MU, WDC and STX all dropped less than half a percent, staying well clear of the broader semiconductor selloff. That divergence -- compute hardware falling hard while memory barely moved -- suggests the capex headline is hitting the two groups differently, or that memory is simply having a quieter session.\n\nNothing outside your watchlist moved enough to note today.\n\nThe next earnings on your list are AMD, AVGO, MU, NVDA and WDC, all in 30 days. STX's date couldn't be loaded.",
+        "The AI compute names you're tracking moved together and sharply down: NVDA fell 3.1%, AMD 2.8%, AVGO 2.6%, all tracking their peers and the SMH benchmark, which dropped 2.4%. The headline alongside this is that a cloud provider cut its capex outlook for 2027. The Nasdaq 100 finished 1.1% lower, with the S&P down 0.6%.\n\nMemory and storage held up relatively well. MU, WDC and STX all fell between 0.3% and 0.6%, substantially less than the semiconductor benchmark and the AI compute names. None of the three saw much news or movement.\n\nThe next scheduled earnings report across this watchlist is in 30 days, when NVDA, AMD, AVGO, MU and WDC all report on the same date. STX's date couldn't be loaded.",
+        "The AI compute theme took the hardest hit on your watchlist, with NVDA, AMD and AVGO all dropping between 2.6% and 3.1% -- roughly in line with each other and the SMH benchmark down 2.4%. That move coincided with a headline about a cloud provider trimming its 2027 capital spending outlook, weighing on chip stocks broadly. The sector fell harder than the wider market, which closed down 0.6% on the S&P 500 and 1.1% on the Nasdaq 100.\n\nMemory and storage names held up far better. MU, WDC and STX barely moved, down between 0.3% and 0.6%, well ahead of the chip benchmark. The divergence suggests those businesses are seen as less exposed to whatever drove the compute names lower.\n\nThe next earnings across this watchlist cluster at the end of the month, with NVDA, AMD, AVGO, MU and WDC all reporting in 30 days on December 1st. STX's date couldn't be loaded.",
+        "The AI compute names you're tracking -- NVDA, AMD and AVGO -- fell together, down 2.6% to 3.1%, and all underperformed the SMH benchmark. NVDA dropped 3.1% alongside a headline about a cloud provider trimming its capex outlook, which may be related to the move. The theme declined around 2.8% on average while the Nasdaq 100 fell 1.1%, a meaningfully wider drop.\n\nMemory and storage held up: MU, WDC and STX all declined between 0.3% and 0.6%, quiet moves that beat SMH by roughly two percentage points. The theme stayed intact -- all three moved within a narrow band -- but diverged sharply from AI compute, despite both groups living in the same semiconductor space.\n\nNothing notable beyond the watchlist. The one market headline, about cloud capex being trimmed, is the same one appearing beside NVDA.\n\nAll five names with known earnings dates report in 30 days, on December 1st. STX's date couldn't be loaded.",
+        "AI compute names took the hardest hit today, with NVDA, AMD and AVGO all down between 2.6% and 3.1%, underperforming the broader market and moving together as a group. The headline across chip stocks was a cloud provider trimming its capex outlook, which may be related to the sector-wide move. SMH fell 2.4%, capturing the breadth of the pullback.\n\nMemory and storage held up better. MU, WDC and STX all stayed within 0.6%, well ahead of the AI compute group and roughly flat in a down market. These are the same underlying hardware trends, but the divergence suggests the capex concern is hitting the AI accelerator names harder than the commodity storage side.\n\nThe next earnings across your watchlist are AMD, AVGO, MU, NVDA and WDC, all in 30 days on December 1st. STX's date couldn't be loaded.",
+        "AI compute took the hardest hit on your watchlist, with NVDA, AMD and AVGO all moving together and down harder than their SMH benchmark -- between -2.6% and -3.1% -- on a weak day for tech overall. The Nasdaq 100 fell 1.1%, and semis led the decline. A headline today showed a cloud provider trimming its capex outlook, which may be related to the sector move, though chip stocks fell across the board.\n\nMemory and storage held up by comparison. MU, WDC and STX stayed well inside -1%, tracking each other rather than the broader SMH sell-off. All three landed around their peer medians in a quiet session for the group, with STX's events and news data unavailable.\n\nNo earnings reports land in the next week for any name on the list. AMD, AVGO, MU, NVDA and WDC all report in 30 days, and STX's next date couldn't be loaded.",
+        "Your AI compute names fell together, down around 3% -- NVDA, AMD and AVGO all moved in step with the broad chip selloff, which took SMH down 2.4%. That lines up with a headline about a cloud provider trimming its capex outlook, though the connection isn't confirmed. The Nasdaq fell 1.1%, dragging down the broader tech space.\n\nMemory and storage held up better. MU, WDC and STX were all down less than 1%, quiet against the wider chip decline and well ahead of the SMH benchmark. STX's news and events data couldn't be loaded today.\n\nNothing notable beyond your watchlist in the broader market.\n\nThe next scheduled report is a month out -- AMD, AVGO, MU, NVDA and WDC all report in 30 days on December 1st. STX's date couldn't be loaded.",
+        "The AI compute names you're tracking moved together, falling 2.6% to 3.1% alongside a 2.4% drop in SMH. NVDA, AMD and AVGO all tracked the same weakness, which may be related to a cloud provider trimming its 2027 capex outlook. The memory and storage names held up much better -- MU, WDC and STX all declined less than half a percent -- showing that not every part of the chip complex is responding to the same pressures today.\n\nThe broader market fell 0.6%, with the Nasdaq down 1.1%, putting the AI compute theme's losses in context: those names underperformed the tech-heavy index by roughly 2 points. Your watchlist split cleanly, with the three compute stocks moving as a group on one side and the three memory names barely budging on the other.\n\nThe next earnings on this list all land in 30 days: AMD, AVGO, MU, NVDA and WDC all report on the same date, December 1st. STX's date couldn't be loaded.",
+        "AI compute took the worst of it today, with NVDA, AMD and AVGO all down between 2.6% and 3.1%, tracking their benchmark SMH down 2.4%. A cloud provider trimming its 2027 capex outlook may be related to the chip sell-off. The Nasdaq 100 fell 1.1% while the S&P 500 lost 0.6%.\n\nMemory and storage names held up: MU, WDC and STX each lost half a percent or less, well ahead of the broader chip drop. Nothing company-specific showed up in their headlines -- they simply didn't follow the AI compute theme lower.\n\nAll five names with known report dates -- NVDA, AMD, AVGO, MU and WDC -- report in 30 days on December 1. STX's date couldn't be loaded.",
+        "AI compute took the worst of it today, with NVDA, AMD and AVGO all down between 2.6% and 3.1% alongside a report that a cloud provider trimmed its capex outlook. The three tracked each other and SMH closely -- down 2.4% -- in a session that hit tech harder than the broader market.\n\nMemory and storage held up markedly better. MU, WDC and STX each fell less than a percent in quiet trading, all beating SMH by roughly two percentage points while the AI compute names sold off. That gap suggests something company- or subsector-specific rather than broad semiconductor weakness.\n\nThe Nasdaq 100 fell 1.1% while the S&P 500 dropped 0.6%.\n\nNothing on this watchlist reports in the next week -- the nearest is in 30 days, when AMD, AVGO, MU, NVDA and WDC all report. STX's date couldn't be loaded.",
+        "The AI compute theme took the brunt of today's selling -- NVDA, AMD and AVGO all dropped between 2.6% and 3.1%, moving together and well below the broader market. A headline about a cloud provider trimming its capex outlook circulated alongside those moves. SMH fell 2.4%.\n\nMemory and storage held up notably better. MU, WDC and STX each slipped less than a percent, staying quiet while their AI compute peers sold off sharply. That divergence is the story today: the two themes split, with the capex news coinciding only with pressure in AI compute names.\n\nBeyond your watchlist, nothing else stands out -- the Nasdaq fell 1.1% and the S&P 500 dropped 0.6%, but the movers were concentrated in the areas you're already tracking.\n\nNo earnings reports land in the next week -- everything on the list sits 30 days out on December 1st, though STX's date couldn't be loaded.",
+        "Your AI compute names moved together with the chip sector, all down sharply: NVDA -3.1%, AMD -2.8%, AVGO -2.6%, tracking SMH's -2.4%. A headline showed a cloud provider trimming its capex outlook, which may be related to the sector-wide decline. The Nasdaq dropped 1.1%, with chip stocks leading the tech weakness.\n\nYour memory and storage theme held up by comparison. MU, WDC and STX each fell less than half a percent, staying well clear of the broader chip sell-off -- all three moved quietly and together.\n\nNo earnings reports fall within the next week. The nearest on your watchlist is in 30 days: NVDA, AMD, AVGO, MU and WDC all report December 1st. STX's report date couldn't be loaded.",
+        "The AI compute names -- NVDA, AMD, AVGO -- fell as a group, down around 2.6% to 3.1%, tracking the SMH's 2.4% decline. That move coincided with a headline about a cloud provider trimming its capex outlook, which may be related to the selling pressure across the theme. The broader market was down too, with the Nasdaq off 1.1%, but the AI compute names fell harder than the indices.\n\nMemory and storage held up much better. MU, WDC and STX each dropped less than a percent, staying well above the benchmark and diverging sharply from the AI compute theme. No company-specific news appeared for any of them.\n\nNothing notable moved outside your watchlist today.\n\nThe next earnings on your list are AMD, AVGO, MU, NVDA and WDC, all reporting in 30 days. STX's date couldn't be loaded.",
+        "AI compute names sold off sharply with the sector -- NVDA down 3.1%, AMD off 2.8%, AVGO down 2.6% -- all tracking one another in a rough session for chips. SMH fell 2.4% and the Nasdaq dropped 1.1%. The move coincided with a headline about a cloud provider trimming its 2027 capex outlook, which may be related to the selling pressure across the group.\n\nMemory and storage held up much better. MU, WDC and STX stayed quiet, each down less than 1%, while their AI compute peers fell between 2.6% and 3.1%. The divergence is notable: these names sit in the same benchmark but didn't follow the sector down.\n\nThe next scheduled earnings across your watchlist fall in 30 days -- AMD, AVGO, MU, NVDA and WDC all report on the same date. STX's date couldn't be loaded.",
+        "AI compute names fell hard -- NVDA down 3.1%, AMD off 2.8%, AVGO down 2.6% -- tracking their peer group and the SMH benchmark, which dropped 2.4%. A headline about a cloud provider trimming its 2027 capex outlook appeared alongside the moves. The broader market closed lower, with the Nasdaq 100 down 1.1% and the S&P 500 off 0.6%.\n\nMemory and storage held up much better. MU, WDC and STX all fell less than half a percent, staying well above the SMH benchmark and diverging sharply from the AI compute theme's losses.\n\nNo earnings reports fall within the next week. AMD, AVGO, MU, NVDA and WDC all report in 30 days, and STX's date couldn't be loaded.",
+        "Your AI compute names took the bulk of today's selling: NVDA down 3.1%, AMD down 2.8%, AVGO down 2.6%, all moving with the SMH benchmark's 2.4% drop. That weakness coincided with a cloud provider trimming its capex outlook for next year, though the memory and storage names held up better -- MU, WDC and STX all down less than 1% while their semiconductor peers fell harder.\n\nThe broader market lost ground but less severely: the S&P 500 closed down 0.6%, while the Nasdaq 100 fell 1.1%, pulled down by the chip concentration.\n\nAll five names with known report dates -- NVDA, AMD, AVGO, MU, WDC -- report in 30 days. STX's date couldn't be loaded.",
+        "The AI compute names moved as a group today, all down between 2.6% and 3.1% and tracking SMH's 2.4% drop closely. NVDA led the decline at -3.1%, alongside a headline about a cloud provider trimming its capex outlook -- the two coincided, though the connection between reduced cloud spending plans and chip demand is straightforward. AMD and AVGO moved in step, down 2.8% and 2.6% respectively.\n\nThe memory and storage names held up better, down less than a percent each and well ahead of the SMH benchmark. MU, WDC and STX all moved quietly, with none breaking -0.6%. That's a meaningful divergence from the compute theme: the same sector benchmark fell 2.4%, but these names absorbed almost none of it.\n\nThe next scheduled reports all land in 30 days: AMD, AVGO, MU, NVDA and WDC on December 1st. STX's date couldn't be loaded.",
+        "AI compute took the brunt today: NVDA, AMD and AVGO all fell roughly 2.6\u20133.1%, moving together and tracking their benchmark down. The headline is that a cloud provider trimmed its capex outlook, which may be related to the move across that theme. Chip stocks broadly sold off, with the Nasdaq down 1.1% and SMH falling 2.4%.\n\nMemory and storage held up much better. MU, WDC and STX all stayed within a 0.6% range, well ahead of the broader chip benchmark. That divergence \u2014 memory names barely moving while AI compute dropped hard \u2014 suggests today was about something specific to the compute layer rather than semiconductors as a category.\n\nNothing reports in the next seven days. The next scheduled earnings are in 30 days, when AMD, AVGO, MU, NVDA and WDC all report on December 1st. STX's date couldn't be loaded.",
+        "Your AI compute names took the hardest hit today, down together between 2.6% and 3.1% on a broader chip sell-off. NVDA, AMD and AVGO all tracked closely with their peers and with SMH, which fell 2.4%. The drop coincided with a headline that a cloud provider trimmed its capex outlook -- one of the key demand signals for this group -- though the Nasdaq's 1.1% decline shows weakness spread beyond chips.\n\nMemory and storage held up far better. MU, WDC and STX each fell less than 1%, staying well ahead of the SMH benchmark and decoupling from the compute names you're tracking. The group was quiet, with no company-specific news driving the relative resilience.\n\nThe next earnings across the watchlist are AMD, AVGO, MU, NVDA and WDC, all reporting in 30 days. STX's date couldn't be loaded.",
+        "AI compute took the hardest hit on your watchlist, with NVDA, AMD and AVGO all down between 2.6% and 3.1%, tracking their theme median and lagging the broader market. The headline across chip names today was a cloud provider trimming its capex outlook, which may be related to the sell-off. The SMH benchmark fell 2.4%, outpacing the S&P's 0.6% decline and the Nasdaq's 1.1% drop.\n\nMemory and storage held up relatively well. MU, WDC and STX stayed within a tight range around -0.3% to -0.6%, all beating the SMH benchmark and showing little of the volatility that hit the AI compute names. These were quiet company-specific moves rather than theme-driven action.\n\nThe next earnings across the watchlist are all scheduled for 30 days out: AMD, AVGO, MU, NVDA and WDC all report on the same date. STX's earnings date couldn't be loaded."
+      ]
+    },
+    "analysis:company_drop_peers_flat": {
+      "description": "Falls hard while its peers barely move, beside a company headline.",
+      "runs": 24,
+      "checks": {
+        "never gives a direct recommendation": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never tells the reader to trade": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never sets a price target": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never predicts direction": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never claims certainty": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never uses a rating": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never nudges the reader about positioning": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never suggests an action": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never advises a posture": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never tells the reader when to act": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "no markdown headings": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "no bullet lists": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "no numbered lists": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "no bold markdown": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "between 1 and 4 paragraphs": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "reasonable length": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never states a move as a multiple of another": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "judge verdict": {
+          "passed": 17,
+          "runs": 24,
+          "failure": "The brief states the move 'suggests a company-specific issue' but fails to use hedged language when connecting the price drop to the outlook cut, implying causation by presenting the news immediately after the price movement without qualifying words like 'may be related to' or 'coincided with'."
+        }
+      },
+      "first_output": "Western Digital fell 10.2% to $92.10, while its memory and storage peers were nearly flat (median move -0.4%) and the broader market rose 0.1%, putting the stock 9.8 points below its peer group and 10.3 points below the market. Reuters reports the company cut its quarterly revenue outlook, citing slower hard-drive orders from two large customers. The sharp divergence from peers\u2014Micron, Seagate and SanDisk all moved less than a percentage point\u2014suggests the guidance reduction reflects company-specific issues rather than broader sector trends. No earnings date is currently scheduled.",
+      "failed_runs": [
+        {
+          "run": 3,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "judge_reason": "The brief states the move 'suggests a company-specific issue' but fails to use hedged language when connecting the price drop to the outlook cut, implying causation by presenting the news immediately after the price movement without qualifying words like 'may be related to' or 'coincided with'.",
+          "analysis": "Western Digital fell 10.2% to $92.10, dropping 10.3 points more than the market's 0.1% gain and 9.8 points below its memory and storage peers, whose median move was -0.4%. Reuters reports the company lowered its revenue outlook for the current quarter, citing slower hard-drive orders from two large customers. The sharp divergence from peers\u2014Micron, SanDisk and Seagate all moved less than 1%\u2014suggests a company-specific issue rather than a sector-wide trend. No earnings date is currently available for Western Digital."
+        },
+        {
+          "run": 8,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "judge_reason": "The brief fails criterion (a) by implying causation in the phrase 'Reuters reports the company lowered its revenue outlook' immediately after describing the price drop, which frames the two as causally linked rather than using hedged language like 'coincided with' or 'alongside'.",
+          "analysis": "Western Digital dropped 10.2% to $92.10, underperforming the market by 10.3 points and its memory & storage peers by 9.8 points, marking a company-specific move in a theme that was otherwise roughly flat (peer median -0.4%). Reuters reports the company lowered its revenue outlook for the current quarter, citing slower hard-drive orders from two large customers. The decline stands out sharply against the backdrop of small moves across peers like Micron (-0.6%), SanDisk (+0.1%), and Seagate (-0.4%), while the broader semiconductor sector edged slightly higher. No upcoming earnings date is currently available in the data."
+        },
+        {
+          "run": 11,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "judge_reason": "The brief states as fact that 'investors see the demand slowdown as specific to Western Digital's customer relationships' which asserts a causal interpretation not given in the data, violating rule (a).",
+          "analysis": "Western Digital fell 10.2% to $92.10, underperforming the market by 10.3 points and its memory & storage peers by 9.8 points, in a company-specific move while the broader market and theme were essentially flat. Reuters reports that the company lowered its revenue outlook for the current quarter, citing slower hard-drive orders from two large customers. The sharp divergence from peers like Micron, SanDisk and Seagate -- which all moved less than 1% -- suggests investors see the demand slowdown as specific to Western Digital's customer relationships rather than a broader sector issue. No earnings date is currently available."
+        },
+        {
+          "run": 16,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "judge_reason": "The brief fails criterion (a) by using causal framing in 'The sharp decline was specific to Western Digital rather than shared across its sector' immediately after mentioning the outlook cut, which implies causation without hedged language like 'may be related to' or 'coincided with'.",
+          "analysis": "Western Digital fell 10.2% to $92.10, dropping 10.3 points more than the market's 0.1% gain and 9.8 points more than the median of its peers in memory and storage, which moved little. Reuters reports the company lowered its revenue outlook for the current quarter, citing slower hard-drive orders from two large customers. The sharp decline was specific to Western Digital rather than shared across its sector, as peers Micron, SanDisk and Seagate all moved less than one percentage point, and no earnings date is currently scheduled."
+        },
+        {
+          "run": 17,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "judge_reason": "The brief states 'suggests the revenue warning' which asserts the outlook cut as a causal explanation rather than using hedged language like 'may be related to' or 'coincided with'.",
+          "analysis": "Western Digital dropped 10.2%, falling 10.3 points more than the market's 0.1% gain and 9.8 points more than its memory and storage peers, which posted a median decline of just 0.4%. The coverage reports that the company lowered its quarterly revenue outlook, citing slower hard-drive orders from two large customers. The sharp underperformance relative to both the broader market and its peer group\u2014including Micron, SanDisk, and Seagate, none of which moved more than 0.6%\u2014suggests the revenue warning is specific to Western Digital rather than a broader sector issue. No earnings date is currently available in the data."
+        },
+        {
+          "run": 21,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "judge_reason": "The brief states 'Reuters reports the company lowered its revenue outlook' immediately after describing the price drop, presenting the two facts adjacently without hedged language to frame their relationship, which fails criterion (a) by implying causation through juxtaposition rather than using req",
+          "analysis": "Western Digital fell 10.2% to $92.10, dropping 10.3 points more than the broader market and 9.8 points more than its peers in memory and storage, marking a company-specific move while its sector held relatively flat. Reuters reports the company lowered its revenue outlook for the current quarter, citing slower hard-drive orders from two large customers. The move stands out sharply against peers, with Micron down just 0.6%, Seagate down 0.4%, and SanDisk up 0.1%, as well as the SMH semiconductor benchmark rising 0.2%. No earnings date is currently available in the data."
+        },
+        {
+          "run": 22,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "judge_reason": "The brief states 'Reuters reports that Western Digital lowered its revenue outlook' immediately after describing the price drop, using 'reports that' framing that presents the two events side-by-side without hedged language to connect them (no 'may be related to', 'coincided with', or 'alongside'), ",
+          "analysis": "Western Digital fell 10.2% to $92.10, dropping 10.3 points more than the market and 9.8 points below the median of its memory and storage peers, marking a company-specific move in a sector that was otherwise flat. Reuters reports that Western Digital lowered its revenue outlook for the current quarter, citing slower hard-drive orders from two large customers. While peers like Micron, SanDisk and Seagate all moved less than a percentage point in either direction, WDC's sharp decline diverged entirely from the theme. No earnings date is currently available for the company."
+        }
+      ],
+      "rewrites": [],
+      "outputs": [
+        "Western Digital fell 10.2% to $92.10, while its memory and storage peers were nearly flat (median move -0.4%) and the broader market rose 0.1%, putting the stock 9.8 points below its peer group and 10.3 points below the market. Reuters reports the company cut its quarterly revenue outlook, citing slower hard-drive orders from two large customers. The sharp divergence from peers\u2014Micron, Seagate and SanDisk all moved less than a percentage point\u2014suggests the guidance reduction reflects company-specific issues rather than broader sector trends. No earnings date is currently scheduled.",
+        "Western Digital fell 10.2%, while the market rose 0.1% and its memory & storage peers held essentially flat (median move -0.4%), making this a company-specific decline 9.8 points steeper than the peer group. Reuters reports that the company lowered its revenue outlook for the current quarter, citing slower hard-drive orders from two large customers. The divergence from peers\u2014Micron down 0.6%, SanDisk up 0.1%, Seagate down 0.4%\u2014alongside the 10.4-point gap versus the sector benchmark SMH suggests the demand weakness Western Digital cited may be hitting its customer mix specifically rather than reflecting broader conditions across memory and storage. No upcoming earnings date is currently available.",
+        "Western Digital fell 10.2% to $92.10, dropping 10.3 points more than the market's 0.1% gain and 9.8 points below its memory and storage peers, whose median move was -0.4%. Reuters reports the company lowered its revenue outlook for the current quarter, citing slower hard-drive orders from two large customers. The sharp divergence from peers\u2014Micron, SanDisk and Seagate all moved less than 1%\u2014suggests a company-specific issue rather than a sector-wide trend. No earnings date is currently available for Western Digital.",
+        "Western Digital fell 10.2% to $92.10, while the S&P 500 rose 0.1% and its memory & storage peers were essentially flat (median -0.4%), making this a 9.8-point underperformance relative to the group and a company-specific move. Reuters reports that Western Digital lowered its revenue outlook for the current quarter, citing slower hard-drive orders from two large customers. No earnings date is currently scheduled.",
+        "Western Digital fell 10.2% to $92.10, underperforming the market by 10.3 points and its memory & storage peers by 9.8 points\u2014the median peer move was just -0.4%, marking this as company-specific. Reuters reports the company lowered its revenue outlook for the current quarter, citing slower hard-drive orders from two large customers. No earnings date is currently scheduled.",
+        "Western Digital fell 10.2% to $92.10, dropping 10.3 points more than the market and 9.8 points more than the median of its memory and storage peers, marking a company-specific move. Reuters reports that the company lowered its revenue outlook for the current quarter, citing slower hard-drive orders from two large customers. While peers including Micron, SanDisk and Seagate moved little on the day, Western Digital's sharp decline diverged substantially from the group. No earnings date is currently scheduled.",
+        "Western Digital fell 10.2% to $92.10, dropping 10.3 points more than the market's 0.1% gain and 9.8 points below its memory and storage peers, which posted a median move of -0.4%. Reuters reports the company lowered its revenue outlook for the current quarter, citing slower hard-drive orders from two large customers. The sharp divergence from peers\u2014Micron, SanDisk and Seagate all moved less than a percent\u2014indicates the weakness appears specific to Western Digital rather than shared across the sector, though no earnings date has been announced yet.",
+        "Western Digital dropped 10.2% to $92.10, underperforming the market by 10.3 points and its memory & storage peers by 9.8 points, marking a company-specific move in a theme that was otherwise roughly flat (peer median -0.4%). Reuters reports the company lowered its revenue outlook for the current quarter, citing slower hard-drive orders from two large customers. The decline stands out sharply against the backdrop of small moves across peers like Micron (-0.6%), SanDisk (+0.1%), and Seagate (-0.4%), while the broader semiconductor sector edged slightly higher. No upcoming earnings date is currently available in the data.",
+        "Western Digital fell 10.2% to $92.10, underperforming the market by 10.3 points and dropping 9.8 points more than the median peer in memory and storage, which moved -0.4%. The attribution is \"company\", indicating this was a stock-specific move: individual peers MU, SNDK, and STX all stayed within less than a percentage point of flat, and the sector benchmark SMH rose 0.2%.\n\nReuters reports that Western Digital lowered its revenue outlook for the current quarter, citing slower hard-drive orders from two large customers. No earnings date is currently available in the data.",
+        "Western Digital fell 10.2% to $92.10, underperforming the market by 10.3 points and its memory & storage peers by 9.8 points, while the sector median was down just 0.4%. Reuters reports the company lowered its quarterly revenue outlook, citing slower hard-drive orders from two large customers. The divergence from peers and the benchmark SMH semiconductor ETF (up 0.2%) marks this as a company-specific development rather than a sector move. No earnings date is currently scheduled.",
+        "Western Digital fell 10.2% to $92.10, underperforming the market by 10.3 points and its memory & storage peers by 9.8 points, in a company-specific move while the broader market and theme were essentially flat. Reuters reports that the company lowered its revenue outlook for the current quarter, citing slower hard-drive orders from two large customers. The sharp divergence from peers like Micron, SanDisk and Seagate -- which all moved less than 1% -- suggests investors see the demand slowdown as specific to Western Digital's customer relationships rather than a broader sector issue. No earnings date is currently available.",
+        "Western Digital fell 10.2% to $92.10, underperforming the market by 10.3 points and its memory and storage peers by 9.8 points, marking this as a company-specific move rather than a sector-wide issue. While the median peer declined 0.4% and the SMH benchmark rose 0.2%, WDC's drop stands out sharply. Reuters reports the company lowered its quarterly revenue outlook, citing slower hard-drive orders from two large customers. No upcoming earnings date is currently available in the data.",
+        "Western Digital dropped 10.2% to $92.10, underperforming the market by 10.3 points and its memory & storage peers by 9.8 points, marking a company-specific move in a sector that was otherwise roughly flat (peer median -0.4%). Reuters reports the company lowered its revenue outlook for the current quarter, citing slower hard-drive orders from two large customers. No earnings date is currently available in the data.",
+        "Western Digital dropped 10.2% to $92.10, falling 10.3 percentage points more than the market's 0.1% gain and diverging sharply from its Memory & storage peers, which moved only slightly (median -0.4%). Reuters reports that the company cut its quarterly revenue outlook, citing slower hard-drive orders from two large customers. The company-specific nature of the move\u2014nearly 10 points worse than peers\u2014lines up with guidance tied to particular customer relationships rather than broader sector conditions. No upcoming earnings date is currently available in the data.",
+        "Western Digital fell 10.2% to $92.10, underperforming the market by 10.3 points and its memory & storage peers by 9.8 points, marking this as a company-specific move rather than a sector event\u2014the peer median was just -0.4%. The coverage reports that Western Digital lowered its quarterly revenue outlook, citing slower hard-drive orders from two large customers. No upcoming earnings date is currently available in the data.",
+        "Western Digital fell 10.2% to $92.10, dropping 10.3 points more than the market's 0.1% gain and 9.8 points more than the median of its peers in memory and storage, which moved little. Reuters reports the company lowered its revenue outlook for the current quarter, citing slower hard-drive orders from two large customers. The sharp decline was specific to Western Digital rather than shared across its sector, as peers Micron, SanDisk and Seagate all moved less than one percentage point, and no earnings date is currently scheduled.",
+        "Western Digital dropped 10.2%, falling 10.3 points more than the market's 0.1% gain and 9.8 points more than its memory and storage peers, which posted a median decline of just 0.4%. The coverage reports that the company lowered its quarterly revenue outlook, citing slower hard-drive orders from two large customers. The sharp underperformance relative to both the broader market and its peer group\u2014including Micron, SanDisk, and Seagate, none of which moved more than 0.6%\u2014suggests the revenue warning is specific to Western Digital rather than a broader sector issue. No earnings date is currently available in the data.",
+        "Western Digital fell 10.2% to $92.10, while the S&P 500 rose 0.1% and the Memory & storage sector (SMH) gained 0.2%, making this a 10.3-point underperformance versus the market and a company-specific move within its theme, where peers showed a median decline of just 0.4%. Reuters reports that the company lowered its revenue outlook for the current quarter, citing slower hard-drive orders from two large customers. No earnings date is currently scheduled.",
+        "Western Digital fell 10.2% to $92.10, underperforming the market by 10.3 points and its memory & storage peers by 9.8 points, marking this as a company-specific move rather than a sector-wide development. While the benchmark SMH rose 0.2% and peer median was down just 0.4%, WDC's sharp decline stands out. Reuters reports that Western Digital lowered its revenue outlook for the current quarter, citing slower hard-drive orders from two large customers. No earnings date is currently available in the data.",
+        "Western Digital dropped 10.2% to $92.10, falling 10.3 percentage points more than the S&P 500's 0.1% gain. The move appears specific to the company rather than shared with its memory and storage peers, which saw a median decline of just 0.4%; WDC fell 9.8 points more than that group and 10.4 points more than the semiconductor benchmark SMH. Reuters reports the company lowered its revenue outlook for the current quarter, citing slower hard-drive orders from two large customers. No earnings date is currently available in the data.",
+        "Western Digital fell 10.2% to $92.10, dropping 10.3 points more than the broader market and 9.8 points more than its peers in memory and storage, marking a company-specific move while its sector held relatively flat. Reuters reports the company lowered its revenue outlook for the current quarter, citing slower hard-drive orders from two large customers. The move stands out sharply against peers, with Micron down just 0.6%, Seagate down 0.4%, and SanDisk up 0.1%, as well as the SMH semiconductor benchmark rising 0.2%. No earnings date is currently available in the data.",
+        "Western Digital fell 10.2% to $92.10, dropping 10.3 points more than the market and 9.8 points below the median of its memory and storage peers, marking a company-specific move in a sector that was otherwise flat. Reuters reports that Western Digital lowered its revenue outlook for the current quarter, citing slower hard-drive orders from two large customers. While peers like Micron, SanDisk and Seagate all moved less than a percentage point in either direction, WDC's sharp decline diverged entirely from the theme. No earnings date is currently available for the company.",
+        "Western Digital fell 10.2% to $92.10, underperforming the market by 10.3 points and its memory and storage peers by 9.8 points, marking this as a company-specific move rather than a sector trend. The one item of coverage reports that the company lowered its revenue outlook for the current quarter, citing slower hard-drive orders from two large customers. While peers in the theme moved little -- the median peer fell just 0.4% -- Western Digital's sharp decline stood alone, which may be related to the revenue outlook cut. No earnings date is currently available in the data.",
+        "Western Digital fell 10.2% to $92.10, underperforming its memory and storage peers by 9.8 points and the broader market by 10.3 points, indicating a company-specific development. Reuters reports the company cut its quarterly revenue outlook, citing slower hard-drive orders from two large customers. While its theme peers moved little (median -0.4%), with Micron down 0.6%, Seagate down 0.4%, and SanDisk up 0.1%, Western Digital's sharp decline isolated it within the sector. No upcoming earnings date is currently scheduled."
+      ]
+    }
+  }
+}

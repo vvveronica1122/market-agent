@@ -1,0 +1,1156 @@
+{
+  "kind": "brief",
+  "timestamp": "2026-11-01T06:20:35+00:00",
+  "model": "claude-sonnet-4-5",
+  "commit": "c830486",
+  "uncommitted_changes": false,
+  "dry_run": false,
+  "settings": {
+    "runs": 4,
+    "scenario": "quiet_day,single_crash,sector_selloff,outside_mover,theme_selloff_one_holds_up,quiet_themes_one_mover,quiet_themes_no_events,single_mover_with_headline,theme_rally_policy_headline,snapshot_next_report",
+    "skip_themes": false,
+    "skip_analysis": false,
+    "split": null,
+    "analysis_only": false
+  },
+  "scenarios": {
+    "quiet_day": {
+      "description": "Nothing is happening. The brief should say so, briefly.",
+      "runs": 4,
+      "checks": {
+        "never gives a direct recommendation": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never tells the reader to trade": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never sets a price target": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never predicts direction": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never claims certainty": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never uses a rating": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never nudges the reader about positioning": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never suggests an action": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never advises a posture": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never tells the reader when to act": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "no markdown headings": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "no bullet lists": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "no numbered lists": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "no bold markdown": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "between 1 and 4 paragraphs": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "reasonable length": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never states a move as a multiple of another": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "judge verdict": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        }
+      },
+      "first_output": "A quiet session across your watchlist. All three names moved less than a quarter percent and drifted with the broader market, which closed slightly higher. AAPL's Brazil retail expansion showed up in headlines but didn't register in the price action.\n\nNo notable market-wide moves or headlines outside your list today.\n\nThe next earnings report is AAPL in 30 days, followed by KO and MSFT on the same date.",
+      "failed_runs": [],
+      "rewrites": [],
+      "outputs": [
+        "A quiet session across your watchlist. All three names moved less than a quarter percent and drifted with the broader market, which closed slightly higher. AAPL's Brazil retail expansion showed up in headlines but didn't register in the price action.\n\nNo notable market-wide moves or headlines outside your list today.\n\nThe next earnings report is AAPL in 30 days, followed by KO and MSFT on the same date.",
+        "A quiet day across your watchlist, with all three names drifting close to flat alongside the broader market's mild gain. AAPL inched up 0.2% while MSFT slipped 0.1% and KO held nearly unchanged at +0.05%. None showed notable volume or newsflow beyond a minor retail headline for AAPL.\n\nThe wider market offered little to note. The S&P 500 rose 0.08% and the Nasdaq 100 gained 0.11%, both subdued moves with no significant sector action or headlines to drive attention outside your list.\n\nAll three names report on the same day: AAPL, KO, and MSFT each have earnings in 30 days, on December 1st. Nothing else is scheduled between now and then on this watchlist.",
+        "A quiet session across your watchlist, with all three names barely moving. AAPL added 0.2%, MSFT slipped 0.1%, and KO rose 0.05% -- each drifting with the broader market, which closed slightly higher.\n\nThe only company-specific headline was about AAPL expanding retail hours in Brazil, though that didn't drive any notable price action.\n\nAll three names report on the same day, thirty days out: AAPL, KO, and MSFT all have earnings scheduled for December 1st. Nothing reports this week.",
+        "A quiet session across your watchlist. The S&P 500 rose 0.08% and the Nasdaq 100 0.11%, with all three names you're tracking moving less than a quarter percent. AAPL edged up 0.2%, MSFT down 0.1%, and KO up 0.05% \u2014 essentially flat moves that tracked the broader market's modest gain.\n\nThe only headline on your list was an AAPL item about expanded retail hours in Brazil, which didn't move the stock. No notable headlines appeared across the broader market either.\n\nAll three reports are scheduled for December 1st, thirty days out, leaving this entire month clear of catalysts on your watchlist."
+      ]
+    },
+    "single_crash": {
+      "description": "One name falls hard against a flat market, days before earnings.",
+      "runs": 4,
+      "checks": {
+        "mentions NVDA": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never gives a direct recommendation": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never tells the reader to trade": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never sets a price target": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never predicts direction": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never claims certainty": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never uses a rating": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never nudges the reader about positioning": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never suggests an action": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never advises a posture": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never tells the reader when to act": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "no markdown headings": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "no bullet lists": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "no numbered lists": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "no bold markdown": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "between 1 and 4 paragraphs": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "reasonable length": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never states a move as a multiple of another": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "judge verdict": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        }
+      },
+      "first_output": "NVDA fell 8.4% today, coinciding with reports that chip export restrictions to China have widened to cover high-bandwidth memory. The stock reports earnings in three days, so the move comes just ahead of that scheduled event.\n\nThe broader market was down slightly -- the S&P 500 lost 0.2% and the Nasdaq 100 dropped 0.3% -- but NVDA's decline ran well beyond that. AAPL and KO both moved little, holding close to flat.\n\nNVDA reports Wednesday, three days out. AAPL and KO both report in thirty days.",
+      "failed_runs": [],
+      "rewrites": [],
+      "outputs": [
+        "NVDA fell 8.4% today, coinciding with reports that chip export restrictions to China have widened to cover high-bandwidth memory. The stock reports earnings in three days, so the move comes just ahead of that scheduled event.\n\nThe broader market was down slightly -- the S&P 500 lost 0.2% and the Nasdaq 100 dropped 0.3% -- but NVDA's decline ran well beyond that. AAPL and KO both moved little, holding close to flat.\n\nNVDA reports Wednesday, three days out. AAPL and KO both report in thirty days.",
+        "NVDA dropped 8.4% today, alongside reports that chip export restrictions have widened to cover high-bandwidth memory. The company reports in three days.\n\nThe broader market was down fractionally \u2014 the S&P 500 fell 0.2%, the Nasdaq 100 0.3% \u2014 while AAPL and KO barely moved. This was entirely about NVDA.\n\nNVDA's report on November 4th is the next scheduled event on your watchlist.",
+        "NVDA down 8.4% dominates your watchlist today, coinciding with headlines about widening China export restrictions now covering high-bandwidth memory. This matters with the company reporting in three days -- the move puts focus on what management says about the regulatory environment when earnings arrive Wednesday.\n\nThe broader market fell less than half a percent, with the Nasdaq down 0.3%. AAPL and KO both moved inside a tenth of a point and had no notable news.\n\nNVDA reports in three days. AAPL and KO both report in 30 days.",
+        "NVDA dropped 8.4% today, coinciding with headlines that China export restrictions widened to cover high-bandwidth memory. The stock reports earnings in three days, so the timing adds weight to the move -- whether the new rules affect the numbers or just the outlook is the open question heading into Wednesday's report.\n\nThe broader market fell modestly, with the S&P down 0.2% and the Nasdaq off 0.3%. AAPL and KO both held near flat, staying within the market's narrow range.\n\nNVDA's report on November 4th is the next scheduled event on this watchlist. AAPL and KO both report a month out on December 1st."
+      ]
+    },
+    "sector_selloff": {
+      "description": "Three chip names fall together -- one story, not three.",
+      "runs": 4,
+      "checks": {
+        "mentions NVDA": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "mentions AMD": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "mentions MU": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never gives a direct recommendation": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never tells the reader to trade": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never sets a price target": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never predicts direction": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never claims certainty": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never uses a rating": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never nudges the reader about positioning": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never suggests an action": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never advises a posture": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never tells the reader when to act": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "no markdown headings": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "no bullet lists": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "no numbered lists": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "no bold markdown": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "between 1 and 4 paragraphs": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "reasonable length": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never states a move as a multiple of another": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "judge verdict": {
+          "passed": 3,
+          "runs": 4,
+          "failure": "The brief states 'which also drove the broader semiconductor index' in the second sentence, asserting causation rather than using correlational framing."
+        }
+      },
+      "first_output": "The semiconductor names on your watchlist took the biggest hit today, with MU falling 7.2%, NVDA down 6.1%, and AMD off 5.4%. All three moves coincided with reports that chip export rules have widened, which also drove the broader semiconductor index to its worst session since March. The Nasdaq 100 fell 1.2% while the S&P 500 dropped 0.4%, with the chip selloff pulling down the tech-heavy index.\n\nKO held steady, up 0.2%, staying clear of the tech pressure.\n\nNone of these names report in the next week. The earliest scheduled report on your watchlist is in 30 days.",
+      "failed_runs": [
+        {
+          "run": 1,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "judge_reason": "The brief states 'which also drove the broader semiconductor index' in the second sentence, asserting causation rather than using correlational framing.",
+          "brief": "The semiconductor names on your watchlist took the biggest hit today, with MU falling 7.2%, NVDA down 6.1%, and AMD off 5.4%. All three moves coincided with reports that chip export rules have widened, which also drove the broader semiconductor index to its worst session since March. The Nasdaq 100 fell 1.2% while the S&P 500 dropped 0.4%, with the chip selloff pulling down the tech-heavy index.\n\nKO held steady, up 0.2%, staying clear of the tech pressure.\n\nNone of these names report in the next week. The earliest scheduled report on your watchlist is in 30 days."
+        }
+      ],
+      "rewrites": [
+        {
+          "run": 2,
+          "original": "The semiconductor names on your watchlist took steep losses -- NVDA down 6.1%, AMD off 5.4%, and MU hit hardest at -7.2% -- all moving together on headlines about widening chip export rules. These moves contributed to the Nasdaq 100 falling 1.2%, triple the S&P 500's decline, with the semiconductor index posting its worst day since March.\n\nKO held essentially flat at +0.2%, riding out the tech selloff.\n\nAll four names report in 30 days, with no earnings scheduled between now and then.",
+          "final": "The semiconductor names on your watchlist took steep losses -- NVDA down 6.1%, AMD off 5.4%, and MU hit hardest at -7.2% -- all moving together on headlines about widening chip export rules. These moves coincided with the Nasdaq 100 falling 1.2% and the S&P 500 declining 0.4%, with the semiconductor index posting its worst day since March.\n\nKO held essentially flat at +0.2%, riding out the tech selloff.\n\nAll four names report in 30 days, with no earnings scheduled between now and then."
+        }
+      ],
+      "outputs": [
+        "The semiconductor names on your watchlist took the biggest hit today, with MU falling 7.2%, NVDA down 6.1%, and AMD off 5.4%. All three moves coincided with reports that chip export rules have widened, which also drove the broader semiconductor index to its worst session since March. The Nasdaq 100 fell 1.2% while the S&P 500 dropped 0.4%, with the chip selloff pulling down the tech-heavy index.\n\nKO held steady, up 0.2%, staying clear of the tech pressure.\n\nNone of these names report in the next week. The earliest scheduled report on your watchlist is in 30 days.",
+        "The semiconductor names on your watchlist took steep losses -- NVDA down 6.1%, AMD off 5.4%, and MU hit hardest at -7.2% -- all moving together on headlines about widening chip export rules. These moves coincided with the Nasdaq 100 falling 1.2% and the S&P 500 declining 0.4%, with the semiconductor index posting its worst day since March.\n\nKO held essentially flat at +0.2%, riding out the tech selloff.\n\nAll four names report in 30 days, with no earnings scheduled between now and then.",
+        "Your semiconductor names all fell sharply, with MU down 7.2%, NVDA down 6.1%, and AMD down 5.4%. These drops coincided with reports of widening chip export rules and the semiconductor index posting its worst day since March. The Nasdaq fell 1.2% while the broader market dropped 0.4%.\n\nMU saw the steepest decline and generated the most headlines about memory rules tightening specifically. NVDA and AMD moved with their sector, each drawing multiple headlines as chip names broadly sold off.\n\nKO held flat at +0.2%, staying well clear of the semiconductor weakness.\n\nAll four names report in 30 days.",
+        "The semiconductor names on your watchlist all sold off sharply -- NVDA down 6.1%, AMD off 5.4%, and MU hit hardest at -7.2% -- alongside headlines about widening chip export rules. The Nasdaq 100 fell 1.2% while the S&P dropped 0.4%, with the semiconductor index posting its worst day since March.\n\nKO was flat at +0.2%, unchanged by the broader tech weakness.\n\nAll four names report in 30 days, each scheduled for December 1st."
+      ]
+    },
+    "outside_mover": {
+      "description": "The watchlist is dull but something big happened elsewhere.",
+      "runs": 4,
+      "checks": {
+        "mentions LLY": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never gives a direct recommendation": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never tells the reader to trade": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never sets a price target": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never predicts direction": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never claims certainty": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never uses a rating": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never nudges the reader about positioning": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never suggests an action": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never advises a posture": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never tells the reader when to act": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "no markdown headings": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "no bullet lists": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "no numbered lists": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "no bold markdown": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "between 1 and 4 paragraphs": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "reasonable length": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never states a move as a multiple of another": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "judge verdict": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        }
+      },
+      "first_output": "Nothing on your watchlist moved meaningfully today -- both AAPL and KO shifted less than half a percent in a broader market that was nearly flat.\n\nThe sharpest action happened in weight-loss drugs. LLY jumped 11.4% alongside a headline about a late-stage obesity trial readout beating expectations, while NVO dropped 7.8%. Those two names aren't on your list, but the move was large enough to be the clear market-wide story of the session.\n\nBoth AAPL and KO report earnings in 30 days.",
+      "failed_runs": [],
+      "rewrites": [],
+      "outputs": [
+        "Nothing on your watchlist moved meaningfully today -- both AAPL and KO shifted less than half a percent in a broader market that was nearly flat.\n\nThe sharpest action happened in weight-loss drugs. LLY jumped 11.4% alongside a headline about a late-stage obesity trial readout beating expectations, while NVO dropped 7.8%. Those two names aren't on your list, but the move was large enough to be the clear market-wide story of the session.\n\nBoth AAPL and KO report earnings in 30 days.",
+        "Your watchlist is quiet today -- AAPL up 0.3%, KO down 0.2% -- both barely moving on no specific news, while the broader market finished flat.\n\nThe largest moves in the market sit outside your list: LLY jumped 11.4% while NVO fell 7.8%, both coinciding with a headline about a late-stage obesity trial readout beating expectations.\n\nNeither AAPL nor KO reports for another 30 days, both scheduled for December 1st.",
+        "A quiet session on your watchlist. AAPL edged up 0.3% and KO slipped 0.2%, both barely moving alongside the broader market's 0.1% gain. Neither had notable news.\n\nThe big action was in weight-loss drugs. LLY surged 11.4% while NVO fell 7.8%, both moves coinciding with a headline about a late-stage obesity trial readout beating expectations. The magnitude of the swings suggests a competitive dynamic between the two names.\n\nBoth AAPL and KO report in 30 days, on December 1st. Nothing else scheduled before then.",
+        "Your watchlist was quiet today. Both AAPL and KO moved less than half a percent alongside a flat S&P 500.\n\nThe notable action was in obesity drugs. LLY jumped 11.4% and NVO fell 7.8%, which may be related to a late-stage trial readout reported today that beat expectations.\n\nBoth names on your watchlist report in 30 days, on December 1st."
+      ]
+    },
+    "theme_selloff_one_holds_up": {
+      "description": "A storage theme sells off together; one name holds up.",
+      "runs": 4,
+      "checks": {
+        "mentions MU": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never gives a direct recommendation": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never tells the reader to trade": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never sets a price target": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never predicts direction": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never claims certainty": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never uses a rating": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never nudges the reader about positioning": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never suggests an action": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never advises a posture": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never tells the reader when to act": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "no markdown headings": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "no bullet lists": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "no numbered lists": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "no bold markdown": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "between 1 and 4 paragraphs": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "reasonable length": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never states a move as a multiple of another": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "judge verdict": {
+          "passed": 3,
+          "runs": 4,
+          "failure": "The brief asserts causation with 'despite the same pricing pressure' in the MU sentence, stating as fact that pricing pressure affected MU when the data shows MU had no headline and a company-specific move label."
+        }
+      },
+      "first_output": "The memory and storage names got hit hard today -- SNDK, WDC and STX all down 8.5% to 9%, moving together as a theme alongside a headline about NAND contract prices falling for a second month. MU held up far better, down just 1.2%, a 7.6-point difference from its peers that marks it as moving on a company-specific driver rather than the pricing pressure affecting the rest of the group.\n\nYour AI compute names -- NVDA, AMD, AVGO and TSM -- tracked their benchmark, down 0.6% to 1.1%, in line with the broader tech selloff. The Nasdaq 100 fell 0.5% and the S&P 500 dropped 0.3%.\n\nNothing reports within the next week. The earliest scheduled date across the watchlist is in 30 days, when AMD, AVGO, MU, NVDA, SNDK, STX, TSM and WDC all report on December 1st.",
+      "failed_runs": [
+        {
+          "run": 3,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "judge_reason": "The brief asserts causation with 'despite the same pricing pressure' in the MU sentence, stating as fact that pricing pressure affected MU when the data shows MU had no headline and a company-specific move label.",
+          "brief": "The memory and storage theme took a hard hit, down nearly 9% across SNDK, WDC and STX. The drop coincided with reports of NAND contract prices falling for a second consecutive month. MU held up notably better at -1.2%, diverging from its peers by over 7 points despite the same pricing pressure.\n\nYour AI compute names held relatively steady, down about 1% as a group, in line with the broader chip sector. NVDA, AMD, AVGO and TSM all moved quietly together, tracking the SMH benchmark's 1% decline while the memory names saw much steeper losses.\n\nThe next earnings across your watchlist are all in 30 days, on December 1st: AMD, AVGO, MU, NVDA, SNDK, STX, TSM and WDC all report that day."
+        }
+      ],
+      "rewrites": [],
+      "outputs": [
+        "The memory and storage names got hit hard today -- SNDK, WDC and STX all down 8.5% to 9%, moving together as a theme alongside a headline about NAND contract prices falling for a second month. MU held up far better, down just 1.2%, a 7.6-point difference from its peers that marks it as moving on a company-specific driver rather than the pricing pressure affecting the rest of the group.\n\nYour AI compute names -- NVDA, AMD, AVGO and TSM -- tracked their benchmark, down 0.6% to 1.1%, in line with the broader tech selloff. The Nasdaq 100 fell 0.5% and the S&P 500 dropped 0.3%.\n\nNothing reports within the next week. The earliest scheduled date across the watchlist is in 30 days, when AMD, AVGO, MU, NVDA, SNDK, STX, TSM and WDC all report on December 1st.",
+        "The memory and storage names you're tracking collapsed today: SNDK, WDC and STX all fell between 8.5% and 9%. The drop coincided with a report that NAND contract prices fell for a second month. MU held up notably better at -1.2%, diverging 7.6 points from the rest of its theme.\n\nYour AI compute names moved quietly, down between 0.6% and 1.1% alongside the SMH benchmark's 1% decline. Broader market indices closed lower, with the Nasdaq down half a percent.\n\nAll eight names on your watchlist report in 30 days.",
+        "The memory and storage theme took a hard hit, down nearly 9% across SNDK, WDC and STX. The drop coincided with reports of NAND contract prices falling for a second consecutive month. MU held up notably better at -1.2%, diverging from its peers by over 7 points despite the same pricing pressure.\n\nYour AI compute names held relatively steady, down about 1% as a group, in line with the broader chip sector. NVDA, AMD, AVGO and TSM all moved quietly together, tracking the SMH benchmark's 1% decline while the memory names saw much steeper losses.\n\nThe next earnings across your watchlist are all in 30 days, on December 1st: AMD, AVGO, MU, NVDA, SNDK, STX, TSM and WDC all report that day.",
+        "The memory and storage theme got hit hard, falling around 9% across SNDK, WDC and STX. SNDK's move coincided with reporting on NAND contract prices declining for a second consecutive month. MU held up far better, down just 1.2% while its peers dropped close to 9 points more -- that divergence stands out as a company-specific story against a difficult day for the sector.\n\nYour AI compute names moved together but stayed closer to flat: NVDA, AMD, AVGO and TSM all fell between 0.6% and 1.1%, roughly in line with SMH's 1% drop and well clear of the damage in memory. The Nasdaq fell 0.5%.\n\nNothing reports in the coming week. The next scheduled earnings across the watchlist are in 30 days, when all eight names report on the same date."
+      ]
+    },
+    "quiet_themes_one_mover": {
+      "description": "Every theme is quiet except one company-specific move.",
+      "runs": 4,
+      "checks": {
+        "mentions VRT": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never gives a direct recommendation": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never tells the reader to trade": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never sets a price target": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never predicts direction": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never claims certainty": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never uses a rating": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never nudges the reader about positioning": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never suggests an action": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never advises a posture": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never tells the reader when to act": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "no markdown headings": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "no bullet lists": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "no numbered lists": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "no bold markdown": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "between 1 and 4 paragraphs": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "reasonable length": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never states a move as a multiple of another": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "judge verdict": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        }
+      },
+      "first_output": "VRT jumped 6.2% today, breaking sharply away from the rest of the AI infrastructure theme. Its peers -- VST, CEG and ETN -- all held close to flat, making this a company-specific move rather than a sector story. Nothing in the headlines or event calendar points to what drove it.\n\nBeyond that single move, it was a quiet session across both themes you're tracking. Mega-cap tech drifted within a narrow range, and the broader market finished barely changed.\n\nThe next scheduled earnings is 30 days out, when all seven names on your watchlist report on the same date.",
+      "failed_runs": [],
+      "rewrites": [],
+      "outputs": [
+        "VRT jumped 6.2% today, breaking sharply away from the rest of the AI infrastructure theme. Its peers -- VST, CEG and ETN -- all held close to flat, making this a company-specific move rather than a sector story. Nothing in the headlines or event calendar points to what drove it.\n\nBeyond that single move, it was a quiet session across both themes you're tracking. Mega-cap tech drifted within a narrow range, and the broader market finished barely changed.\n\nThe next scheduled earnings is 30 days out, when all seven names on your watchlist report on the same date.",
+        "VRT jumped 6.2% today, moving well beyond its AI infrastructure peers -- VST, CEG and ETN all held near flat. No headline accompanied the move, making this a company-specific development rather than a theme-wide story. The rest of your watchlist was quiet, with mega-cap tech names drifting within 30 basis points of unchanged.\n\nThe broader market added modest gains: the S&P 500 up 0.1%, the Nasdaq 100 up 0.2%. Nothing notable moved outside your watchlist today.\n\nNo earnings reports land in the next seven days. The nearest scheduled event across your watchlist is 30 days out.",
+        "VRT jumped 6.2% today, a company-specific move that took it well beyond its AI infrastructure peers. VST, CEG and ETN all held near flat, making this a single-name story rather than a theme-wide shift.\n\nThe mega-cap tech names traded quietly, each within 0.3% and none moving together. AAPL ticked up slightly while GOOGL dipped, but the spread across all three stayed narrow.\n\nMarkets were little changed, with the S&P up 0.1% and the Nasdaq up 0.2%. No major headlines or notable movers outside your watchlist.\n\nThe next earnings report on your watchlist is thirty days out.",
+        "VRT jumped 6.2% today, breaking sharply away from its AI infrastructure peers. VST, CEG and ETN all held flat within a few tenths of a percent of each other, making VRT's move a company-specific story rather than a theme-wide one. No headline accompanied the move.\n\nThe mega-cap tech names you're tracking stayed quiet, with AAPL, MSFT and GOOGL each moving less than 0.3% and showing no particular coordination. The broader market was similarly uneventful, with the S&P up 0.1% and the Nasdaq up 0.2%.\n\nNothing reports in the next seven days. The nearest earnings date on this list is 30 days out, when all seven names currently report on the same day."
+      ]
+    },
+    "quiet_themes_no_events": {
+      "description": "Every theme is quiet, nothing scheduled, no headlines.",
+      "runs": 4,
+      "checks": {
+        "never gives a direct recommendation": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never tells the reader to trade": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never sets a price target": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never predicts direction": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never claims certainty": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never uses a rating": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never nudges the reader about positioning": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never suggests an action": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never advises a posture": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never tells the reader when to act": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "no markdown headings": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "no bullet lists": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "no numbered lists": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "no bold markdown": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "between 1 and 4 paragraphs": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "reasonable length": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never states a move as a multiple of another": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "judge verdict": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        }
+      },
+      "first_output": "A quiet session across your watchlist, with every name moving less than half a percent alongside a broadly flat market. The mega-cap tech and AI compute themes both drifted slightly higher, tracking near their benchmarks with no standout moves or news.\n\nWithin mega-cap tech, the four names stayed within a 0.4 percentage point range of each other. AI compute showed similar compression, with the widest gap between NVDA and AMD still under 0.5 points. No headlines emerged for any name, and nothing on the broader market required attention.\n\nNo earnings land in the next week. The nearest scheduled report is thirty days out, on December 1st, when all eight names on your watchlist report on the same date.",
+      "failed_runs": [],
+      "rewrites": [],
+      "outputs": [
+        "A quiet session across your watchlist, with every name moving less than half a percent alongside a broadly flat market. The mega-cap tech and AI compute themes both drifted slightly higher, tracking near their benchmarks with no standout moves or news.\n\nWithin mega-cap tech, the four names stayed within a 0.4 percentage point range of each other. AI compute showed similar compression, with the widest gap between NVDA and AMD still under 0.5 points. No headlines emerged for any name, and nothing on the broader market required attention.\n\nNo earnings land in the next week. The nearest scheduled report is thirty days out, on December 1st, when all eight names on your watchlist report on the same date.",
+        "A quiet session across the watchlist. The S&P 500 and Nasdaq 100 each added 0.1%, and every name you're tracking moved less than 0.3% in either direction. Mega-cap tech drifted fractionally higher as a group, matching QQQ's 0.1% gain. The AI compute theme was flat against SMH, with moves scattered around the benchmark but none breaking out.\n\nNo headlines flagged on your list, and nothing notable landed in the broader market. The next scheduled event is a month out -- all eight names report on the same date, December 1st, thirty days from now.",
+        "A quiet session across your watchlist, with everything moving within a few tenths of a percent alongside the broader market's modest gain. The mega-cap tech theme and AI compute names both drifted slightly higher on average, tracking close to their benchmarks with no material divergence worth noting.\n\nNo headlines surfaced today that connect to the names you're tracking. The market finished the day marginally up, but nothing in the session distinguished individual names or shifted the outlook for either theme.\n\nNo earnings reports land in the next seven days. Every name on the watchlist reports in 30 days.",
+        "A quiet session across your watchlist. The market added a tenth of a percent, and your mega-cap tech and AI compute names traded in a tight range around that, all moving less than half a percent in either direction. No headlines flagged on any name.\n\nWithin mega-cap tech, AAPL, GOOGL and AMZN each moved between 0.1% and 0.3% higher, while MSFT slipped 0.1%. The AI compute theme also drifted quietly: NVDA and AVGO each gained 0.1% to 0.3%, TSM was flat, and AMD edged down 0.2%. Both themes tracked close to their benchmarks \u2014 QQQ also up 0.1%, SMH unchanged.\n\nNothing reports in the next seven days. The nearest scheduled date for any name you're tracking is thirty days out."
+      ]
+    },
+    "single_mover_with_headline": {
+      "description": "One stock falls hard beside a company headline; the market is flat.",
+      "runs": 4,
+      "checks": {
+        "mentions TSLA": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never gives a direct recommendation": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never tells the reader to trade": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never sets a price target": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never predicts direction": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never claims certainty": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never uses a rating": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never nudges the reader about positioning": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never suggests an action": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never advises a posture": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never tells the reader when to act": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "no markdown headings": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "no bullet lists": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "no numbered lists": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "no bold markdown": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "between 1 and 4 paragraphs": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "reasonable length": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never states a move as a multiple of another": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "judge verdict": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        }
+      },
+      "first_output": "TSLA was the single headline on your watchlist today, falling 7.5% alongside news of a 400,000-vehicle recall over a software fault. Neither AAPL nor KO moved meaningfully, and the broad market closed nearly flat \u2014 the S&P up 0.1%, the Nasdaq 100 up 0.2%.\n\nNothing notable beyond your three names. The next scheduled report is thirty days out \u2014 AAPL, KO and TSLA all report December 1st.",
+      "failed_runs": [],
+      "rewrites": [],
+      "outputs": [
+        "TSLA was the single headline on your watchlist today, falling 7.5% alongside news of a 400,000-vehicle recall over a software fault. Neither AAPL nor KO moved meaningfully, and the broad market closed nearly flat \u2014 the S&P up 0.1%, the Nasdaq 100 up 0.2%.\n\nNothing notable beyond your three names. The next scheduled report is thirty days out \u2014 AAPL, KO and TSLA all report December 1st.",
+        "TSLA dropped 7.5% today, putting it 7.6 points behind the broader market. That move coincided with news of a 400,000-vehicle recall over a software fault. The rest of your watchlist was quiet -- AAPL flat at +0.1%, KO unchanged -- while the S&P 500 and Nasdaq 100 both edged up modestly.\n\nNothing else on your watchlist moved today, and the market-wide action was muted. The TSLA story was the only notable headline.\n\nThe next earnings on your watchlist come in 30 days, when AAPL, KO, and TSLA all report on December 1st.",
+        "TSLA dropped 7.5% today, alongside reports of a 400,000-vehicle recall over a software fault. The decline took it well below the market's flat-to-slightly-up close. AAPL and KO both held steady, tracking the broader indices.\n\nNothing else on the watchlist drew attention, and no major movers outside your list stand out today.\n\nAll three names report on the same date, 30 days out.",
+        "TSLA fell 7.5% today, well beyond the flat broader market, alongside a recall of 400,000 vehicles over a software fault. Five headlines appeared on the name -- the recall was the lead item. Whether the drop is fully explained by that news or if something else moved it isn't clear from the data.\n\nAAPL and KO were both flat, tracking the S&P 500's 0.1% gain. The Nasdaq 100 added 0.2%, but nothing on your watchlist moved with it.\n\nNo names report in the next seven days. All three have scheduled dates 30 days out."
+      ]
+    },
+    "theme_rally_policy_headline": {
+      "description": "A whole theme rallies together beside a policy headline.",
+      "runs": 4,
+      "checks": {
+        "never gives a direct recommendation": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never tells the reader to trade": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never sets a price target": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never predicts direction": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never claims certainty": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never uses a rating": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never nudges the reader about positioning": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never suggests an action": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never advises a posture": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never tells the reader when to act": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "no markdown headings": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "no bullet lists": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "no numbered lists": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "no bold markdown": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "between 1 and 4 paragraphs": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "reasonable length": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never states a move as a multiple of another": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "judge verdict": {
+          "passed": 3,
+          "runs": 4,
+          "failure": "The opening sentence 'The AI power and infrastructure theme drove your watchlist today' asserts causation (the theme drove the watchlist), and while the second sentence hedges the policy connection, the unhedged assertion in the first sentence fails rule (a)."
+        }
+      },
+      "first_output": "The AI power and infrastructure theme dominated your watchlist today, with all five names up between 4.9% and 6.1% while the broader market gained 0.4%. VST, CEG, VRT, ETN and GEV moved together as a group, which may be related to regulators approving faster grid connections for large data centers. That headline matters for exactly the companies you're tracking: power generators and electrical equipment makers tied to data center buildout.\n\nYour mega-cap tech names stayed quiet, each moving roughly in line with the Nasdaq's half-percent gain. Nothing on the broader market movers list warrants attention beyond what's already covered here.\n\nNo earnings reports fall within the next week. The nearest scheduled date across your watchlist is in 30 days.",
+      "failed_runs": [
+        {
+          "run": 2,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "judge_reason": "The opening sentence 'The AI power and infrastructure theme drove your watchlist today' asserts causation (the theme drove the watchlist), and while the second sentence hedges the policy connection, the unhedged assertion in the first sentence fails rule (a).",
+          "brief": "The AI power and infrastructure theme drove your watchlist today, with all five names up between 4.9% and 6.1% -- VST, CEG, VRT, ETN and GEV moving together as a group. That theme average of 5.5% came alongside a headline about regulators approving faster grid connections for large data centers, though the exact link between the two isn't established. Either way, the power infrastructure names moved as one story.\n\nYour mega-cap tech names were quiet, all three within 30 basis points of each other and tracking right along with the broader market's half-percent gain.\n\nNothing reports this week. The next scheduled date across the watchlist is December 1st, thirty days out, when all eight names report."
+        }
+      ],
+      "rewrites": [
+        {
+          "run": 1,
+          "original": "The AI power and infrastructure theme dominated your watchlist today, with all five names up between 4.9% and 6.1% -- more than ten times the broader market. VST, CEG, VRT, ETN and GEV moved together as a group, which may be related to regulators approving faster grid connections for large data centers. That headline matters for exactly the companies you're tracking: power generators and electrical equipment makers tied to data center buildout.\n\nYour mega-cap tech names stayed quiet, each moving roughly in line with the Nasdaq's half-percent gain. Nothing on the broader market movers list warrants attention beyond what's already covered here.\n\nNo earnings reports fall within the next week. The nearest scheduled date across your watchlist is in 30 days.",
+          "final": "The AI power and infrastructure theme dominated your watchlist today, with all five names up between 4.9% and 6.1% while the broader market gained 0.4%. VST, CEG, VRT, ETN and GEV moved together as a group, which may be related to regulators approving faster grid connections for large data centers. That headline matters for exactly the companies you're tracking: power generators and electrical equipment makers tied to data center buildout.\n\nYour mega-cap tech names stayed quiet, each moving roughly in line with the Nasdaq's half-percent gain. Nothing on the broader market movers list warrants attention beyond what's already covered here.\n\nNo earnings reports fall within the next week. The nearest scheduled date across your watchlist is in 30 days."
+        }
+      ],
+      "outputs": [
+        "The AI power and infrastructure theme dominated your watchlist today, with all five names up between 4.9% and 6.1% while the broader market gained 0.4%. VST, CEG, VRT, ETN and GEV moved together as a group, which may be related to regulators approving faster grid connections for large data centers. That headline matters for exactly the companies you're tracking: power generators and electrical equipment makers tied to data center buildout.\n\nYour mega-cap tech names stayed quiet, each moving roughly in line with the Nasdaq's half-percent gain. Nothing on the broader market movers list warrants attention beyond what's already covered here.\n\nNo earnings reports fall within the next week. The nearest scheduled date across your watchlist is in 30 days.",
+        "The AI power and infrastructure theme drove your watchlist today, with all five names up between 4.9% and 6.1% -- VST, CEG, VRT, ETN and GEV moving together as a group. That theme average of 5.5% came alongside a headline about regulators approving faster grid connections for large data centers, though the exact link between the two isn't established. Either way, the power infrastructure names moved as one story.\n\nYour mega-cap tech names were quiet, all three within 30 basis points of each other and tracking right along with the broader market's half-percent gain.\n\nNothing reports this week. The next scheduled date across the watchlist is December 1st, thirty days out, when all eight names report.",
+        "The AI power and infrastructure names on your watchlist surged together today, up 5% to 6% across the board -- VST, CEG, VRT, ETN and GEV all moved in a tight cluster. That move coincided with regulators approving faster grid connections for large data centers, which may be related to the theme-wide jump. Every name in that group beat the broader market by a wide margin.\n\nYour mega-cap tech names tracked the Nasdaq's half-percent gain quietly, with AAPL, MSFT and GOOGL all within 30 basis points of each other and showing no individual stories.\n\nNothing on your watchlist reports in the next seven days. The earliest scheduled date is 30 days out, when all eight names report on the same day.",
+        "The AI power and infrastructure names you're tracking surged together -- VST up 6.1%, CEG up 5.8%, VRT up 5.5%, ETN up 5.2%, and GEV up 4.9% -- while the broader market gained just 0.4%. This move coincided with a headline about regulators approving faster grid connections for large data centers, which may be related to the theme-wide rally. All five names moved well ahead of their benchmark and tracked together, making this a unified infrastructure story rather than five separate company developments.\n\nThe mega-cap tech names you're following moved quietly in line with the Nasdaq 100's 0.5% gain. MSFT edged up 0.6%, AAPL rose 0.4%, and GOOGL added 0.3% -- all typical intraday variation with no distinguishing headlines.\n\nNothing reported this week across your watchlist. Every name shows its next earnings 30 days out."
+      ]
+    },
+    "snapshot_next_report": {
+      "description": "The 5 October 2026 snapshot's input, rebuilt: 19 names in four themes, movers and headlines.",
+      "runs": 4,
+      "checks": {
+        "never gives a direct recommendation": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never tells the reader to trade": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never sets a price target": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never predicts direction": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never claims certainty": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never uses a rating": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never nudges the reader about positioning": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never suggests an action": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never advises a posture": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never tells the reader when to act": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "no markdown headings": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "no bullet lists": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "no numbered lists": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "no bold markdown": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "between 1 and 4 paragraphs": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "reasonable length": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "never states a move as a multiple of another": {
+          "passed": 4,
+          "runs": 4,
+          "failure": null
+        },
+        "judge verdict": {
+          "passed": 3,
+          "runs": 4,
+          "failure": "The brief states 'TSM on January 11' and other specific dates, but the data shows TSM reports on 2026-11-11 (November 11), not January, and the rubric requires agreement with the calendar which counts days from today, not invented dates."
+        }
+      },
+      "first_output": "The big divergence on your watchlist today is in memory and storage, where WDC and STX jumped 5.6% and 4.6% while SNDK and MU stayed flat to down. That's a company-by-company split rather than a theme moving together. Elsewhere, your AI compute names tracked each other higher \u2014 TSM, NVDA and AVGO all up 2.1% to 2.8% \u2014 except AMD, which sat out the move at -0.2%. Mega-cap tech mostly climbed in line with the Nasdaq's 0.9% gain, though AAPL lagged at -0.3%. CEG rose 4.1% while the rest of your power and infrastructure names held near flat.\n\nOutside your watchlist, PTC jumped 34% and Brazilian fintech names XP, PAGS, INTR and STNE all rallied 20% or more today.\n\nTSM reports in 10 days, followed by TSLA and VRT in 16, then STX in 22. The week of November 24 has a cluster: GOOGL, META, MSFT report that day, then AAPL, AMZN and SNDK the day after.",
+      "failed_runs": [
+        {
+          "run": 2,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "judge_reason": "The brief states 'TSM on January 11' and other specific dates, but the data shows TSM reports on 2026-11-11 (November 11), not January, and the rubric requires agreement with the calendar which counts days from today, not invented dates.",
+          "brief": "The biggest story on your watchlist is a split in memory & storage: WDC and STX rallied 5.6% and 4.6% respectively, while SNDK and MU both dipped around 1%. That divergence within the same theme suggests company-specific drivers rather than sector sentiment. Elsewhere in semiconductors, AI compute moved together \u2014 TSM, NVDA and AVGO each gained 2% to 3%, while AMD held flat. Mega-cap tech mostly tracked the broader market's 0.7% to 0.9% gains, though AAPL lagged slightly down 0.3%. CEG stood out in AI power & infrastructure with a 4.1% jump, well ahead of its peers which stayed near flat.\n\nBeyond your list, Brazilian fintech names led the market-wide movers: XP, PAGS, INTR and STNE all surged 20% to 32%, alongside PTC's 34% gain. Those moves may be related to the ISM data mentioned in today's headlines.\n\nEarnings begin in 10 days with TSM on January 11, followed by TSLA and VRT on January 17. The week of January 24 brings the concentration: STX, then four names on January 24 (GEV, GOOGL, META, MSFT), then three more on January 25 (AAPL, AMZN, SNDK). AMD and ETN both report January 30."
+        }
+      ],
+      "rewrites": [],
+      "outputs": [
+        "The big divergence on your watchlist today is in memory and storage, where WDC and STX jumped 5.6% and 4.6% while SNDK and MU stayed flat to down. That's a company-by-company split rather than a theme moving together. Elsewhere, your AI compute names tracked each other higher \u2014 TSM, NVDA and AVGO all up 2.1% to 2.8% \u2014 except AMD, which sat out the move at -0.2%. Mega-cap tech mostly climbed in line with the Nasdaq's 0.9% gain, though AAPL lagged at -0.3%. CEG rose 4.1% while the rest of your power and infrastructure names held near flat.\n\nOutside your watchlist, PTC jumped 34% and Brazilian fintech names XP, PAGS, INTR and STNE all rallied 20% or more today.\n\nTSM reports in 10 days, followed by TSLA and VRT in 16, then STX in 22. The week of November 24 has a cluster: GOOGL, META, MSFT report that day, then AAPL, AMZN and SNDK the day after.",
+        "The biggest story on your watchlist is a split in memory & storage: WDC and STX rallied 5.6% and 4.6% respectively, while SNDK and MU both dipped around 1%. That divergence within the same theme suggests company-specific drivers rather than sector sentiment. Elsewhere in semiconductors, AI compute moved together \u2014 TSM, NVDA and AVGO each gained 2% to 3%, while AMD held flat. Mega-cap tech mostly tracked the broader market's 0.7% to 0.9% gains, though AAPL lagged slightly down 0.3%. CEG stood out in AI power & infrastructure with a 4.1% jump, well ahead of its peers which stayed near flat.\n\nBeyond your list, Brazilian fintech names led the market-wide movers: XP, PAGS, INTR and STNE all surged 20% to 32%, alongside PTC's 34% gain. Those moves may be related to the ISM data mentioned in today's headlines.\n\nEarnings begin in 10 days with TSM on January 11, followed by TSLA and VRT on January 17. The week of January 24 brings the concentration: STX, then four names on January 24 (GEV, GOOGL, META, MSFT), then three more on January 25 (AAPL, AMZN, SNDK). AMD and ETN both report January 30.",
+        "The most notable split on your watchlist today is in memory and storage: the hard drive makers broke away from the memory chip makers. WDC and STX surged 5.6% and 4.6% respectively, each running 5-plus points ahead of their peers, while SNDK and MU both declined slightly. That divergence within the same theme suggests something company or subsector-specific driving the disk manufacturers.\n\nAI compute moved as a theme, with TSM, NVDA and AVGO all up 2.1% to 2.8%. AMD was the exception, flat while its peers rallied. Mega-cap tech also leaned positive -- MSFT, META and TSLA each up around 2% -- though AAPL slipped 0.3%. Power and infrastructure was quiet except for CEG, which jumped 4.1% while the rest of that group barely moved. Broader indices were up, tech-heavy names leading.\n\nOutside your watchlist, PTC and XP each gained over 30% on heavy volume. A cluster of Brazilian fintech names -- PAGS, INTR, STNE -- also rallied sharply, between 20% and 21%.\n\nTSM reports in 10 days. The next earnings after that are TSLA and VRT in 16 days, then STX in 22 days, followed by a wave of mega-cap reports in 23 to 24 days: GOOGL, META, MSFT, then AAPL and AMZN.",
+        "The hard-drive makers split from the rest of memory and storage today. WDC jumped 5.6% and STX gained 4.6%, both moving well above their peers, while SNDK fell 1.0% and MU declined 0.6%. That divergence inside the theme is the standout move on your watchlist. The AI compute names moved as a group, with TSM, NVDA and AVGO all up around 2.1%\u20132.8%, ahead of the benchmark. AMD was the outlier there, flat while its peers rallied. Mega-cap tech mostly tracked together \u2014 MSFT, GOOGL, META and TSLA all gained \u2014 though AAPL slipped 0.3%. In AI power, CEG rose 4.1% on its own while the rest of that theme held near the market's 0.7% gain.\n\nBeyond your watchlist, the notable action was in Brazilian financials: XP surged 32%, INTR 21%, STNE 20% and PAGS 21%, all appearing on the day's most-actives and gainers lists. PTC jumped 34% to lead all gainers.\n\nTSM reports in 10 days, followed by TSLA and VRT in 16 days. STX reports in 22 days. After that comes a cluster: GEV, GOOGL, META and MSFT all report in 23 days, with AAPL, AMZN and SNDK one day later in 24 days."
+      ]
+    }
+  }
+}
