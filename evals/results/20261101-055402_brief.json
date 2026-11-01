@@ -1,0 +1,891 @@
+{
+  "kind": "brief",
+  "timestamp": "2026-11-01T05:54:02+00:00",
+  "model": "claude-sonnet-4-5",
+  "commit": "6531e03",
+  "uncommitted_changes": false,
+  "dry_run": false,
+  "settings": {
+    "runs": 24,
+    "scenario": "theme_drop_before_earnings,mixed_move_report_tomorrow,news_unavailable,calendar_unavailable,theme_name_data_failed",
+    "skip_themes": false,
+    "skip_analysis": false,
+    "split": null,
+    "analysis_only": false
+  },
+  "scenarios": {
+    "theme_name_data_failed": {
+      "description": "A theme falls together; one quiet name's news and calendar failed to load.",
+      "runs": 24,
+      "checks": {
+        "never gives a direct recommendation": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never tells the reader to trade": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never sets a price target": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never predicts direction": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never claims certainty": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never uses a rating": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never nudges the reader about positioning": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never suggests an action": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never advises a posture": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never tells the reader when to act": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "no markdown headings": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "no bullet lists": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "no numbered lists": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "no bold markdown": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "between 1 and 4 paragraphs": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "reasonable length": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never states a move as a multiple of another": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "judge verdict": {
+          "passed": 1,
+          "runs": 24,
+          "failure": "The brief states 'A cloud provider trimming its capex outlook coincided with the decline' but then says 'Nothing currently falls within the next seven days on the earnings calendar' without excepting STX, whose report date is unknown due to failed lookups."
+        }
+      },
+      "first_output": "AI compute names led your watchlist lower, all moving together with their benchmark down 2.6% to 3.1%. A cloud provider trimming its capex outlook coincided with the decline across NVDA, AMD and AVGO. The semiconductor sector broadly sold off, with the Nasdaq 100 down 1.1% and SMH falling 2.4%.\n\nMemory and storage names held up, down only 0.3% to 0.6% while their benchmark dropped 2.4%. MU, WDC and STX barely moved, decoupling from the broader chip selloff that hit the AI compute theme.\n\nNothing currently falls within the next seven days on the earnings calendar. The next scheduled report is AMD on December 1, 30 days out, with AVGO, MU, NVDA and WDC also reporting that same day.",
+      "failed_runs": [
+        {
+          "run": 1,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "judge_reason": "The brief states 'A cloud provider trimming its capex outlook coincided with the decline' but then says 'Nothing currently falls within the next seven days on the earnings calendar' without excepting STX, whose report date is unknown due to failed lookups.",
+          "brief": "AI compute names led your watchlist lower, all moving together with their benchmark down 2.6% to 3.1%. A cloud provider trimming its capex outlook coincided with the decline across NVDA, AMD and AVGO. The semiconductor sector broadly sold off, with the Nasdaq 100 down 1.1% and SMH falling 2.4%.\n\nMemory and storage names held up, down only 0.3% to 0.6% while their benchmark dropped 2.4%. MU, WDC and STX barely moved, decoupling from the broader chip selloff that hit the AI compute theme.\n\nNothing currently falls within the next seven days on the earnings calendar. The next scheduled report is AMD on December 1, 30 days out, with AVGO, MU, NVDA and WDC also reporting that same day."
+        },
+        {
+          "run": 2,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "judge_reason": "The brief states 'The next scheduled report on your watchlist is AMD in 30 days' without excepting STX, whose report date is unknown due to failed calendar lookups.",
+          "brief": "Your AI compute names took the hardest hit today, with NVDA, AMD and AVGO moving together down between 2.6% and 3.1% -- all tracking their theme, which fell 2.8% on average versus SMH's 2.4% drop. The session coincided with headlines about a cloud provider trimming its capex outlook, though the whole theme moved in step with the broader tech selloff that sent the Nasdaq down 1.1%.\n\nMemory and storage held up better: MU, WDC and STX barely moved, each down less than 0.6% while the chip benchmark fell 2.4%. All three stayed close to their peers' median, making this a quiet day for the theme rather than a set of company-specific stories.\n\nThe next scheduled report on your watchlist is AMD in 30 days, with AVGO, MU, NVDA and WDC all reporting the same day."
+        },
+        {
+          "run": 3,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "judge_reason": "The brief says 'the capex headline, if it's driving anything' which asserts causation even though the hedge ('if it's driving anything') appears in the same clause\u2014the phrase treats it as fact that the headline is driving the moves, just uncertain about the extent.",
+          "brief": "Your AI compute names took the brunt of it today. NVDA, AMD and AVGO all fell between 2.6% and 3.1%, tracking each other and their SMH benchmark down in a session that saw a cloud provider trim its capex outlook. The move was theme-wide rather than company-specific -- all three declined roughly in step, and the headline about reduced cloud spending sits alongside the drop.\n\nMemory and storage held up much better. MU, WDC and STX were all down less than a percent, staying quiet while the broader chip index fell 2.4%. That divergence from the compute names suggests the capex headline, if it's driving anything, is hitting the AI infrastructure layer harder than the components feeding into it.\n\nThe next scheduled earnings on your watchlist are 30 days out: AMD, AVGO, MU, NVDA and WDC all report on December 1st."
+        },
+        {
+          "run": 4,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "judge_reason": "The brief fails because it says 'The next scheduled earnings on this list are thirty days out' without excepting STX, whose earnings date is unknown (null in the data).",
+          "brief": "The AI compute theme took the hardest hit today, with NVDA, AMD and AVGO down 2.6% to 3.1%, tracking the SMH benchmark's 2.4% drop. NVDA's decline coincided with a headline about a cloud provider trimming its capex outlook, though all three names moved together as a group. The broader market fell as well -- the S&P 500 down 0.6%, the Nasdaq 100 down 1.1% -- but the chip names underperformed.\n\nMemory and storage held up much better. MU, WDC and STX each fell less than a percent, well ahead of the SMH benchmark and their AI compute peers, though nothing specific drove the relative strength.\n\nThe next scheduled earnings on this list are thirty days out, with AMD, AVGO, MU, NVDA and WDC all reporting on the same date."
+        },
+        {
+          "run": 5,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "judge_reason": "The brief states 'The next earnings on your watchlist are AMD, AVGO, MU, NVDA and WDC' without excepting STX, whose earnings date is unknown due to failed data lookups, incorrectly implying these are all the watchlist names reporting.",
+          "brief": "Your AI compute names took the hardest hit today: NVDA down 3.1%, AMD off 2.8%, AVGO down 2.6%, moving together as a theme and underperforming both the broader market and their SMH benchmark. The decline coincided with a cloud provider trimming its 2027 capex outlook, which may be related to the sell-off across the group.\n\nMemory and storage held up considerably better. MU, WDC and STX all stayed within a percentage point of flat, showing clear divergence from the chip sector's broader weakness -- the SMH benchmark dropped 2.4% while this group barely moved.\n\nThe Nasdaq fell 1.1% and the S&P 500 lost 0.6%, with chip stocks leading the tech-heavy index lower.\n\nThe next earnings on your watchlist are AMD, AVGO, MU, NVDA and WDC, all reporting in 30 days on December 1st."
+        },
+        {
+          "run": 6,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "judge_reason": "The brief fails because it calls STX 'quiet' in a way that covers its news and calendar, when STX's data lookups actually failed and its news/events status is unknown.",
+          "brief": "Your AI compute theme took the hardest hit today. NVDA, AMD and AVGO all fell together -- down 3.1%, 2.8% and 2.6% respectively -- tracking their peer median moves and underperforming the SMH benchmark by roughly a point. The slide coincided with a cloud provider trimming its 2027 capex outlook, which may be related to the sell-off across chip names.\n\nMemory and storage held up far better. MU, WDC and STX stayed quiet, each down less than a percent while the broader chip sector sold off. The divergence suggests today's weakness was concentrated in the compute layer rather than spreading across all semiconductor exposures.\n\nThe broader market closed lower -- the S&P down 0.6% and the Nasdaq off 1.1% -- with tech bearing more of the weight. Nothing notable outside your watchlist today.\n\nThe next scheduled earnings across these names all land in 30 days, with AMD, AVGO, MU, NVDA and WDC all reporting on the same date."
+        },
+        {
+          "run": 7,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "judge_reason": "The brief states that five names report in 30 days without excepting STX, whose earnings date is unknown due to failed lookups.",
+          "brief": "Your AI compute names took the brunt of today's selling. NVDA, AMD and AVGO all fell between 2.6% and 3.1%, moving together as a theme and lagging the broader market. The drop coincided with a cloud provider trimming its 2027 capital spending outlook, which may be related to the weakness across the group.\n\nMemory and storage held up relatively well. MU, WDC and STX stayed close to flat, each down less than a percent, outperforming both the semiconductor benchmark and their compute counterparts. The divergence suggests today's pressure was specific to AI compute spending concerns rather than semiconductors broadly.\n\nThe next scheduled earnings on your watchlist are AMD, AVGO, MU, NVDA and WDC, all reporting in 30 days on December 1st."
+        },
+        {
+          "run": 8,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "judge_reason": "The brief fails because it says 'The next scheduled earnings across this watchlist start in 30 days' without excepting STX, whose earnings date is unknown due to failed calendar lookup.",
+          "brief": "Your AI compute names took the hardest hits today -- NVDA down 3.1%, AMD off 2.8%, AVGO down 2.6% -- tracking together as the Nasdaq 100 fell 1.1% and the S&P dropped 0.6%. The whole group moved with its SMH benchmark, which dropped 2.4%, coinciding with a headline about a cloud provider trimming its capex outlook.\n\nMemory and storage held up better. MU, WDC and STX all stayed within a small range, down 0.3% to 0.6%, well ahead of the SMH benchmark and showing little connection to the compute selloff.\n\nThe next scheduled earnings across this watchlist start in 30 days, when AMD, AVGO, MU, NVDA and WDC all report on the same day."
+        },
+        {
+          "run": 9,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "judge_reason": "The brief asserts causation in the second paragraph: 'if it's the driver here' directly states the capex story is driving the selloff, even though hedged earlier with 'may be related', violating rule (a) which forbids mixing hedges in one sentence with assertions in another.",
+          "brief": "Your AI compute names took the hardest hit today: NVDA down 3.1%, AMD off 2.8%, AVGO down 2.6%. All three tracked their peers and the SMH benchmark, which fell 2.4%. A cloud provider trimming its capex outlook may be related to the selling across the group -- though note the headline doesn't name the provider or specify how the cuts break down between AI infrastructure and other spending.\n\nMemory and storage held up much better. MU, WDC and STX all fell less than half a percent, well ahead of the broader semiconductor selloff. That divergence suggests the capex story, if it's the driver here, is being read as specific to compute rather than memory demand.\n\nThe market pulled back broadly -- the S&P down 0.6%, the Nasdaq off 1.1% -- with no standout movers outside your watchlist worth flagging. The next scheduled earnings on your list are in 30 days: AMD, AVGO, MU, NVDA and WDC all report December 1st."
+        },
+        {
+          "run": 10,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "judge_reason": "The brief says 'all reporting in thirty days' without excepting STX, whose earnings date is unknown (null), turning the failed calendar lookup into an implicit fact that STX reports in thirty days.",
+          "brief": "The AI compute names you're tracking all fell sharply -- NVDA down 3.1%, AMD down 2.8%, AVGO down 2.6% -- moving together and underperforming the broader market. The selling coincided with a headline about a cloud provider trimming its 2027 capex outlook. SMH, the benchmark for this theme, dropped 2.4%.\n\nYour memory and storage names held up much better. MU, WDC and STX all stayed within a half percent, well ahead of the semiconductor benchmark and the wider selloff in AI compute chips.\n\nThe next earnings on your watchlist are AMD, AVGO, MU, NVDA and WDC, all reporting in thirty days."
+        },
+        {
+          "run": 11,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "judge_reason": "The brief states 'STX... staying quiet' which characterizes STX as a quiet name in a way that covers its news and calendar, when in fact STX's data was unavailable and its status is unknown.",
+          "brief": "Your AI compute names took the hardest hit today, down nearly 3% as a group and underperforming the broader market's modest decline. NVDA, AMD and AVGO all fell in lockstep -- between 2.6% and 3.1% -- which coincided with a cloud provider trimming its capex outlook. That headline may be related to the pressure across the theme, though the wider semiconductor benchmark also dropped 2.4%, suggesting sector-level selling rather than a story limited to these three.\n\nMemory and storage held up comparatively well. MU, WDC and STX were all down less than 1%, staying quiet while their AI compute peers sold off. That divergence is worth noting: the two groups normally track the same semiconductor benchmark, but today memory names shrugged off most of the weakness.\n\nThe next earnings on your watchlist are AMD, AVGO, MU, NVDA and WDC, all scheduled for 30 days out."
+        },
+        {
+          "run": 12,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "judge_reason": "The brief says 'The next scheduled earnings on your watchlist are AMD, AVGO, MU, NVDA and WDC' without excepting STX, whose earnings date is unknown due to failed data lookups, falsely implying those five are the complete list when STX's calendar status is actually unavailable.",
+          "brief": "AI compute took the brunt of the selloff, with NVDA, AMD and AVGO all down between 2.6% and 3.1% as the SMH benchmark fell 2.4%. The move coincided with a cloud provider trimming its 2027 capex outlook, which may be related to the group's weakness. Your memory and storage names held up far better -- MU, WDC and STX barely moved, each down less than 1%, decoupling from the broader chip selloff.\n\nThe Nasdaq 100 closed down 1.1% and the S&P 500 fell 0.6%, with semiconductors leading the decline.\n\nThe next scheduled earnings on your watchlist are AMD, AVGO, MU, NVDA and WDC, all reporting in 30 days on December 1st."
+        },
+        {
+          "run": 13,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "judge_reason": "The brief states 'All three stayed quiet with minimal news' about the memory & storage names including STX, but STX's news was unavailable (not absent), turning a failed lookup into a factual claim that STX was quiet with minimal news.",
+          "brief": "The AI compute theme took the hardest hit on your watchlist. NVDA, AMD and AVGO all fell 2.6% to 3.1%, moving together and underperforming the broader market as a cloud provider trimmed its capex outlook. That headline may be related to the selloff -- infrastructure spending cuts would directly affect demand for datacenter chips.\n\nMemory and storage names held up considerably better. MU, WDC and STX each dropped less than 1%, a clear divergence from the compute-focused chips and from the semiconductor benchmark, which fell 2.4%. All three stayed quiet with minimal news.\n\nThe next scheduled earnings on this watchlist is AMD in 30 days, followed by AVGO, MU, NVDA and WDC on the same date."
+        },
+        {
+          "run": 14,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "judge_reason": "The brief states 'The next earnings report on your watchlist comes in 30 days' without excepting STX, whose earnings date is unknown due to failed data lookup.",
+          "brief": "AI compute names took the brunt of today's selling, with NVDA, AMD and AVGO all down between 2.6% and 3.1% alongside a 2.4% drop in SMH. The move coincided with a headline about a cloud provider trimming its capex outlook, though chip stocks broadly weakened in a session that saw the Nasdaq fall 1.1%.\n\nMemory and storage names held up notably better. MU, WDC and STX each fell less than 0.6%, decoupling from the wider semiconductor selloff despite sitting in the same sector.\n\nThe next earnings report on your watchlist comes in 30 days, when AMD, AVGO, MU, NVDA and WDC all report on the same day."
+        },
+        {
+          "run": 16,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "judge_reason": "The brief states 'all' watchlist names report in 30 days without excepting STX, whose earnings date is unknown due to failed data lookup.",
+          "brief": "The AI compute theme took the hardest hit today, with NVDA down 3.1%, AMD down 2.8%, and AVGO down 2.6% -- all moving in sync and underperforming the broader market. A cloud provider trimmed its capex outlook, which may be related to the selling across the group. The Nasdaq 100 fell 1.1% while the S&P 500 dropped 0.6%.\n\nMemory and storage names held up relatively well. MU, WDC, and STX all lost less than a percent, outperforming both the SMH benchmark and their AI compute peers despite the broader semiconductor weakness.\n\nThe next scheduled earnings across your watchlist are all clustered around the same date: AMD, AVGO, MU, NVDA, and WDC all report in 30 days."
+        },
+        {
+          "run": 17,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "judge_reason": "The brief fails because it states 'The next earnings on your watchlist is AMD in 30 days' without excepting STX, whose earnings date is unknown (null), falsely implying nothing reports sooner when STX's date couldn't be loaded.",
+          "brief": "AI compute took the hit today, with NVDA, AMD and AVGO all down between 2.6% and 3.1% alongside their benchmark SMH, which fell 2.4%. The move coincided with a cloud provider trimming its 2027 capex outlook, reported in headlines. These three moved as a group, tracking their median peer change closely.\n\nMemory and storage names held up well by comparison. MU, WDC and STX all fell less than 0.6%, outperforming the broader semiconductor selloff. The divergence between these two themes is notable -- compute infrastructure facing capex-driven pressure while memory suppliers stayed quiet.\n\nThe next earnings on your watchlist is AMD in 30 days, with NVDA, AVGO, MU and WDC all reporting the same day."
+        },
+        {
+          "run": 18,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "judge_reason": "The brief states 'alongside a report that a cloud provider trimmed its capex outlook' which asserts causation between the headline and the price moves, violating rule (a).",
+          "brief": "Your AI compute names took the hardest hit, all down roughly 3% alongside a report that a cloud provider trimmed its capex outlook. NVDA, AMD and AVGO moved in line with each other and their SMH benchmark, which fell 2.4%. The broader market dipped less -- the S&P lost 0.6% -- so this was a sector story, not a market-wide one.\n\nMemory and storage held up better. MU, WDC and STX all fell less than half a percent, each barely moving while their compute peers slid. That relative resilience kept them well ahead of SMH.\n\nNothing notable moved outside your watchlist. The next scheduled earnings across these names: AMD, AVGO, MU, NVDA and WDC all report in 30 days."
+        },
+        {
+          "run": 19,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "judge_reason": "The brief fails by stating 'The next scheduled earnings across your list all fall 30 days out' without excepting STX, whose earnings date is unknown due to failed calendar lookup.",
+          "brief": "AI compute took the hardest hit on your watchlist, down as a group even as the broader market sold off. NVDA, AMD and AVGO all fell between 2.6% and 3.1%, tracking together and landing below their SMH benchmark. A headline about a cloud provider trimming its capex outlook circulated alongside the move, though that correlation isn't confirmed as the driver.\n\nMemory and storage names held up considerably better. MU, WDC and STX each dropped less than 0.6%, staying well ahead of the semiconductor benchmark despite the selling pressure across chips. The divergence between these two themes is the story of the day: one set reacting sharply to spending signals, the other largely sidestepping them.\n\nThe next scheduled earnings across your list all fall 30 days out, with AMD, AVGO, MU, NVDA and WDC each reporting on the same date in early December."
+        },
+        {
+          "run": 20,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "judge_reason": "The brief states 'The next earnings on your list: AMD, AVGO, MU, NVDA and WDC all report in thirty days' without excepting STX, whose earnings date is unknown due to failed data lookups.",
+          "brief": "Your AI compute names took the hardest hit today: NVDA down 3.1%, AMD off 2.8%, AVGO down 2.6%, all moving as a group and worse than the semiconductor benchmark. A cloud provider cut its capex outlook for next year, which may be related to the selloff across chip names tied to data center spending. The Nasdaq 100 fell 1.1% while the S&P dropped 0.6%.\n\nMemory and storage held up much better. MU, WDC and STX each lost less than a percent, staying well clear of the broader semiconductor weakness.\n\nNothing outside your watchlist stands out today \u2014 this was a chip story, particularly in AI infrastructure names, against a softer tech tape.\n\nThe next earnings on your list: AMD, AVGO, MU, NVDA and WDC all report in thirty days."
+        },
+        {
+          "run": 21,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "judge_reason": "The brief fails by stating 'The next earnings on your list are AMD, AVGO, MU, NVDA and WDC' without excepting STX, whose earnings date is unknown due to failed calendar lookups.",
+          "brief": "Your AI compute theme took the hit today. NVDA, AMD and AVGO all fell between 2.6% and 3.1%, tracking each other and moving harder than the broader semiconductor benchmark. The selling coincided with a cloud provider trimming its 2027 capex outlook, which may be related to the move across these names.\n\nMemory and storage held up relatively well. MU, WDC and STX each dropped less than 0.6% in a quiet session for that group -- a clear split from the compute names despite both sets tracking the same semiconductor benchmark.\n\nThe broader market closed down, with the Nasdaq falling 1.1% and the S&P 500 off 0.6%. No other notable movers outside your watchlist today.\n\nThe next earnings on your list are AMD, AVGO, MU, NVDA and WDC, all scheduled for the same date in 30 days."
+        },
+        {
+          "run": 22,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "judge_reason": "The brief fails because it states 'the next report on your watchlist comes in 30 days' without excepting STX, whose earnings date is unknown due to failed calendar lookup.",
+          "brief": "Your AI compute names took the worst of it today, with NVDA, AMD and AVGO all down between 2.6% and 3.1%, tracking the broader sell-off in chips. SMH fell 2.4%. That move coincided with headlines about a cloud provider trimming its capex outlook, though the entire sector was under pressure -- the Nasdaq 100 dropped 1.1% while the S&P fell 0.6%.\n\nMemory and storage names held up considerably better. MU, WDC and STX each lost less than half a percent, staying well clear of the broader semiconductor weakness even as their benchmark fell 2.4%.\n\nThe next report on your watchlist comes in 30 days, when AMD, AVGO, MU, NVDA and WDC all report on the same date."
+        },
+        {
+          "run": 23,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "judge_reason": "The brief states 'All five names with known earnings dates report in thirty days' without excepting STX, whose report date is unknown due to failed data lookups, turning the unavailable data into a fact (that STX doesn't report soon).",
+          "brief": "Your AI compute names took the brunt of today's selling. NVDA, AMD and AVGO all fell between 2.6% and 3.1%, tracking their peers and moving roughly in line with the SMH benchmark, which dropped 2.4%. A cloud provider trimmed its capex outlook, a headline that appeared alongside NVDA's decline -- the two may be related, though the whole theme sold off together.\n\nMemory & storage held up considerably better. MU, WDC and STX each lost half a percent or less, staying well ahead of the semiconductor benchmark even as the broader market fell 0.6% and the Nasdaq slid 1.1%. The gap between these two groups was the standout story on your watchlist today.\n\nAll five names with known earnings dates report in thirty days, on December 1st."
+        },
+        {
+          "run": 24,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "judge_reason": "The brief fails because it states 'the next scheduled report on the watchlist is AMD in 30 days' without excepting STX, whose earnings date is unknown due to data unavailability, creating a false implication that all watchlist names report in about a month.",
+          "brief": "AI compute took the hit today. NVDA, AMD and AVGO all fell between 2.6% and 3.1%, tracking each other and the SMH benchmark down around 2.4%. A cloud provider trimmed its capex outlook, which may be related to the sector-wide selling -- these names moved together through the session.\n\nMemory and storage held up better. MU, WDC and STX barely moved, down only 0.3% to 0.6% while the chip benchmark dropped 2.4%. The divergence suggests the capex headline hit AI-focused names harder than the memory space.\n\nThe next scheduled report on the watchlist is AMD in 30 days, followed by AVGO, MU, NVDA and WDC on the same date."
+        }
+      ],
+      "rewrites": [
+        {
+          "run": 8,
+          "original": "Your AI compute names took the hardest hits today -- NVDA down 3.1%, AMD off 2.8%, AVGO down 2.6% -- tracking together and falling more than twice as hard as the broader market. The whole group moved with its SMH benchmark, which dropped 2.4%, coinciding with a headline about a cloud provider trimming its capex outlook. The Nasdaq 100 fell 1.1%, with tech weakness leading the way.\n\nMemory and storage held up better. MU, WDC and STX all stayed within a small range, down 0.3% to 0.6%, well ahead of the SMH benchmark and showing little connection to the compute selloff.\n\nThe next scheduled earnings across this watchlist start in 30 days, when AMD, AVGO, MU, NVDA and WDC all report on the same day.",
+          "final": "Your AI compute names took the hardest hits today -- NVDA down 3.1%, AMD off 2.8%, AVGO down 2.6% -- tracking together as the Nasdaq 100 fell 1.1% and the S&P dropped 0.6%. The whole group moved with its SMH benchmark, which dropped 2.4%, coinciding with a headline about a cloud provider trimming its capex outlook.\n\nMemory and storage held up better. MU, WDC and STX all stayed within a small range, down 0.3% to 0.6%, well ahead of the SMH benchmark and showing little connection to the compute selloff.\n\nThe next scheduled earnings across this watchlist start in 30 days, when AMD, AVGO, MU, NVDA and WDC all report on the same day."
+        },
+        {
+          "run": 22,
+          "original": "Your AI compute names took the worst of it today, with NVDA, AMD and AVGO all down between 2.6% and 3.1%, tracking the broader sell-off in chips. SMH fell 2.4%. That move coincided with headlines about a cloud provider trimming its capex outlook, though the entire sector was under pressure -- the Nasdaq 100 dropped 1.1%, more than double the S&P's 0.6% decline.\n\nMemory and storage names held up considerably better. MU, WDC and STX each lost less than half a percent, staying well clear of the broader semiconductor weakness even as their benchmark fell 2.4%.\n\nThe next report on your watchlist comes in 30 days, when AMD, AVGO, MU, NVDA and WDC all report on the same date.",
+          "final": "Your AI compute names took the worst of it today, with NVDA, AMD and AVGO all down between 2.6% and 3.1%, tracking the broader sell-off in chips. SMH fell 2.4%. That move coincided with headlines about a cloud provider trimming its capex outlook, though the entire sector was under pressure -- the Nasdaq 100 dropped 1.1% while the S&P fell 0.6%.\n\nMemory and storage names held up considerably better. MU, WDC and STX each lost less than half a percent, staying well clear of the broader semiconductor weakness even as their benchmark fell 2.4%.\n\nThe next report on your watchlist comes in 30 days, when AMD, AVGO, MU, NVDA and WDC all report on the same date."
+        }
+      ],
+      "outputs": [
+        "AI compute names led your watchlist lower, all moving together with their benchmark down 2.6% to 3.1%. A cloud provider trimming its capex outlook coincided with the decline across NVDA, AMD and AVGO. The semiconductor sector broadly sold off, with the Nasdaq 100 down 1.1% and SMH falling 2.4%.\n\nMemory and storage names held up, down only 0.3% to 0.6% while their benchmark dropped 2.4%. MU, WDC and STX barely moved, decoupling from the broader chip selloff that hit the AI compute theme.\n\nNothing currently falls within the next seven days on the earnings calendar. The next scheduled report is AMD on December 1, 30 days out, with AVGO, MU, NVDA and WDC also reporting that same day.",
+        "Your AI compute names took the hardest hit today, with NVDA, AMD and AVGO moving together down between 2.6% and 3.1% -- all tracking their theme, which fell 2.8% on average versus SMH's 2.4% drop. The session coincided with headlines about a cloud provider trimming its capex outlook, though the whole theme moved in step with the broader tech selloff that sent the Nasdaq down 1.1%.\n\nMemory and storage held up better: MU, WDC and STX barely moved, each down less than 0.6% while the chip benchmark fell 2.4%. All three stayed close to their peers' median, making this a quiet day for the theme rather than a set of company-specific stories.\n\nThe next scheduled report on your watchlist is AMD in 30 days, with AVGO, MU, NVDA and WDC all reporting the same day.",
+        "Your AI compute names took the brunt of it today. NVDA, AMD and AVGO all fell between 2.6% and 3.1%, tracking each other and their SMH benchmark down in a session that saw a cloud provider trim its capex outlook. The move was theme-wide rather than company-specific -- all three declined roughly in step, and the headline about reduced cloud spending sits alongside the drop.\n\nMemory and storage held up much better. MU, WDC and STX were all down less than a percent, staying quiet while the broader chip index fell 2.4%. That divergence from the compute names suggests the capex headline, if it's driving anything, is hitting the AI infrastructure layer harder than the components feeding into it.\n\nThe next scheduled earnings on your watchlist are 30 days out: AMD, AVGO, MU, NVDA and WDC all report on December 1st.",
+        "The AI compute theme took the hardest hit today, with NVDA, AMD and AVGO down 2.6% to 3.1%, tracking the SMH benchmark's 2.4% drop. NVDA's decline coincided with a headline about a cloud provider trimming its capex outlook, though all three names moved together as a group. The broader market fell as well -- the S&P 500 down 0.6%, the Nasdaq 100 down 1.1% -- but the chip names underperformed.\n\nMemory and storage held up much better. MU, WDC and STX each fell less than a percent, well ahead of the SMH benchmark and their AI compute peers, though nothing specific drove the relative strength.\n\nThe next scheduled earnings on this list are thirty days out, with AMD, AVGO, MU, NVDA and WDC all reporting on the same date.",
+        "Your AI compute names took the hardest hit today: NVDA down 3.1%, AMD off 2.8%, AVGO down 2.6%, moving together as a theme and underperforming both the broader market and their SMH benchmark. The decline coincided with a cloud provider trimming its 2027 capex outlook, which may be related to the sell-off across the group.\n\nMemory and storage held up considerably better. MU, WDC and STX all stayed within a percentage point of flat, showing clear divergence from the chip sector's broader weakness -- the SMH benchmark dropped 2.4% while this group barely moved.\n\nThe Nasdaq fell 1.1% and the S&P 500 lost 0.6%, with chip stocks leading the tech-heavy index lower.\n\nThe next earnings on your watchlist are AMD, AVGO, MU, NVDA and WDC, all reporting in 30 days on December 1st.",
+        "Your AI compute theme took the hardest hit today. NVDA, AMD and AVGO all fell together -- down 3.1%, 2.8% and 2.6% respectively -- tracking their peer median moves and underperforming the SMH benchmark by roughly a point. The slide coincided with a cloud provider trimming its 2027 capex outlook, which may be related to the sell-off across chip names.\n\nMemory and storage held up far better. MU, WDC and STX stayed quiet, each down less than a percent while the broader chip sector sold off. The divergence suggests today's weakness was concentrated in the compute layer rather than spreading across all semiconductor exposures.\n\nThe broader market closed lower -- the S&P down 0.6% and the Nasdaq off 1.1% -- with tech bearing more of the weight. Nothing notable outside your watchlist today.\n\nThe next scheduled earnings across these names all land in 30 days, with AMD, AVGO, MU, NVDA and WDC all reporting on the same date.",
+        "Your AI compute names took the brunt of today's selling. NVDA, AMD and AVGO all fell between 2.6% and 3.1%, moving together as a theme and lagging the broader market. The drop coincided with a cloud provider trimming its 2027 capital spending outlook, which may be related to the weakness across the group.\n\nMemory and storage held up relatively well. MU, WDC and STX stayed close to flat, each down less than a percent, outperforming both the semiconductor benchmark and their compute counterparts. The divergence suggests today's pressure was specific to AI compute spending concerns rather than semiconductors broadly.\n\nThe next scheduled earnings on your watchlist are AMD, AVGO, MU, NVDA and WDC, all reporting in 30 days on December 1st.",
+        "Your AI compute names took the hardest hits today -- NVDA down 3.1%, AMD off 2.8%, AVGO down 2.6% -- tracking together as the Nasdaq 100 fell 1.1% and the S&P dropped 0.6%. The whole group moved with its SMH benchmark, which dropped 2.4%, coinciding with a headline about a cloud provider trimming its capex outlook.\n\nMemory and storage held up better. MU, WDC and STX all stayed within a small range, down 0.3% to 0.6%, well ahead of the SMH benchmark and showing little connection to the compute selloff.\n\nThe next scheduled earnings across this watchlist start in 30 days, when AMD, AVGO, MU, NVDA and WDC all report on the same day.",
+        "Your AI compute names took the hardest hit today: NVDA down 3.1%, AMD off 2.8%, AVGO down 2.6%. All three tracked their peers and the SMH benchmark, which fell 2.4%. A cloud provider trimming its capex outlook may be related to the selling across the group -- though note the headline doesn't name the provider or specify how the cuts break down between AI infrastructure and other spending.\n\nMemory and storage held up much better. MU, WDC and STX all fell less than half a percent, well ahead of the broader semiconductor selloff. That divergence suggests the capex story, if it's the driver here, is being read as specific to compute rather than memory demand.\n\nThe market pulled back broadly -- the S&P down 0.6%, the Nasdaq off 1.1% -- with no standout movers outside your watchlist worth flagging. The next scheduled earnings on your list are in 30 days: AMD, AVGO, MU, NVDA and WDC all report December 1st.",
+        "The AI compute names you're tracking all fell sharply -- NVDA down 3.1%, AMD down 2.8%, AVGO down 2.6% -- moving together and underperforming the broader market. The selling coincided with a headline about a cloud provider trimming its 2027 capex outlook. SMH, the benchmark for this theme, dropped 2.4%.\n\nYour memory and storage names held up much better. MU, WDC and STX all stayed within a half percent, well ahead of the semiconductor benchmark and the wider selloff in AI compute chips.\n\nThe next earnings on your watchlist are AMD, AVGO, MU, NVDA and WDC, all reporting in thirty days.",
+        "Your AI compute names took the hardest hit today, down nearly 3% as a group and underperforming the broader market's modest decline. NVDA, AMD and AVGO all fell in lockstep -- between 2.6% and 3.1% -- which coincided with a cloud provider trimming its capex outlook. That headline may be related to the pressure across the theme, though the wider semiconductor benchmark also dropped 2.4%, suggesting sector-level selling rather than a story limited to these three.\n\nMemory and storage held up comparatively well. MU, WDC and STX were all down less than 1%, staying quiet while their AI compute peers sold off. That divergence is worth noting: the two groups normally track the same semiconductor benchmark, but today memory names shrugged off most of the weakness.\n\nThe next earnings on your watchlist are AMD, AVGO, MU, NVDA and WDC, all scheduled for 30 days out.",
+        "AI compute took the brunt of the selloff, with NVDA, AMD and AVGO all down between 2.6% and 3.1% as the SMH benchmark fell 2.4%. The move coincided with a cloud provider trimming its 2027 capex outlook, which may be related to the group's weakness. Your memory and storage names held up far better -- MU, WDC and STX barely moved, each down less than 1%, decoupling from the broader chip selloff.\n\nThe Nasdaq 100 closed down 1.1% and the S&P 500 fell 0.6%, with semiconductors leading the decline.\n\nThe next scheduled earnings on your watchlist are AMD, AVGO, MU, NVDA and WDC, all reporting in 30 days on December 1st.",
+        "The AI compute theme took the hardest hit on your watchlist. NVDA, AMD and AVGO all fell 2.6% to 3.1%, moving together and underperforming the broader market as a cloud provider trimmed its capex outlook. That headline may be related to the selloff -- infrastructure spending cuts would directly affect demand for datacenter chips.\n\nMemory and storage names held up considerably better. MU, WDC and STX each dropped less than 1%, a clear divergence from the compute-focused chips and from the semiconductor benchmark, which fell 2.4%. All three stayed quiet with minimal news.\n\nThe next scheduled earnings on this watchlist is AMD in 30 days, followed by AVGO, MU, NVDA and WDC on the same date.",
+        "AI compute names took the brunt of today's selling, with NVDA, AMD and AVGO all down between 2.6% and 3.1% alongside a 2.4% drop in SMH. The move coincided with a headline about a cloud provider trimming its capex outlook, though chip stocks broadly weakened in a session that saw the Nasdaq fall 1.1%.\n\nMemory and storage names held up notably better. MU, WDC and STX each fell less than 0.6%, decoupling from the wider semiconductor selloff despite sitting in the same sector.\n\nThe next earnings report on your watchlist comes in 30 days, when AMD, AVGO, MU, NVDA and WDC all report on the same day.",
+        "The AI compute names you're tracking all fell together -- NVDA down 3.1%, AMD down 2.8%, AVGO down 2.6% -- roughly in line with each other and worse than the SMH benchmark's 2.4% drop. That move coincided with a cloud provider trimming its capex outlook, reported in headlines alongside NVDA. The broader market was down too, with the Nasdaq 100 falling 1.1%, but your AI compute theme underperformed.\n\nMemory and storage held up noticeably better. MU, WDC and STX all moved less than half a percent, staying well clear of the wider semiconductor selloff. That divergence from the AI compute theme is the story: same sector benchmark, very different sessions.\n\nAll five names with known earnings dates report in 30 days, on December 1st.",
+        "The AI compute theme took the hardest hit today, with NVDA down 3.1%, AMD down 2.8%, and AVGO down 2.6% -- all moving in sync and underperforming the broader market. A cloud provider trimmed its capex outlook, which may be related to the selling across the group. The Nasdaq 100 fell 1.1% while the S&P 500 dropped 0.6%.\n\nMemory and storage names held up relatively well. MU, WDC, and STX all lost less than a percent, outperforming both the SMH benchmark and their AI compute peers despite the broader semiconductor weakness.\n\nThe next scheduled earnings across your watchlist are all clustered around the same date: AMD, AVGO, MU, NVDA, and WDC all report in 30 days.",
+        "AI compute took the hit today, with NVDA, AMD and AVGO all down between 2.6% and 3.1% alongside their benchmark SMH, which fell 2.4%. The move coincided with a cloud provider trimming its 2027 capex outlook, reported in headlines. These three moved as a group, tracking their median peer change closely.\n\nMemory and storage names held up well by comparison. MU, WDC and STX all fell less than 0.6%, outperforming the broader semiconductor selloff. The divergence between these two themes is notable -- compute infrastructure facing capex-driven pressure while memory suppliers stayed quiet.\n\nThe next earnings on your watchlist is AMD in 30 days, with NVDA, AVGO, MU and WDC all reporting the same day.",
+        "Your AI compute names took the hardest hit, all down roughly 3% alongside a report that a cloud provider trimmed its capex outlook. NVDA, AMD and AVGO moved in line with each other and their SMH benchmark, which fell 2.4%. The broader market dipped less -- the S&P lost 0.6% -- so this was a sector story, not a market-wide one.\n\nMemory and storage held up better. MU, WDC and STX all fell less than half a percent, each barely moving while their compute peers slid. That relative resilience kept them well ahead of SMH.\n\nNothing notable moved outside your watchlist. The next scheduled earnings across these names: AMD, AVGO, MU, NVDA and WDC all report in 30 days.",
+        "AI compute took the hardest hit on your watchlist, down as a group even as the broader market sold off. NVDA, AMD and AVGO all fell between 2.6% and 3.1%, tracking together and landing below their SMH benchmark. A headline about a cloud provider trimming its capex outlook circulated alongside the move, though that correlation isn't confirmed as the driver.\n\nMemory and storage names held up considerably better. MU, WDC and STX each dropped less than 0.6%, staying well ahead of the semiconductor benchmark despite the selling pressure across chips. The divergence between these two themes is the story of the day: one set reacting sharply to spending signals, the other largely sidestepping them.\n\nThe next scheduled earnings across your list all fall 30 days out, with AMD, AVGO, MU, NVDA and WDC each reporting on the same date in early December.",
+        "Your AI compute names took the hardest hit today: NVDA down 3.1%, AMD off 2.8%, AVGO down 2.6%, all moving as a group and worse than the semiconductor benchmark. A cloud provider cut its capex outlook for next year, which may be related to the selloff across chip names tied to data center spending. The Nasdaq 100 fell 1.1% while the S&P dropped 0.6%.\n\nMemory and storage held up much better. MU, WDC and STX each lost less than a percent, staying well clear of the broader semiconductor weakness.\n\nNothing outside your watchlist stands out today \u2014 this was a chip story, particularly in AI infrastructure names, against a softer tech tape.\n\nThe next earnings on your list: AMD, AVGO, MU, NVDA and WDC all report in thirty days.",
+        "Your AI compute theme took the hit today. NVDA, AMD and AVGO all fell between 2.6% and 3.1%, tracking each other and moving harder than the broader semiconductor benchmark. The selling coincided with a cloud provider trimming its 2027 capex outlook, which may be related to the move across these names.\n\nMemory and storage held up relatively well. MU, WDC and STX each dropped less than 0.6% in a quiet session for that group -- a clear split from the compute names despite both sets tracking the same semiconductor benchmark.\n\nThe broader market closed down, with the Nasdaq falling 1.1% and the S&P 500 off 0.6%. No other notable movers outside your watchlist today.\n\nThe next earnings on your list are AMD, AVGO, MU, NVDA and WDC, all scheduled for the same date in 30 days.",
+        "Your AI compute names took the worst of it today, with NVDA, AMD and AVGO all down between 2.6% and 3.1%, tracking the broader sell-off in chips. SMH fell 2.4%. That move coincided with headlines about a cloud provider trimming its capex outlook, though the entire sector was under pressure -- the Nasdaq 100 dropped 1.1% while the S&P fell 0.6%.\n\nMemory and storage names held up considerably better. MU, WDC and STX each lost less than half a percent, staying well clear of the broader semiconductor weakness even as their benchmark fell 2.4%.\n\nThe next report on your watchlist comes in 30 days, when AMD, AVGO, MU, NVDA and WDC all report on the same date.",
+        "Your AI compute names took the brunt of today's selling. NVDA, AMD and AVGO all fell between 2.6% and 3.1%, tracking their peers and moving roughly in line with the SMH benchmark, which dropped 2.4%. A cloud provider trimmed its capex outlook, a headline that appeared alongside NVDA's decline -- the two may be related, though the whole theme sold off together.\n\nMemory & storage held up considerably better. MU, WDC and STX each lost half a percent or less, staying well ahead of the semiconductor benchmark even as the broader market fell 0.6% and the Nasdaq slid 1.1%. The gap between these two groups was the standout story on your watchlist today.\n\nAll five names with known earnings dates report in thirty days, on December 1st.",
+        "AI compute took the hit today. NVDA, AMD and AVGO all fell between 2.6% and 3.1%, tracking each other and the SMH benchmark down around 2.4%. A cloud provider trimmed its capex outlook, which may be related to the sector-wide selling -- these names moved together through the session.\n\nMemory and storage held up better. MU, WDC and STX barely moved, down only 0.3% to 0.6% while the chip benchmark dropped 2.4%. The divergence suggests the capex headline hit AI-focused names harder than the memory space.\n\nThe next scheduled report on the watchlist is AMD in 30 days, followed by AVGO, MU, NVDA and WDC on the same date."
+      ]
+    },
+    "analysis:theme_drop_before_earnings": {
+      "description": "Falls with its whole theme three days before reporting.",
+      "runs": 24,
+      "checks": {
+        "never gives a direct recommendation": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never tells the reader to trade": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never sets a price target": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never predicts direction": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never claims certainty": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never uses a rating": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never nudges the reader about positioning": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never suggests an action": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never advises a posture": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never tells the reader when to act": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "no markdown headings": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "no bullet lists": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "no numbered lists": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "no bold markdown": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "between 1 and 4 paragraphs": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "reasonable length": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "doesn't say the abnormal move isolates the report": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never states a move as a multiple of another": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "judge verdict": {
+          "passed": 23,
+          "runs": 24,
+          "failure": "The brief states 'around 6%' as the typical move but the data shows median_abs_move of 5.9%, and claims 'negative in four of the last sessions tracked' when only three reactions are provided in the data."
+        }
+      },
+      "first_output": "Micron fell 7.8%, roughly in line with its memory and storage peers (median down 8.1%) and 7.4 points more than the broader market's 0.4% decline. Reuters reports that storage and memory makers moved together after an industry survey showed NAND flash contract prices declined for a second consecutive month, which may be related to the sector-wide weakness. Business Wire notes the company will report fiscal first-quarter results on Wednesday.\n\nThe report comes in three days. Based on recent quarters, Micron typically moves around 5.9% on earnings, with about 3.0 percentage points beyond what the market explains. The last three reports all beat estimates, but four of the company's eight beats in the sample were followed by negative abnormal moves the next session, including a 3.0-point decline beyond the market in March despite a 33.2% earnings surprise.",
+      "failed_runs": [
+        {
+          "run": 2,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "judge_reason": "The brief states 'around 6%' as the typical move but the data shows median_abs_move of 5.9%, and claims 'negative in four of the last sessions tracked' when only three reactions are provided in the data.",
+          "analysis": "Micron fell 7.8%, tracking closely with its memory and storage peers, which declined a median of 8.1% versus the benchmark SMH's 1.1% drop. Reuters reports that storage and memory makers moved together after an industry survey showed contract prices for NAND flash declined for a second consecutive month, which may be related to the sector-wide decline. \n\nMicron reports fiscal first-quarter results on Wednesday after the close, just three days away. The stock has typically moved around 6% on earnings sessions, though reactions have been mixed: over the past year, Micron beat estimates in all three available reports but the abnormal move beyond the market was negative in four of the last sessions tracked, including a 3.0-point decline in March despite a 33% earnings beat."
+        }
+      ],
+      "rewrites": [],
+      "outputs": [
+        "Micron fell 7.8%, roughly in line with its memory and storage peers (median down 8.1%) and 7.4 points more than the broader market's 0.4% decline. Reuters reports that storage and memory makers moved together after an industry survey showed NAND flash contract prices declined for a second consecutive month, which may be related to the sector-wide weakness. Business Wire notes the company will report fiscal first-quarter results on Wednesday.\n\nThe report comes in three days. Based on recent quarters, Micron typically moves around 5.9% on earnings, with about 3.0 percentage points beyond what the market explains. The last three reports all beat estimates, but four of the company's eight beats in the sample were followed by negative abnormal moves the next session, including a 3.0-point decline beyond the market in March despite a 33.2% earnings surprise.",
+        "Micron fell 7.8%, tracking closely with its memory and storage peers, which declined a median of 8.1% versus the benchmark SMH's 1.1% drop. Reuters reports that storage and memory makers moved together after an industry survey showed contract prices for NAND flash declined for a second consecutive month, which may be related to the sector-wide decline. \n\nMicron reports fiscal first-quarter results on Wednesday after the close, just three days away. The stock has typically moved around 6% on earnings sessions, though reactions have been mixed: over the past year, Micron beat estimates in all three available reports but the abnormal move beyond the market was negative in four of the last sessions tracked, including a 3.0-point decline in March despite a 33% earnings beat.",
+        "Micron fell 7.8%, in line with its memory and storage peers, which dropped a median of 8.1%, and underperformed the broader market by 7.4 percentage points. Reuters reports that memory stocks slid together after an industry survey showed NAND flash contract prices declined for a second consecutive month, which may be related to the sector-wide weakness. \n\nThe company reports fiscal first-quarter results Wednesday, three days from now. Recent earnings reactions show a pattern where beating estimates hasn't reliably translated into gains: of eight beats, four were followed by negative moves beyond what the market explains, and the typical move around the report beyond the market has been 3.0 percentage points. The most recent report in September beat by 5.0% and moved 2.37 points above the market's influence, while March's 33.2% beat was followed by a 3.0-point decline.",
+        "Micron fell 7.8%, 7.4 points more than the market and broadly in line with memory and storage peers (median decline 8.1%). Reuters reports that memory stocks slid together after an industry survey showed NAND flash contract prices fell for a second consecutive month, which may be related to the sector-wide decline. The move comes three days before Micron reports fiscal first-quarter results on Wednesday.\n\nThe stock's recent earnings history shows outsized reactions are possible -- the typical move beyond what the market explains is around 3.0 percentage points -- but the pattern has been unpredictable: in the last three reports, the company beat estimates each time yet posted a negative abnormal move in two of them, including a 3.0-point drop in March despite a 33.2% beat.",
+        "Micron fell 7.8%, 7.4 points more than the market, matching a broad decline across memory and storage stocks after an industry survey showed NAND flash contract prices fell for a second consecutive month. The stock moved in line with its theme peers, which had a median decline of 8.1%, while the semiconductor benchmark SMH dropped 1.1%. Reuters reports that storage and memory makers fell together on the NAND pricing data.\n\nThe company reports fiscal first-quarter results on Wednesday, three days away. Recent earnings show a typical abnormal move of around 3.0 percentage points beyond what the market explains, though the relationship between beats and positive reactions has been inconsistent\u2014four of the most recent beats were followed by negative abnormal moves, including a 33% earnings surprise in March that preceded a 3.0-point abnormal decline.",
+        "Micron fell 7.8%, 7.4 points more than the market, and tracked closely with memory and storage peers that dropped a median 8.1% after an industry survey showed NAND flash contract prices declined for a second consecutive month. The move appears theme-driven rather than company-specific, with storage makers SanDisk, Western Digital and Seagate all down 7-9%.\n\nMicron reports fiscal first-quarter results after the close on Wednesday, in three days. The stock has beaten estimates in each of the last eight reports, but reactions are mixed: the typical move around earnings beyond the market is about 3.0%, and four of those beats were followed by a negative abnormal move the next session, including a 3.0-point drop in March despite a 33% earnings surprise.",
+        "Micron fell 7.8%, 7.4 points more than the market and in line with memory and storage peers (median down 8.1%), which collectively dropped 6.7 points below the semiconductor benchmark. Coverage reports that an industry survey showed NAND flash contract prices declined for a second consecutive month, which may be related to the move across storage and memory makers.\n\nMicron reports fiscal first-quarter results on Wednesday, three days away. Over the past seven earnings sessions, the typical move beyond the market has been 3.0 percentage points, though the stock has shown mixed reactions to beats: despite eight beats, four were followed by negative abnormal moves, including the most recent March report where a 33.2% surprise preceded a 3.0-point decline beyond the market the next session.",
+        "Micron fell 7.8%, 7.4 points more than the market, closely tracking its memory and storage peers, which dropped a median 8.1%. Reuters reported that memory stocks slid together after an industry survey showed NAND flash contract prices declined for a second consecutive month, which may be related to the sector-wide move. Business Wire noted that Micron reports Wednesday.\n\nThe report arrives in three days, and the stock's recent earnings history shows an unstable reaction pattern even after beats: the company has beaten estimates eight times but seen negative abnormal moves beyond the market in four of those instances, including most recently in March when a 33% beat was followed by a 3.0-point abnormal decline. The typical abnormal move around reports is 3.0 percentage points beyond what the market explains.",
+        "Micron fell 7.8%, 7.4 points more than the broader market and in line with memory and storage peers, which dropped a median 8.1%. Reuters reports that storage and memory makers moved together after an industry survey showed NAND flash contract prices declined for a second consecutive month, which may be related to the sector-wide weakness. The drop comes three days before Micron reports fiscal first-quarter results on Wednesday.\n\nLooking at recent earnings, the stock typically moves around 3.0 percentage points beyond what the market explains on report days, though the outcomes have been inconsistent: across the last three quarters, Micron beat estimates each time, yet four of the last eight beats were followed by negative abnormal moves the next session, including the most recent March report, which beat by 33.2% but fell 3.0 points more than the market would suggest.",
+        "Micron fell 7.8%, 7.4 points more than the market, moving in line with memory and storage peers, which declined a median 8.1%. Reuters reports that storage and memory makers fell together after an industry survey showed NAND flash contract prices declined for a second consecutive month, which may be related to the sector-wide selloff. Business Wire notes the company will report fiscal first-quarter results on Wednesday, three days from now.\n\nThe stock's recent earnings history shows mixed reactions even after beating estimates: of the last eight beats, four were followed by negative moves beyond what the market explains, including a 3.0-point abnormal decline in March despite a 33.2% earnings beat. The typical abnormal move around reports is 3.0 percentage points, though the June report saw a 15.3-point gain beyond the market after a strong beat.",
+        "Micron fell 7.8%, 7.4 points more than the market, tracking its memory and storage peers, which dropped a median of 8.1%. Reuters reports that storage and memory makers fell together following an industry survey showing contract prices for NAND flash declined for a second consecutive month, which may be related to the broad sector weakness.\n\nThe company reports fiscal first-quarter results on Wednesday, three days from now. Over recent quarters, Micron has typically moved around 3.0 percentage points beyond the market around earnings, and the stock has a mixed record on beats: in four of the last eight beats captured in the data, the move beyond the market was negative the next session, including a 33.2% beat in March that was followed by a 3.0-point abnormal decline.",
+        "Micron fell 7.8%, roughly in line with memory and storage peers (median -8.1%) and 6.7 points worse than the SMH semiconductor benchmark, which dropped 1.1%. Reuters reports that storage and memory makers declined together following an industry survey showing NAND flash contract prices fell for a second consecutive month. Business Wire notes the company will report results Wednesday.\n\nThe fiscal first-quarter report comes in three days. Micron's earnings moves have been sizable but unreliable: the typical move beyond the market is around 3.0 percentage points, though two of the last seven reactions were much larger. The stock has beaten estimates eight times but fallen in five of those cases, including most recently in March when a 33% earnings surprise was followed by a 3.0-point abnormal decline the next session.",
+        "Micron fell 7.8%, 7.4 points more than the market, tracking closely with memory and storage peers that dropped a median 8.1% on the session. Reuters reports that storage and memory makers moved together after an industry survey showed NAND flash contract prices declined for a second consecutive month, which may be related to the sector-wide weakness. The move comes just ahead of Micron's fiscal first-quarter earnings report on Wednesday, three days away.\n\nThe company's recent earnings history shows a median move of around 3.0% beyond what the market explains on report days, though outcomes have been inconsistent: of the last eight beats, four were followed by negative abnormal moves the next session, including a 33.2% beat in March 2026 that still saw the stock fall 3.0% more than the market's move would suggest.",
+        "Micron fell 7.8%, 7.4 points more than the market and in line with its memory and storage peers, which dropped a median of 8.1% (versus the group's benchmark SMH down 1.1%). Reuters reports that memory stocks slid together after an industry survey showed NAND flash contract prices declined for a second consecutive month. A Business Wire item notes that Micron will report after the close on Wednesday.\n\nThe company reports fiscal first-quarter results in three days. In recent quarters, Micron has typically moved 5.9% on earnings days, with a 3.0 percentage point move beyond what the market explains. The stock has beaten estimates in all eight of its recent reports, yet four of those beats were followed by negative abnormal moves the next session, including a 33% beat in March 2026 that preceded a 3.0 point abnormal decline.",
+        "Micron fell 7.8%, 7.4 points more than the market, in line with its memory and storage peers (median -8.1%). Reuters reports that memory stocks slid together after an industry survey showed NAND flash contract prices declined for a second consecutive month, which may be related to the sector-wide weakness. The move appears theme-driven rather than company-specific.\n\nThe stock reports fiscal first-quarter earnings on Wednesday, three days away. Over recent quarters, Micron has shown volatile post-earnings behavior: the typical move around earnings beyond the market has been about 3.0%, and the stock has beaten estimates in eight reports but lagged in four of those instances\u2014most recently in March, when a 33% earnings beat was followed by a 3.0 percentage-point abnormal decline the next session.",
+        "Micron fell 7.8%, versus a 0.4% decline in the broader market, tracking closely with memory and storage peers that dropped a median 8.1% on the session. Reuters reports that storage and memory makers fell together following an industry survey showing contract prices for NAND flash declined for a second consecutive month, which may be related to the sector-wide weakness. The company reports fiscal first-quarter earnings on Wednesday, three days from now, where recent history shows the stock typically moves around 3.0 percentage points beyond the market around results, though it has lagged following a beat in four of the last several reports\u2014including this March, when a 33% earnings surprise was followed by a 3.0-point abnormal decline the next session.",
+        "Micron fell 7.8%, underperforming the broader market by 7.4 points but tracking closely with its memory and storage peers, which declined a median 8.1%. Reuters reports that storage and memory makers fell together following an industry survey showing NAND flash contract prices declined for a second consecutive month, which may be related to the sector-wide weakness.\n\nThe company reports fiscal first-quarter results on Wednesday, three days away. Recent earnings reactions show mixed results even on beats: across the last three reports, Micron beat estimates each time but posted negative abnormal moves (beyond market effects) in two of those sessions, including a 3.0-point drop in March despite a 33% earnings surprise. The typical abnormal move around its reports is about 3.0 percentage points.",
+        "Micron fell 7.8%, 7.4 points more than the market and in line with memory and storage peers, which declined a median 8.1%. Reuters reported that an industry survey showed NAND flash contract prices fell for a second consecutive month, and the coverage notes storage and memory makers moved down together. The decline tracked the sector rather than diverging from it, with the benchmark SMH down 1.1%.\n\nThe company reports fiscal first-quarter results Wednesday, three days from now. Over recent quarters, Micron has shown a typical abnormal move of 3.0 percentage points around earnings beyond what the market explains, but results have been unpredictable: of the last four beats, three were followed by negative abnormal moves the next session, including a 33% surprise in March that preceded a 3.0-point drop after stripping out the market.",
+        "Micron fell 7.8%, 7.4 points more than the market, in line with memory and storage peers that dropped a median 8.1% (versus 6.7 points for the sector benchmark SMH). Reuters reports that memory stocks slid together after an industry survey showed NAND flash contract prices declined for a second consecutive month. The move comes three days before Micron reports fiscal first-quarter results on Wednesday after the close. The stock's typical move around earnings is about 3.0 percentage points beyond what the market explains, though beating estimates has been an unreliable signal: four of the last eight beats were followed by negative abnormal moves, including the most recent March report, which beat by 33% but fell 3.0 points more than the market would suggest.",
+        "Micron fell 7.8%, closely tracking its memory and storage peers (median down 8.1%) and landing 7.4 points below the broader market. Coverage reports that the move coincides with an industry survey showing NAND flash contract prices declined for a second consecutive month, affecting storage and memory makers as a group. The attribution is thematic rather than company-specific, with Western Digital and SanDisk posting similar declines.\n\nThe company reports fiscal first-quarter results on Wednesday, three days out. Recent earnings have shown mixed reactions despite beats: over the last three reports, Micron beat estimates each time but the stock fell the next session in one case and showed a typical move around earnings beyond the market of about 3.0 percentage points, with four of the last eight beats followed by negative abnormal moves.",
+        "Micron fell 7.8%, 7.4 points more than the market, tracking closely with memory and storage peers that dropped a median of 8.1% amid weakness in NAND pricing. Reuters reports that storage and memory makers fell together after an industry survey showed contract prices for NAND flash declined for a second straight month, which may be related to the sector-wide move.\n\nThe company reports fiscal first-quarter results Wednesday, three days from now. Over its last three reports, Micron has beaten estimates each time but posted a negative abnormal move (beyond what the market explains) in two of them, with a typical abnormal reaction of 3.0 percentage points; the March report beat by 33% yet the stock fell 3.8% the next session, with a 3.0-point abnormal decline.",
+        "Micron fell 7.8%, 7.4 points more than the market, in a decline shared across memory and storage stocks that dropped a median 8.1%. Reuters reports that an industry survey showed NAND flash contract prices fell for a second consecutive month, which may be related to the sector-wide weakness. The move comes just three days before Micron reports fiscal first-quarter earnings on Wednesday.\n\nThe stock typically moves around 6% on report days, with reactions beyond market influence averaging 3 percentage points. Recent history shows mixed results even after earnings beats: of the last eight beats, four were followed by negative abnormal moves, including the most recent March report where a 33% surprise produced a 3-point abnormal decline despite a large runup beforehand.",
+        "Micron fell 7.8%, 7.4 points more than the market, closely tracking its memory and storage peers, which dropped a median of 8.1%. Coverage reports that contract prices for NAND flash declined for a second consecutive month, dragging down the sector broadly. The move looks theme-driven rather than company-specific, with memory stocks sliding together on the pricing pressure.\n\nMicron reports fiscal first-quarter results on Wednesday, three days away. Recent earnings have shown an inconsistent relationship between beats and stock performance: the company has beaten estimates eight times in the sample, but four of those beats were followed by a negative abnormal move beyond what the market explains. The typical move around a report, stripping out the market's impact, has been 3.0 percentage points, though the March report saw a 33% earnings surprise followed by a 3.0-point abnormal decline.",
+        "Micron fell 7.8%, 7.4 points more than the market and closely in line with memory and storage peers, which had a median decline of 8.1%. The move looks theme-driven: Reuters reports that memory stocks slid together after an industry survey showed NAND flash contract prices fell for a second consecutive month, and Micron's decline tracked that of other storage and memory makers including Western Digital (down 8.1%) and SanDisk (down 8.6%).\n\nMicron reports fiscal first-quarter earnings on Wednesday, three days from now. The stock typically moves around 3.0 percentage points beyond what the market explains on report sessions, though recent reactions have been inconsistent: in March, Micron beat estimates by 33% but saw a 3.0-point negative abnormal move the next session, while June's 21% beat brought a 15.3-point abnormal gain. Four of the last eight beats were followed by negative abnormal moves."
+      ]
+    },
+    "analysis:mixed_move_report_tomorrow": {
+      "description": "Falls about twice as far as its peers, the day before reporting.",
+      "runs": 24,
+      "checks": {
+        "never gives a direct recommendation": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never tells the reader to trade": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never sets a price target": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never predicts direction": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never claims certainty": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never uses a rating": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never nudges the reader about positioning": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never suggests an action": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never advises a posture": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never tells the reader when to act": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "no markdown headings": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "no bullet lists": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "no numbered lists": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "no bold markdown": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "between 1 and 4 paragraphs": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "reasonable length": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "doesn't say the abnormal move isolates the report": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never states a move as a multiple of another": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "judge verdict": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        }
+      },
+      "first_output": "AMD fell 4.2%, 3.6 points more than the market and 2.2 points more than the median move among AI compute peers, which suggests a company-specific element alongside broader sector weakness. The sole news item notes that the company will publish third-quarter results after Monday's close, which is tomorrow. AMD's recent earnings pattern shows substantial moves\u2014a typical 6.1-point abnormal move beyond what the market explains\u2014but beating estimates has been an unreliable signal: all seven reports in the data beat, yet three of the last four beats were followed by negative abnormal moves, including August's 4.1% beat that preceded a 7.0-point drop beyond the market.",
+      "failed_runs": [],
+      "rewrites": [],
+      "outputs": [
+        "AMD fell 4.2%, 3.6 points more than the market and 2.2 points more than the median move among AI compute peers, which suggests a company-specific element alongside broader sector weakness. The sole news item notes that the company will publish third-quarter results after Monday's close, which is tomorrow. AMD's recent earnings pattern shows substantial moves\u2014a typical 6.1-point abnormal move beyond what the market explains\u2014but beating estimates has been an unreliable signal: all seven reports in the data beat, yet three of the last four beats were followed by negative abnormal moves, including August's 4.1% beat that preceded a 7.0-point drop beyond the market.",
+        "AMD fell 4.2%, 3.6 points more than the market and 2.2 points more than the median of its AI compute peers, which includes NVDA down 2.0%, AVGO down 1.8%, and TSM down 2.3%. The sector benchmark SMH declined 1.9%, making this a mixed attribution between company-specific and shared weakness. The only coverage notes that AMD reports third-quarter results after Monday's close.\n\nThe stock reports tomorrow, and its recent earnings history shows considerable volatility regardless of results: the typical move beyond what the market explains has been 6.1 percentage points, and in the last three reports AMD beat estimates each time but produced a negative abnormal move the next session in all three cases, including a 7.0-point drop in August and a 6.3-point drop in February despite beats of 4.1% and 6.0% respectively.",
+        "AMD fell 4.2%, underperforming the market by 3.6 points and dropping 2.2 points more than the median of its AI compute peers, which suggests the move has both a shared sector component and something company-specific. The only news item reports that AMD will publish third-quarter results after Monday's close, which places the announcement tomorrow given today's date. \n\nRecent earnings episodes show a typical move of around 6.1 percentage points beyond what the market alone would explain, but beating estimates has not reliably meant the stock rose\u2014across the last seven beats, three were followed by negative moves beyond the market, including the two most recent reports, which delivered surprises of 4.1% and 6.0% yet saw abnormal moves of -7.0 and -6.3 percentage points respectively. AMD reports third-quarter earnings tomorrow after the close.",
+        "AMD fell 4.2%, 3.6 points more than the market and 2.2 points more than the median of its AI compute peers, which declined around 2%. The move looks mixed relative to the theme -- partly shared direction with semiconductor stocks like NVDA and TSM, but notably steeper. One item notes that the company reports third-quarter results after Monday's close, which is tomorrow.\n\nThe stock's last three reports show volatile reactions despite consistent estimate beats: the median move beyond what the market explains has been 6.1 percentage points, and three of those seven beats were followed by negative abnormal moves, including a 7.0-point drop in August after a 4.1% surprise.",
+        "AMD fell 4.2%, 3.6 points more than the market and 2.2 points more than the median of its AI compute peers, which declined around 2%. The move looks somewhat company-specific within a sector-wide decline, though the single news item notes only that AMD will publish third-quarter results after Monday's close. \n\nThe stock reports tomorrow, and its recent earnings pattern shows volatility around reports regardless of beats: all seven modeled reports beat estimates, yet three of the last three beats were followed by negative abnormal moves beyond the market, ranging from -6.3 to -7.0 percentage points. The typical abnormal move around earnings is 6.1 percentage points in absolute terms, suggesting substantial price action is common irrespective of the fundamental outcome.",
+        "AMD fell 4.2%, 3.6 points more than the market and 2.2 points more than the median of its AI compute peers, which suggests a move partly shared with the sector but weighted toward company-specific factors. The only coverage notes that AMD will report third-quarter results after the close tomorrow. The stock's recent history around earnings shows a typical move of around 6% beyond what the market explains, but beating estimates has not reliably meant the stock rose: in the last three reports where AMD beat, the abnormal move was negative twice, including a 7-point drop in August after a 4% beat. Tomorrow's report follows that unpredictable pattern, with today's decline potentially reflecting positioning ahead of the event.",
+        "AMD fell 4.2%, 3.6 points more than the market and 2.2 points more than the median AI compute peer, which suggests a move partly shared with the theme but with a company-specific component dragging further. The sole news item notes that AMD will report third-quarter results after Monday's close, which is tomorrow. The stock typically moves around 6% (beyond what the market explains) in the session after a report, but beating estimates has not been reliable: in the three most recent quarters, AMD beat each time yet posted a negative abnormal move in two of them, including a 7.0% decline beyond the market in August despite a 4.1% beat.",
+        "AMD fell 4.2%, 3.6 points more than the market and 2.2 points more than its AI compute peers, which dropped a median of 2.0%. The single news item notes that AMD will publish third-quarter results after the market closes on Monday, which is tomorrow. Recent earnings history shows typical moves of around 6.1 percentage points beyond what the market explains, but beating estimates has not reliably lifted the stock\u2014all seven recent reports beat, yet three of those beats were followed by negative abnormal moves, including the last two quarters where 4.1% and 6.0% surprises preceded declines of 7.0 and 6.3 points beyond the market.",
+        "AMD fell 4.2%, underperforming the market's 0.6% decline by 3.6 points and dropping 2.2 points more than the median of its AI compute peers, which suggests the move was partly shared with the semiconductor sector but also company-specific. The stock reports third-quarter results tomorrow after the close. Recent earnings patterns show AMD typically moves around 6% beyond what the market explains on report days, but beating estimates hasn't reliably meant the stock rose: over the past three reports, all beat by 3-6%, yet the stock posted negative abnormal moves in two cases, including a 7% move beyond the market last August despite a 4.1% beat.",
+        "AMD fell 4.2%, 3.6 points more than the market and 2.2 points more than the median peer in AI compute, where Nvidia dropped 2.0% and TSMC declined 2.3%. The only coverage notes that the company reports third-quarter results after Monday's close, which is tomorrow. Recent earnings have produced large moves \u2014 a median of around 6 percentage points beyond what the market explains \u2014 but beating estimates has not reliably meant the stock rose: all seven beats in the recent sample topped expectations, yet three of the last three and four of the last seven were followed by negative abnormal moves, including a 7.0-point drop beyond the market in August despite a 4.1% beat.",
+        "AMD fell 4.2%, 3.6 points more than the market and 2.2 points worse than the median AI compute peer, which suggests a company-specific component alongside sector weakness. The only coverage notes the company reports third-quarter results after Monday's close\u2014tomorrow. The stock has shown volatile reactions around earnings, with a typical move beyond the market of around 6.1 percentage points, and notably, three of the past seven beats were followed by negative abnormal moves, including the last two quarters despite estimate beats of 4.1% and 6.0%.",
+        "AMD fell 4.2%, 3.6 points more than the market's 0.6% decline, and moved 2.2 points below its AI compute peers, who dropped a median 2.0% alongside a 1.9% fall in SMH. The one piece of coverage notes that the company will publish third-quarter results after Monday's close. The stock reports tomorrow, and its recent pattern shows a typical move of around 6% on earnings days, with the move beyond market effects running closer to 6.1%; notably, in three of the last seven quarters the stock beat estimates but still posted a negative abnormal move the next session.",
+        "AMD fell 4.2%, 3.6 points more than the market and 2.2 points more than its AI compute peers, which declined around 2% (NVDA -2.0%, TSM -2.3%, AVGO -1.8%). The move looks partly shared with the semiconductor sector but steeper than those comparisons, which may be related to the company reporting third-quarter results after Monday's close\u2014tomorrow. The stock typically moves around 6.1% beyond what the market explains in the session around earnings, and although all seven recent reports beat estimates, three of those beats were followed by negative abnormal moves, including the most recent two quarters (down 7.0% and 6.3% beyond the market after beating by 4.1% and 6.0%).",
+        "AMD fell 4.2%, 3.6 points more than the market and 2.2 points more than the median AI compute peer, which dropped 2.0%. The decline came ahead of third-quarter results due after Monday's close \u2014 tomorrow \u2014 with the stock showing a pattern of volatile earnings reactions regardless of estimate beats. Over the past three reports, AMD has beaten estimates each time yet the move beyond the market has been negative in two of those instances, with a typical abnormal move of around 6.1 percentage points. The most recent report in August saw a 4.1% earnings beat followed by a 7.0 percentage point abnormal decline the next session.",
+        "AMD fell 4.2%, 3.6 points more than the market and 2.2 points beyond the median move of its AI compute peers, which dropped 2.0%. The decline comes one day ahead of third-quarter results due after the close on Monday, with the coverage noting the timing of the report. \n\nAMD's recent earnings history shows volatile reactions regardless of the numbers: the company has beaten estimates in all seven modelled quarters, yet three of those beats were followed by negative abnormal moves in the next session, and typical movement beyond the market has been around 6.1 percentage points. In the most recent three quarters, two beats were followed by declines of 7.0 and 6.3 abnormal points, while one produced a 4.6-point abnormal gain, suggesting the stock's response has turned less on whether AMD beat than on what the report and guidance revealed about demand or competition. The company reports tomorrow.",
+        "AMD fell 4.2%, 3.6 points more than the market and 2.2 points beyond the median AI compute peer, in a mixed attribution that shows the decline was steeper than its theme but not entirely company-specific. The single news item notes that the company will publish third-quarter results after Monday's close, which is tomorrow. \n\nRecent earnings history shows AMD typically moves around 6% beyond the market on report days, but beating estimates has not reliably meant gains: all seven of the recent quarters beat, yet three of the last three beats were followed by negative abnormal moves ranging from -6% to -7%. The decline today, coming just ahead of results, may be related to positioning or uncertainty about the reaction pattern rather than the report itself.",
+        "AMD fell 4.2%, 3.6 points more than the market and 2.2 points more than the median of its AI compute peers, which declined around 2%. The move looks mixed\u2014steeper than the theme but not entirely out of step with the sector-wide weakness, as the semiconductor benchmark SMH dropped 1.9%. The only coverage notes that AMD reports third-quarter results after Monday's close, which is tomorrow. Looking at the three most recent reactions, AMD has beaten estimates each time but the stock fell the next session in two of those cases, with moves beyond the market typically around 6 points in either direction; beating hasn't reliably meant a rise.",
+        "AMD fell 4.2%, 3.6 points more than the market and 2.2 points beyond its AI compute peers, which declined a median of 2.0%. The one item of coverage notes that the company reports third-quarter results after Monday's close, which is tomorrow. \n\nAMD typically moves around 6.1% beyond what the market explains in the session following earnings, but that move has shown little connection to whether estimates were beaten: all seven recent reports beat, yet three of those were followed by negative abnormal moves, including the last two quarters, which fell 7.0% and 6.3% beyond the market despite beats of 4.1% and 6.0%.",
+        "AMD fell 4.2%, underperforming the market by 3.6 points and also declining more than its AI compute peers, which had a median drop of 2.0%. The one news item notes that the company reports third-quarter results after Monday's close, which is tomorrow. Historical evidence shows AMD typically moves around 6.1% beyond what the market explains on earnings days, but beating estimates has been unreliable as a signal\u2014all seven recent reports beat, yet three of those beats were followed by negative abnormal moves, including the last report in August, which beat by 4.1% but saw the stock fall 7.0 points more than the market would explain.",
+        "AMD fell 4.2%, 3.6 points more than the market and 2.2 points more than the median of its AI compute peers, which dropped 2.0% as the group declined together. The sole news item notes that AMD will publish third-quarter results after Monday's close, which is tomorrow. The stock's recent earnings pattern shows substantial volatility around reports, with a typical move of 6.1 percentage points beyond what the market explains, and beating estimates has not been reliable\u2014three of the last seven beats were followed by a negative abnormal move, including the most recent report in August (4.1% beat, 7.0 point drop beyond the market).",
+        "AMD fell 4.2%, 3.6 points more than the market and 2.2 points more than the median of its AI compute peers, which dropped around 2%. The move looks mixed rather than purely sector-driven, with AMD underperforming both the SMH benchmark (down 1.9%) and peers including NVDA (down 2.0%) and AVGO (down 1.8%). The only coverage notes that AMD reports third-quarter results after Monday's close\u2014tomorrow. The stock typically moves around 6% on earnings (measured beyond the market), and beating estimates hasn't been reliable: all seven reports in the dataset beat, yet three of those were followed by negative abnormal moves, including the last two quarters, which saw drops of 7.0 and 6.3 percentage points beyond what the market explained despite beats of 4.1% and 6.0%.",
+        "AMD fell 4.2%, 3.6 points more than the market and 2.2 points more than the median of its AI compute peers, suggesting a move partly shared with the sector but amplified by company-specific factors. The one news item notes that AMD will publish third-quarter results after the market closes on Monday, meaning the report comes tomorrow. The stock typically moves around 6.1% beyond what the market explains in the session around earnings, but beating estimates has offered no protection: all seven recent reports beat, yet three were followed by negative abnormal moves, including the last two quarters, which fell 7.0% and 6.3% beyond the market despite beats of 4.1% and 6.0%.",
+        "AMD fell 4.2%, 3.6 points more than the market and 2.2 points worse than the median AI compute peer, which suggests the move combined sector weakness with company-specific pressure. The single news item notes the company will publish third-quarter results after the close on Monday. The stock reports tomorrow, and the recent pattern shows substantial volatility around earnings: the typical move beyond what the market explains has been 6.1 percentage points, and despite beating estimates in all seven recent reports, three of those beats were followed by a negative abnormal move the next session, including the last two quarters (abnormal declines of 7.0 and 6.3 points after beats of 4.1% and 6.0% respectively).",
+        "AMD fell 4.2%, 3.6 points more than the market and 2.2 points more than the median of its AI compute peers, which declined between 1.8% and 2.3% alongside a 1.9% drop in the SMH benchmark. The single news item notes that AMD will publish third-quarter results after Monday's close. The stock reports tomorrow, and its recent earnings pattern shows substantial moves regardless of the beat -- the typical move beyond what the market explains is 6.1 percentage points, and in the last three reports where estimates were beaten, the stock fell the next session twice and rose once, with abnormal moves of -7.0%, +4.6%, and -6.3% respectively."
+      ]
+    },
+    "analysis:news_unavailable": {
+      "description": "Falls alone while its news lookup failed.",
+      "runs": 24,
+      "checks": {
+        "never gives a direct recommendation": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never tells the reader to trade": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never sets a price target": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never predicts direction": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never claims certainty": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never uses a rating": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never nudges the reader about positioning": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never suggests an action": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never advises a posture": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never tells the reader when to act": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "no markdown headings": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "no bullet lists": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "no numbered lists": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "no bold markdown": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "between 1 and 4 paragraphs": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "reasonable length": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "doesn't call news that failed to load 'no news'": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never states a move as a multiple of another": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "judge verdict": {
+          "passed": 23,
+          "runs": 24,
+          "failure": "The brief states 'News coverage was unavailable' which improperly frames the failed lookup as an absence of news rather than acknowledging the headlines couldn't be loaded."
+        }
+      },
+      "first_output": "Seagate fell 5.6% to $104.20, underperforming the market by 5.3 percentage points and diverging sharply from its memory and storage peers, which showed a median decline of just 0.9%. The stock dropped 4.7 points more than peers including Micron, Western Digital, and SanDisk, and 4.8 points more than the SMH semiconductor benchmark, marking this as a company-specific move rather than sector weakness. News coverage could not be loaded, leaving the driver of the outsized decline unclear. The company reports earnings in twelve days on November 13th.",
+      "failed_runs": [
+        {
+          "run": 21,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "judge_reason": "The brief states 'News coverage was unavailable' which improperly frames the failed lookup as an absence of news rather than acknowledging the headlines couldn't be loaded.",
+          "analysis": "Seagate fell 5.6%, underperforming the market by 5.3 percentage points and diverging sharply from its memory and storage peers, which posted a median decline of just 0.9%. While the broader semiconductor sector (SMH) declined 0.8% and peers including Micron, Western Digital, and SanDisk saw relatively modest losses, Seagate's drop was 4.7 points steeper than its peer group, indicating a company-specific development rather than sector-wide pressure. News coverage was unavailable, leaving the driver of the standalone move unclear. The company reports earnings in twelve days on November 13th."
+        }
+      ],
+      "rewrites": [],
+      "outputs": [
+        "Seagate fell 5.6% to $104.20, underperforming the market by 5.3 percentage points and diverging sharply from its memory and storage peers, which showed a median decline of just 0.9%. The stock dropped 4.7 points more than peers including Micron, Western Digital, and SanDisk, and 4.8 points more than the SMH semiconductor benchmark, marking this as a company-specific move rather than sector weakness. News coverage could not be loaded, leaving the driver of the outsized decline unclear. The company reports earnings in twelve days on November 13th.",
+        "Seagate fell 5.6%, closing at $104.20, a decline 5.3 points steeper than the market's 0.3% drop. Within the Memory & storage theme, the move was company-specific: peers showed a median decline of just 0.9%, with Seagate falling 4.7 points more than that group and 4.8 points below the SMH benchmark. News coverage could not be loaded, leaving the driver of this divergence unclear. The company reports earnings in 12 days, on November 13.",
+        "Seagate fell 5.6%, 5.3 points more than the market and 4.7 points beyond its peers in the memory and storage theme, which declined a median of 0.9%. The sharp divergence from Western Digital, Micron, and other storage names suggests this is company-specific rather than shared sector weakness. News coverage could not be loaded, leaving the driver of the move unclear. The company reports earnings in twelve days on November 13th.",
+        "STX fell 5.6% to $104.20, underperforming the market by 5.3 percentage points and its memory & storage peers by 4.7 points. While the sector benchmark SMH dropped 0.8% and peer names like Micron and Western Digital declined roughly 1%, STX's move was substantially steeper, marking this as a company-specific session rather than a shared theme reaction. News coverage could not be loaded, leaving the driver of the divergence unclear from available data. The company reports earnings in twelve days on November 13th.",
+        "Seagate fell 5.6%, down to $104.20, while its memory and storage peers declined only 0.9% at the median and the sector benchmark SMH dropped 0.8%, putting the move 4.7 points below peers and 4.8 points below the benchmark\u2014a company-specific decline rather than a shared theme move. News coverage could not be loaded, leaving the driver of the divergence unclear. The company reports earnings in 12 days, on November 13.",
+        "Seagate Technology fell 5.6%, closing at $104.20, which was 5.3 points steeper than the market's 0.3% decline. Within the memory & storage theme, the move appears specific to this company: its peers fell a median of 0.9%, and the theme's benchmark SMH dropped 0.8%, leaving Seagate down 4.7 points more than its peers. News coverage could not be loaded, so it's unclear what may have driven the divergence from others in the sector. The company reports earnings in 12 days, on November 13th.",
+        "Seagate fell 5.6%, while its memory and storage peers declined a median 0.9% and the sector benchmark SMH dropped 0.8%, placing this 4.7 points below peers and marking it as a company-specific move. News coverage couldn't be loaded, leaving the divergence from Western Digital and Micron unexplained by available reporting. The company reports earnings in 12 days on November 13th.",
+        "Seagate fell 5.6%, closing at $104.20, while its Memory & storage peers held relatively steady with a median decline of 0.9% and the sector benchmark SMH down 0.8%. The move stands out as company-specific rather than sector-driven, with Seagate dropping 4.7 percentage points more than its peers and 5.3 points more than the broader market. News coverage couldn't be loaded, leaving the driver of the divergence unclear. The company reports earnings in 12 days on November 13th.",
+        "Seagate fell 5.6% to $104.20, down 5.3 percentage points more than the market and 4.7 points more than the median move among its memory and storage peers, which suggests a company-specific development. News failed to load, so the catalyst for this divergence -- while Western Digital fell 1.2% and Micron 0.9% -- cannot be identified from the available coverage. The company reports earnings in 12 days on November 13th.",
+        "STX fell 5.6% to $104.20, dropping 5.3 points more than the market and 4.7 points more than the median of its memory and storage peers, which moved the attribution to company-specific. While the VanEck Semiconductor ETF declined 0.8% and peers MU, WDC, and SNDK fell between 0.6% and 1.2%, STX's sharper decline suggests something specific to the company may be in play, though news coverage could not be loaded to clarify. The company reports earnings in 12 days on November 13th.",
+        "Seagate fell 5.6%, while its peers in memory and storage dropped less than 1.3%, with the company underperforming them by 4.7 percentage points and the sector benchmark by 4.8 points\u2014marking this as a company-specific move rather than a shared sector trend. News coverage couldn't be loaded, leaving the driver of the divergence unclear. The company reports earnings in 12 days on November 13th.",
+        "STX fell 5.6% to $104.20, underperforming the market by 5.3 percentage points. Within the Memory & storage theme, this was a company-specific move: peers showed a median decline of just 0.9%, and the sector benchmark SMH fell 0.8%, putting STX 4.7 points below its peers and 4.8 points below the benchmark. News coverage could not be loaded, leaving the reason for the divergence from other storage companies unclear. The company reports earnings in 12 days on November 13th.",
+        "Seagate fell 5.6%, closing at $104.20, underperforming the market by 5.3 percentage points and its Memory & storage peers by 4.7 points. While the sector benchmark SMH declined 0.8% and peer stocks like Micron and Western Digital fell modestly (median peer move of -0.9%), Seagate's decline was substantially steeper, marking this as a company-specific move rather than a sector-wide trend. News coverage could not be loaded, leaving the specific driver unclear. The company reports earnings on November 13, twelve days from now.",
+        "STX fell 5.6% to $104.20, underperforming the market by 5.3 percentage points and its memory & storage peers by 4.7 points. While the semiconductor benchmark SMH dropped 0.8% and peer medians declined around 0.9%, this company's move was notably steeper, marking it as company-specific rather than a shared sector trend. News coverage could not be loaded for this session, leaving the driver of the selloff unclear from available sources. The company reports earnings in 12 days on November 13th.",
+        "Seagate fell 5.6% to $104.20, underperforming the market by 5.3 percentage points and diverging sharply from its memory and storage peers, which declined a median of 0.9%. While Western Digital dropped 1.2% and Micron fell 0.9%, Seagate's decline was 4.7 points steeper than the peer median, suggesting company-specific rather than sector-wide pressure. News coverage could not be loaded, leaving the driver of the move unclear. The company reports earnings in 12 days on November 13th.",
+        "Seagate fell 5.6%, closing at $104.20, significantly underperforming both the market (down 0.3%) by 5.3 points and its memory and storage peers, which fell a median of 0.9%. The decline appears company-specific, as Micron, Western Digital, and SanDisk all posted losses under 1.2%, while Seagate's move was 4.7 points steeper than its peer group. News coverage could not be loaded, leaving the driver of the outsized move unclear. The company reports earnings in 12 days on November 13th.",
+        "Seagate Technology fell 5.6%, closing at $104.20, significantly underperforming both the broader market (down 0.3%) by 5.3 percentage points and its memory & storage peers, which posted a median decline of 0.9%. While the theme benchmark SMH dropped 0.8% and peers like Micron, Western Digital, and SanDisk all fell between 0.6% and 1.2%, Seagate's 4.7-point gap versus peers marks this as a company-specific move rather than sector weakness. News coverage was unavailable, leaving the driver of today's steeper decline unclear. The company reports earnings in 12 days on November 13th.",
+        "Seagate fell 5.6%, 5.3 points more than the market, in a move that looks company-specific: its memory and storage peers were down a median 0.9%, leaving it 4.7 points behind them. News coverage could not be loaded, so the decline cannot be tied to any reported developments. The stock reports earnings on November 13, twelve days out.",
+        "Seagate fell 5.6%, bringing it to $104.20, while its memory and storage peers declined less than 1% and the market dropped 0.3%. The move diverged sharply from the theme, underperforming peers by 4.7 percentage points and the sector benchmark by 4.8 points, indicating a company-specific development rather than sector weakness. News coverage couldn't be loaded, leaving the driver of this divergence unclear. The company reports earnings in 12 days on November 13th.",
+        "STX fell 5.6% to $104.20, underperforming the market by 5.3 percentage points and its Memory & storage peers by 4.7 points. While the broader semiconductor benchmark SMH declined 0.8% and peer companies like Micron and Western Digital fell around 1%, STX's steeper drop appears company-specific rather than sector-driven. News coverage could not be loaded for this session, leaving the driver of the divergence unclear. The company reports earnings in 12 days on November 13th.",
+        "Seagate fell 5.6%, underperforming the market by 5.3 percentage points and diverging sharply from its memory and storage peers, which posted a median decline of just 0.9%. While the broader semiconductor sector (SMH) declined 0.8% and peers including Micron, Western Digital, and SanDisk saw relatively modest losses, Seagate's drop was 4.7 points steeper than its peer group, indicating a company-specific development rather than sector-wide pressure. News coverage was unavailable, leaving the driver of the standalone move unclear. The company reports earnings in twelve days on November 13th.",
+        "Seagate fell 5.6%, landing at $104.20, a decline of 5.3 percentage points more than the market and 4.7 points steeper than its memory and storage peers, which posted a median move of -0.9%. The sharp divergence from peers including Micron, Western Digital, and SanDisk points to a company-specific development rather than sector pressure, though news coverage could not be loaded for this briefing. The company reports earnings in 12 days on November 13th.",
+        "STX fell 5.6%, down 5.3 points more than the market, in a move specific to the company rather than its memory and storage peers, which posted a median decline of 0.9%. The stock diverged sharply from Western Digital (down 1.2%), Micron (down 0.9%), and the group's SMH benchmark (down 0.8%), suggesting company-specific factors rather than sector-wide pressure. News coverage couldn't be loaded, leaving the cause of the drop unclear. The company reports earnings in 12 days, on November 13.",
+        "Seagate fell 5.6%, closing at $104.20, while the broader market dipped 0.3% and its memory and storage peers declined a median 0.9%, leaving it down 5.3 points more than the market and 4.7 points more than peers. This move appears specific to Seagate rather than shared sector weakness, with Western Digital down 1.2% and Micron off 0.9% in comparison. News coverage could not be loaded, leaving the driver of the divergence unclear from the available data. The company reports earnings on November 13, twelve days out."
+      ]
+    },
+    "analysis:calendar_unavailable": {
+      "description": "Moves with its theme while its calendar lookup failed.",
+      "runs": 24,
+      "checks": {
+        "never gives a direct recommendation": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never tells the reader to trade": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never sets a price target": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never predicts direction": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never claims certainty": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never uses a rating": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never nudges the reader about positioning": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never suggests an action": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never advises a posture": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never tells the reader when to act": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "no markdown headings": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "no bullet lists": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "no numbered lists": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "no bold markdown": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "between 1 and 4 paragraphs": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "reasonable length": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "doesn't call a calendar that failed to load empty": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "doesn't say the abnormal move isolates the report": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never states a move as a multiple of another": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "judge verdict": {
+          "passed": 23,
+          "runs": 24,
+          "failure": "The brief states 'No upcoming earnings date is currently available in the data,' which turns the failed lookup into an empty calendar rather than acknowledging the date couldn't be loaded."
+        }
+      },
+      "first_output": "Broadcom rose 1.5%, tracking a 1.3% median gain across AI compute peers as networking chip stocks extended a rally. The move came 1.1 points ahead of the broader market and 0.4 points ahead of the SMH benchmark, with Reuters reporting that makers of networking chips climbed for a second day after two research firms raised their forecasts for AI data-center spending next year. \n\nThe stock's recent earnings pattern shows a typical move of 5.1 percentage points beyond what the market explains, though reactions have been mixed: the last three reports all beat estimates by 1.9% to 3.2%, yet one of those beats was followed by a negative abnormal move of 4.1 points. No next earnings date could be loaded.",
+      "failed_runs": [
+        {
+          "run": 2,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "judge_reason": "The brief states 'No upcoming earnings date is currently available in the data,' which turns the failed lookup into an empty calendar rather than acknowledging the date couldn't be loaded.",
+          "analysis": "Broadcom rose 1.5%, 1.1 points ahead of the market, tracking closely with its AI compute peers, which posted a median gain of 1.3%. Reuters reports that networking chip makers extended gains for a second day, which may be related to raised AI data-center spending forecasts from two research firms.\n\nThe stock's recent earnings history shows considerable volatility around reports, with a typical move of 5.1 percentage points beyond what the market explains. Over the past three reports, the company beat estimates each time but saw mixed reactions: two produced strong positive abnormal moves (+8.6 and +5.1 points), while one beat in June was followed by a -4.1 point abnormal decline, illustrating that beats haven't consistently translated to gains. No upcoming earnings date is currently available in the data."
+        }
+      ],
+      "rewrites": [],
+      "outputs": [
+        "Broadcom rose 1.5%, tracking a 1.3% median gain across AI compute peers as networking chip stocks extended a rally. The move came 1.1 points ahead of the broader market and 0.4 points ahead of the SMH benchmark, with Reuters reporting that makers of networking chips climbed for a second day after two research firms raised their forecasts for AI data-center spending next year. \n\nThe stock's recent earnings pattern shows a typical move of 5.1 percentage points beyond what the market explains, though reactions have been mixed: the last three reports all beat estimates by 1.9% to 3.2%, yet one of those beats was followed by a negative abnormal move of 4.1 points. No next earnings date could be loaded.",
+        "Broadcom rose 1.5%, 1.1 points ahead of the market, tracking closely with its AI compute peers, which posted a median gain of 1.3%. Reuters reports that networking chip makers extended gains for a second day, which may be related to raised AI data-center spending forecasts from two research firms.\n\nThe stock's recent earnings history shows considerable volatility around reports, with a typical move of 5.1 percentage points beyond what the market explains. Over the past three reports, the company beat estimates each time but saw mixed reactions: two produced strong positive abnormal moves (+8.6 and +5.1 points), while one beat in June was followed by a -4.1 point abnormal decline, illustrating that beats haven't consistently translated to gains. No upcoming earnings date is currently available in the data.",
+        "Broadcom rose 1.5%, 1.1 points ahead of the broader market and in line with AI compute peers (median 1.3%). The gain tracked its theme, with the SMH semiconductor ETF up 1.1%, as Reuters reported that networking chip makers extended gains following raised AI data-center spending forecasts from two research firms. Around its last three reports, the stock typically moved 5.1 percentage points beyond what the market explains, though beating estimates has been unreliable \u2013 it beat twice and still posted negative abnormal moves in those sessions. No next earnings date could be loaded.",
+        "Broadcom rose 1.5%, about 1.1 points ahead of the market and in line with its AI compute peers (median 1.3%). Reuters reports that networking chip makers extended gains for a second session, which may be related to two research firms raising forecasts for AI data-center spending next year. The move appears theme-driven, tracking peers including Nvidia (up 1.3%), AMD (up 0.9%), and TSMC (up 1.6%).\n\nThe company's recent earnings pattern shows volatile reactions: moves around reports beyond the market have typically been 5.1 percentage points in either direction. Of the last seven beats, two were followed by negative abnormal moves, including a 4.1-point decline in June despite a 1.9% estimate beat. No upcoming report date could be loaded.",
+        "Broadcom rose 1.5%, 1.1 points ahead of the broader market and in line with its AI compute peers, which posted a median gain of 1.3%. Reuters reports that networking chip makers extended gains for a second day following increased forecasts from two research firms for AI data-center spending next year, which may be related to the move across the group. \n\nThe stock's recent earnings pattern shows a typical move of around 5.1 percentage points beyond what the market explains, though beating estimates has been no guarantee of direction\u2014two of the last seven beats were followed by negative abnormal moves, including a 4.1-point decline after a 1.9% beat in June despite an 8.6-point gain in September. No upcoming report date could be loaded.",
+        "AVGO rose 1.5%, outpacing the market by 1.1 percentage points but moving in line with its AI compute theme peers, which saw a median gain of 1.3%. Reuters reports that networking chip stocks extended gains for a second day following increased AI data-center spending forecasts from two research firms, which may be related to the sector-wide move.\n\nThe stock's recent earnings history shows volatile reactions, with moves beyond the market typically around 5.1 percentage points. Notably, two of the last seven beats were followed by negative abnormal moves, including a 4.1-point decline beyond the market in June 2026 despite a 1.9% positive surprise, so beating estimates has not reliably meant upside. No upcoming report date could be loaded.",
+        "Broadcom rose 1.5%, moving in line with its AI compute peers (median 1.3%) and 1.1 points ahead of the broader market. Reuters reports that networking chip stocks extended gains for a second day after two research firms raised their forecasts for AI data-center spending next year, which may be related to the sector-wide move. \n\nAround earnings, this stock typically moves 5.1 percentage points beyond what the market explains, based on recent reports. Over the last three earnings releases, Broadcom beat estimates all three times but lagged the market in two of those sessions despite the beats, with abnormal moves ranging from -4.1% to +8.6%. No upcoming earnings date could be loaded.",
+        "AVGO rose 1.5%, outpacing the broader market by 1.1 points but roughly in line with its AI compute peers, which saw a median gain of 1.3%. The move tracked the theme, as Reuters reports networking chip stocks extended gains for a second day following raised forecasts from research firms for AI data-center spending next year. \n\nThe earnings calendar couldn't be loaded, but historical data shows AVGO typically moves around 5.1 percentage points beyond what the market explains in the session following a report. Of the seven beats on record, two were followed by negative abnormal moves, including the most recent June report where a 1.9% earnings surprise preceded a move of -4.1 points beyond the market.",
+        "AVGO rose 1.5%, tracking closely with AI compute peers (median +1.3%) and outpacing the broader market by 1.1 percentage points. Reuters reports that networking chip makers extended gains after two research firms raised their forecasts for AI data-center spending next year, which may be related to the move across the sector.\n\nThe stock has shown significant volatility around earnings, with moves beyond the market typically reaching 5.1 percentage points. In its last three reports, AVGO beat estimates each time but showed inconsistent reactions: two beats were followed by negative abnormal moves, including a -4.1 point move in June despite a 1.9% surprise. No upcoming earnings date could be loaded.",
+        "Broadcom rose 1.5%, 1.1 points ahead of the broader market and in line with its AI compute peers, which moved a median of 1.3%. Reuters reports that networking chip makers extended gains after two research firms raised their AI data-center spending forecasts for next year, which may be related to the move across the group.\n\nThe stock typically moves about 5.1% around earnings beyond what the market explains, based on six recent reports. Reactions have been mixed after beating estimates: two of seven beats were followed by negative abnormal moves the next session, including a 4.1-point decline in June despite a 1.9% estimate beat. The next earnings date couldn't be loaded.",
+        "AVGO rose 1.5%, gaining 1.1 percentage points more than the broader market and moving in line with its AI compute theme peers, which posted a median gain of 1.3%. Reuters reports that networking chip makers extended gains after research firms raised their AI data-center spending forecasts for next year, which may be related to the move across the sector.\n\nThe stock's earnings pattern shows typical moves of around 5.1 points beyond the market on report days, based on six modeled reactions. While it has beaten estimates in seven of its tracked reports, two of those beats were followed by negative abnormal moves, including a -4.1 point drop in June despite a 1.9% earnings surprise. No earnings date is currently available in the data.",
+        "Broadcom rose 1.5%, 1.1 points more than the broader market, moving in line with its AI compute peers (median gain 1.3%) and the SMH semiconductor benchmark (up 1.1%). Reuters reports that networking chip stocks extended gains for a second day, which may be related to two research firms raising their forecasts for AI data-center spending next year.\n\nThe company's recent earnings pattern shows substantial volatility around reports, with a typical move of 5.1 percentage points beyond what the market explains. Across the three most recent reports, Broadcom beat estimates each time, yet two of those beats were followed by negative abnormal moves, including a 4.1-point decline in June despite a 1.9% earnings surprise. No upcoming report date is currently available in the data.",
+        "Broadcom rose 1.5%, about 1.1 points ahead of the broader market and in line with AI compute peers, which moved a median of 1.3%. Reuters reports that networking chip makers extended gains for a second session after two research firms raised their AI data-center spending forecasts for next year, which may be related to the move across the group. \n\nThe stock's recent earnings pattern shows typical moves of around 5.1 percentage points beyond the market around reports, though beating estimates hasn't consistently meant gains: in two of the last seven beats, the abnormal move was negative, including a 4.1-point decline in June despite a 1.9% estimate beat. No earnings date could be loaded for the next report.",
+        "AVGO rose 1.5%, 1.1 points ahead of the market, in a move that tracked its AI compute theme peers (median 1.3%, benchmark SMH up 1.1%). Reuters reports that networking chip makers extended gains for a second day following raised forecasts from two research firms for AI data-center spending next year. \n\nThe company's recent earnings pattern shows moves of typical size 6.2% on the session following a report, with 5.1 percentage points beyond what the market explains; it has beaten estimates seven times in the available history, yet two of those beats were followed by negative abnormal moves, including a 4.1-point lag in June 2026 despite a 1.9% surprise. The events calendar couldn't be loaded, so the next report date is unknown.",
+        "Broadcom rose 1.5%, outpacing the market by 1.1 points but tracking closely with its AI compute peers, which posted a median gain of 1.3%. The move appears theme-driven, with Reuters reporting that networking chip stocks extended gains for a second day following raised forecasts from two research firms for AI data-center spending next year. \n\nAround its last three earnings reports, Broadcom has shown substantial moves, with a typical abnormal move of 5.1 percentage points beyond what the market alone would explain, though the direction has been inconsistent\u2014two of seven beats were followed by negative abnormal moves. The report date couldn't be loaded, so timing for the next earnings announcement is unavailable.",
+        "Broadcom rose 1.5%, tracking closely with AI compute peers that moved a median 1.3% and gaining 1.1 points more than the broader market. Reuters reports that networking chip makers extended gains after two research firms raised their forecasts for AI data-center spending next year, which may be related to the move across the group. \n\nThe stock's history around earnings shows typical moves of 5.1 percentage points beyond the market, though beating estimates hasn't been reliable: in the most recent three quarters, the company beat each time but the abnormal move turned negative once despite the beat. Events data couldn't be loaded, so the next earnings date is unknown.",
+        "Broadcom rose 1.5%, tracking closely with its AI compute theme peers, which moved a median of 1.3%, and the semiconductor benchmark SMH, which gained 1.1%. The stock outpaced the broader market by 1.1 percentage points. Reuters reports that networking chip makers extended gains for a second day, which may be related to two research firms raising their AI data-center spending forecasts for next year.\n\nThe stock's earnings pattern shows meaningful volatility around reports, with a typical move of 5.1 percentage points beyond what the market explains. Of the company's last seven beats, two were followed by negative abnormal moves, including a 4.1-point decline after a 1.9% beat in June despite an 8.6-point abnormal gain in September. No upcoming earnings date could be loaded.",
+        "AVGO rose 1.5%, roughly in line with its AI compute peers (median 1.3%) and 1.1 points ahead of the broader market. Reuters reports that networking chip makers extended gains for a second day following two research firms raising their forecasts for AI data-center spending next year, which may be related to the move across the group. The stock's recent earnings history shows a typical move around reports of about 5.1 percentage points beyond what the market explains, though beating estimates hasn't been reliable: two of the last seven beats were followed by negative abnormal moves, including a 4.1-point drop in June despite a 1.9% earnings surprise. No upcoming earnings date could be loaded.",
+        "AVGO rose 1.5%, 1.1 points ahead of the broader market and roughly in line with its AI compute peers (median 1.3%) and the SMH semiconductor benchmark. Reuters reports that networking chip makers extended gains for a second day after two research firms raised their forecasts for AI data-center spending next year, which may be related to the move across the group. \n\nNo earnings date is currently available (events data could not be loaded). At recent reports, AVGO has typically moved around 5 percentage points beyond what the market's own move would explain, though the direction has been mixed: across seven beats, two were followed by negative abnormal moves despite the positive surprise, including a 4.1-point decline in June after a 1.9% beat.",
+        "AVGO rose 1.5%, 1.1 points ahead of the broader market and in line with its AI compute peer group, which moved a median 1.3%. Reuters reports that networking chip makers extended gains for a second day following raised forecasts from two research firms for AI data-center spending next year, which may be related to the move across the group.\n\nThe stock's earnings pattern shows typical post-report moves of 6.2% and abnormal moves (beyond market influence) of 5.1 percentage points. Of the seven beats on record, two were followed by negative abnormal moves, including the most recent June report where a 1.9% estimate beat led to a -4.1 percentage point abnormal move despite the positive surprise. No upcoming earnings date could be loaded.",
+        "Broadcom rose 1.5%, 1.1 points ahead of the broader market and in line with its AI compute peers, which posted a median gain of 1.3%. Reuters reports that networking chip makers extended gains for a second day, which may be related to two research firms raising their forecasts for AI data-center spending next year. The move tracks closely with the theme, as the SMH semiconductor ETF rose 1.1% and peers including NVDA and TSM also advanced.\n\nThe stock's recent earnings pattern shows a typical move of around 5.1 percentage points beyond what the market explains on report days, though reactions have varied: two of the last three beats brought positive abnormal moves, while the June report fell 4.1 points below the market despite a 1.9% estimate beat. No upcoming earnings date could be loaded for this briefing.",
+        "Broadcom rose 1.5%, tracking closely with its AI compute peers (median 1.3%) and 1.1 points ahead of the broader market. Reuters reports that networking chip stocks extended gains for a second day, which may be related to two research firms raising their forecasts for AI data-center spending next year. \n\nPast earnings show typical moves of around 6% in the session following a report, with an abnormal component (beyond market effects) of about 5%. Of the seven beats in the record, two were followed by negative abnormal moves despite the positive surprise, including the most recent June report where the stock fell 5.0% despite a 1.9% earnings beat. No upcoming earnings date could be loaded.",
+        "AVGO rose 1.5%, 1.1 points ahead of the broader market and in line with its AI compute peers (median +1.3%). Reuters reports that networking chip stocks extended gains for a second day, which may be related to two research firms raising their forecasts for AI data-center spending next year. The move tracked closely with the theme's benchmark SMH (+1.1%) and peers including NVDA (+1.3%) and TSM (+1.6%), suggesting a sector-wide response to the revised spending outlook rather than company-specific news.\n\nThe stock's last three earnings reports show it typically moves 5.1 percentage points beyond what the market explains around results, though direction has been mixed: two of the three beats were followed by gains beyond the market, while the June report fell 4.1 points despite a 1.9% earnings surprise. No upcoming earnings date could be loaded.",
+        "Broadcom rose 1.5%, 1.1 points ahead of the market and roughly in line with AI compute peers (median up 1.3%). Reuters reports that networking chip makers extended gains for a second day, which may be related to two research firms raising their AI data-center spending forecasts for next year. The move tracked the theme rather than standing out from it, with the SMH semiconductor ETF up 1.1%.\n\nThe stock's recent earnings pattern shows a median move of around 5.1 percentage points beyond what the market explains on report days. Of the seven beats in the data, two were followed by negative abnormal moves, suggesting that exceeding estimates has not consistently translated to post-report gains. No upcoming report date is currently available in the data."
+      ]
+    }
+  }
+}
