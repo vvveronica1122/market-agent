@@ -84,8 +84,11 @@ def get_recent_news(ticker: str, limit: int = 5) -> list[dict[str, Any]]:
     and telling someone "here's a summary" of something they can only
     watch is a small lie worth avoiding.
 
-    Returns an empty list (not an error) if no news is found -- the agent
-    should treat that as "nothing notable right now", not a failure.
+    Returns an empty list if Yahoo answered with no stories, and raises
+    ValueError if it couldn't be asked: search is the source actually
+    relied on when the feed is empty, so a failed search is a failed
+    lookup. Returning [] for both let a broken source read as a quiet
+    company -- no headlines, no news points, a lower rank.
 
     When the ticker's own feed is empty, Yahoo's search endpoint is tried;
     see _search_news. Each item's `source` says which it came from: "feed"
@@ -100,7 +103,10 @@ def get_recent_news(ticker: str, limit: int = 5) -> list[dict[str, Any]]:
         raw_items = []
     source = "feed"
     if not raw_items:
-        raw_items = _search_news(ticker, limit)
+        try:
+            raw_items = _search_news(ticker, limit)
+        except Exception as exc:
+            raise ValueError(f"Could not fetch news for '{ticker}': {exc}") from exc
         source = "search"
 
     items: list[dict[str, Any]] = []
@@ -157,10 +163,7 @@ def _search_news(ticker: str, limit: int) -> list[dict[str, Any]]:
     Search matches text, so only stories Yahoo tags with this ticker are
     kept. They come in the flat format: a headline and publisher, no summary.
     """
-    try:
-        found = yf.Search(ticker, max_results=1, news_count=limit * 2).news or []
-    except Exception:
-        return []
+    found = yf.Search(ticker, max_results=1, news_count=limit * 2).news or []
     symbols = {ticker.upper()} | SAME_COMPANY.get(ticker.upper(), set())
     return [item for item in found if symbols & set(item.get("relatedTickers") or [])]
 
@@ -170,6 +173,8 @@ def get_upcoming_events(ticker: str) -> dict[str, Any]:
 
     Fields are None when yfinance has no data for that field -- that's
     normal (not every company has an upcoming dividend, for instance).
+    Raises ValueError when the calendar couldn't be fetched at all, so a
+    failed lookup isn't read as "no report coming".
     """
     t = yf.Ticker(ticker)
     result: dict[str, Any] = {
@@ -180,6 +185,9 @@ def get_upcoming_events(ticker: str) -> dict[str, Any]:
 
     try:
         cal = t.calendar
+    except Exception as exc:
+        raise ValueError(f"Could not fetch the calendar for '{ticker}': {exc}") from exc
+    try:
         if isinstance(cal, dict):
             earnings = cal.get("Earnings Date")
             if isinstance(earnings, list) and earnings:

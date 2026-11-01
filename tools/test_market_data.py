@@ -95,8 +95,41 @@ def main() -> int:
             def __init__(self, *a, **k):
                 raise RuntimeError("search is down")
         market_data.yf.Search = Broken
-        failures += not check("a failing search means no news, not an error",
+        # It used to return [], which the dashboard scored as a company
+        # with no news: a broken source read as a quiet day.
+        try:
+            market_data.get_recent_news("MU")
+            raised = False
+        except ValueError:
+            raised = True
+        failures += not check("a failing search is an error, not an empty list", raised)
+        FakeSearch.results = []
+        market_data.yf.Search = FakeSearch
+        failures += not check("a search that answers with nothing is still no news",
                               market_data.get_recent_news("MU") == [])
+
+        print("\nThe calendar")
+
+        class NoCalendar(FakeTicker):
+            @property
+            def calendar(self):
+                raise RuntimeError("calendar is down")
+
+        class EmptyCalendar(FakeTicker):
+            calendar = {}
+
+        market_data.yf.Ticker = NoCalendar
+        try:
+            market_data.get_upcoming_events("MU")
+            raised = False
+        except ValueError:
+            raised = True
+        failures += not check("a calendar that can't be fetched is an error, not 'no report coming'",
+                              raised)
+        market_data.yf.Ticker = EmptyCalendar
+        events = market_data.get_upcoming_events("MU")
+        failures += not check("a calendar with no dates gives None dates, not an error",
+                              events["next_earnings_date"] is None, str(events))
     finally:
         market_data.yf.Ticker, market_data.yf.Search = real_ticker, real_search
 

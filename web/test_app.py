@@ -326,6 +326,54 @@ def main() -> int:
     failures += not check("a move is labelled as a move, not as today's",
                           any(f["label"] == "-6.0% move" for f in crash["factors"]), str(crash["factors"]))
 
+    print("\nMissing data isn't a quiet day")
+    # compute_attention(None, [], {}, None) used to say "quiet": a failed
+    # lookup scored like a calm company.
+    blank = server.compute_attention(None, [], {}, None)
+    failures += not check("no price at all is incomplete, not quiet",
+                          blank["level"] == "incomplete" and blank["missing"] == ["price"], str(blank))
+    no_news = server.compute_attention(fake_price("QUIET"), [], fake_events("QUIET"), 0.2,
+                                       missing=["news"])
+    failures += not check("a flat name whose news failed is incomplete, and says which part",
+                          no_news["level"] == "incomplete" and no_news["missing"] == ["news"]
+                          and any(f["label"] == "news unavailable" for f in no_news["factors"]),
+                          str(no_news))
+    loud = server.compute_attention(fake_price("CRASH"), [], {}, 0.2, missing=["news", "events"])
+    failures += not check("a missing part can only have added points, so a high rank stands",
+                          loud["level"] == "high", loud["level"])
+    failures += not check("a complete quiet name is still quiet, with nothing missing",
+                          quiet["level"] == "quiet" and quiet["missing"] == [], str(quiet))
+
+    def broken(*args, **kwargs):
+        raise ValueError("Yahoo is down")
+
+    server._cache.clear()
+    server.get_recent_news = broken
+    row = server.fetch_row("QUIET", 0.2)
+    failures += not check("a row whose news failed records it, rather than counting no headlines",
+                          row["missing"] == ["news"] and row["attention"]["level"] == "incomplete",
+                          str(row.get("missing")))
+    server._cache.clear()
+    home = client.get("/api/home").get_json()
+    rows_home = [r for b in home.get("themes", []) for r in b["rows"]]
+    failures += not check("the home page carries the missing parts through the re-score against peers",
+                          rows_home and all("news" in r["attention"]["missing"] for r in rows_home),
+                          str([(r["ticker"], r["attention"].get("missing")) for r in rows_home]))
+    detail = client.get("/api/stock/QUIET").get_json()
+    failures += not check("the stock page keeps the error beside the empty news, and ranks it incomplete",
+                          detail.get("news_error") and detail["news"] == []
+                          and detail["attention"]["level"] == "incomplete",
+                          str({k: detail.get(k) for k in ("news_error", "attention")}))
+    server.get_recent_news = fake_news
+    server._cache.clear()
+    server.get_upcoming_events = broken
+    row = server.fetch_row("QUIET", 0.2)
+    failures += not check("so does one whose calendar failed",
+                          row["missing"] == ["events"] and row["attention"]["level"] == "incomplete",
+                          str(row.get("missing")))
+    server.get_upcoming_events = fake_events
+    server._cache.clear()
+
     print("\nWhich session")
     server._cache.clear()
     ov = client.get("/api/overview").get_json()
@@ -864,6 +912,26 @@ def main() -> int:
     failures += not check("the analysis prompt says to compare in points, never as multiples",
                           "vs_market" in server.ANALYSIS_SYSTEM
                           and "never as multiples" in server.ANALYSIS_SYSTEM)
+
+    print("\nThe analysis knows what failed to load")
+    server.client = FakeClient()
+    REAL_ANALYZE("CRASH", {"price": fake_price("CRASH"), "news": [], "news_error": "down",
+                           "events": {}, "events_error": "down"})
+    REAL_ANALYZE("CRASH", {"price": fake_price("CRASH"), "news": []})
+    sent = [json.loads(c["messages"][0]["content"]) for c in server.client.messages.calls]
+    failures += not check("failed lookups reach the model as unavailable, not as empty values alone",
+                          sent[0].get("unavailable") == ["news", "events"], str(sent[0].get("unavailable")))
+    failures += not check("an empty lookup that answered isn't marked unavailable",
+                          "unavailable" not in sent[1])
+    failures += not check("the analysis prompt says an unavailable part isn't an empty one",
+                          "lookup failed, not that there was nothing" in server.ANALYSIS_SYSTEM)
+    failures += not check("the brief prompt says the same of a name's unavailable data",
+                          "unavailable" in server.BRIEF_SYSTEM and "lookup failed" in server.BRIEF_SYSTEM)
+    brief_name = server._brief_name({"ticker": "QUIET", "price": fake_price("QUIET"),
+                                     "attention": {"level": "incomplete", "factors": [],
+                                                   "missing": ["news"]}})
+    failures += not check("and a brief name carries it", brief_name.get("unavailable") == ["news"],
+                          str(brief_name))
 
     print("\nHeadline-only news is said as such")
     # In October 2026 every ticker's news came from the search fallback,

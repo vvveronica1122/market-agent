@@ -226,7 +226,15 @@ function attentionTitle(att) {
   return `Attention score ${num(att.score, 0)} = size of move ${num(p.move, 0)} (8 a point, up to 45)` +
     ` + gap vs ${att.reference === "peers" ? "peers" : "the market"} ${num(p.relative, 0)} (12 if 1.5pt or more)` +
     ` + earnings ${num(p.earnings, 0)} (25 within a week, 12 within two)` +
-    ` + news ${num(p.news, 0)} (3 a headline, up to 12). 45 or more needs attention; 20 or more is worth a look.`;
+    ` + news ${num(p.news, 0)} (3 a headline, up to 12). 45 or more needs attention; 20 or more is worth a look.` +
+    (att.missing && att.missing.length
+      ? ` Not loaded: ${att.missing.join(", ")}. Those parts scored nothing, so the rank may be too low.`
+      : "");
+}
+
+// "No recent headlines" only when the lookup answered; a failed one says so.
+function newsMissing(row) {
+  return !!(row.attention && row.attention.missing && row.attention.missing.includes("news"));
 }
 
 function setTitle(name) {
@@ -1139,8 +1147,8 @@ function cssEscape(value) {
 }
 
 // One line, cut with an ellipsis when it's long; the whole headline on hover.
-function headlineCell(text) {
-  const cell = el("div", "headline", text || "No recent headlines");
+function headlineCell(text, failed) {
+  const cell = el("div", "headline", text || (failed ? "Headlines couldn't be loaded" : "No recent headlines"));
   if (text) cell.title = text;
   return cell;
 }
@@ -1158,7 +1166,8 @@ function buildThemeRow(row, theme) {
   const left = el("div");
   left.appendChild(el("div", "ticker", row.ticker));
   const tag = el("span", "attention-tag",
-                 level === "high" ? "Needs attention" : level === "medium" ? "Worth a look" : "Quiet");
+                 level === "high" ? "Needs attention" : level === "medium" ? "Worth a look"
+                 : level === "incomplete" ? "Data incomplete" : "Quiet");
   tag.title = attentionTitle(row.attention);
   left.appendChild(tag);
   if (row.role) left.appendChild(el("span", "row-role", row.role));
@@ -1168,7 +1177,7 @@ function buildThemeRow(row, theme) {
   if (row.error) {
     middle.appendChild(el("div", "row-error", row.error));
   } else {
-    middle.appendChild(headlineCell(row.top_headline));
+    middle.appendChild(headlineCell(row.top_headline, newsMissing(row)));
     const factors = el("div", "factors");
     (row.attention ? row.attention.factors : []).forEach((f) => {
       factors.appendChild(el("span", "chip " + (f.tone === "neutral" ? "" : f.tone), f.label));
@@ -1473,7 +1482,7 @@ function buildRow(row, opts) {
   if (row.error) {
     middle.appendChild(el("div", "row-error", row.error));
   } else {
-    middle.appendChild(headlineCell(row.top_headline));
+    middle.appendChild(headlineCell(row.top_headline, newsMissing(row)));
     const factors = el("div", "factors");
     (row.attention ? row.attention.factors : []).forEach((f) => {
       factors.appendChild(el("span", "chip " + (f.tone === "neutral" ? "" : f.tone), f.label));
@@ -1724,6 +1733,9 @@ function buildAnalysisNews(data) {
       list.appendChild(li);
     });
     newsPanel.appendChild(list);
+  } else if (data.news_error) {
+    newsPanel.appendChild(el("p", "empty",
+      `Headlines for ${data.ticker} couldn't be loaded from Yahoo. Try again in a few minutes.`));
   } else {
     newsPanel.appendChild(el("p", "empty",
       `No headlines came back from Yahoo for ${data.ticker}. That's the data source, not a quiet day.`));
@@ -1748,7 +1760,7 @@ function buildEarningsFacts(data) {
   add("Date", earnings.next_date
     ? formatLongDate(earnings.next_date) +
       (earnings.days_away !== null && earnings.days_away !== undefined ? `  ·  in ${earnings.days_away}d` : "")
-    : "Not announced");
+    : data.earnings_error ? "Couldn't be loaded" : "Not announced");
   if (earnings.eps_estimate !== null && earnings.eps_estimate !== undefined) {
     add("EPS estimate", num(earnings.eps_estimate));
   }

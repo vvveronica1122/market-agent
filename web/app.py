@@ -224,7 +224,12 @@ def days_until_earnings(events: dict | None) -> int | None:
     return None
 
 
-def compute_attention(price, news, events, market_pct, peer_pct=None) -> dict:
+def compute_attention(price, news, events, market_pct, peer_pct=None, missing=()) -> dict:
+    """The rank and its reasons. `missing` names the inputs that failed to
+    load ("news", "events"); a price without a change counts as missing
+    too. Those parts score nothing, so the level can be too low but never
+    too high: high and medium stand, and quiet becomes "incomplete" --
+    otherwise a broken source reads as a calm company."""
     factors: list[dict] = []
     # Each part kept separately, so the page can show how a company got its
     # rank instead of asking the reader to trust a number.
@@ -267,11 +272,18 @@ def compute_attention(price, news, events, market_pct, peer_pct=None) -> dict:
         if count >= 3:
             factors.append({"label": f"{count} headlines", "tone": "neutral"})
 
+    missing = sorted(set(missing) | ({"price"} if pct is None else set()))
+    for name in missing:
+        factors.append({"label": f"{name} unavailable", "tone": "neutral"})
+
     score = sum(parts.values())
     level = "high" if score >= 45 else "medium" if score >= 20 else "quiet"
+    if missing and level == "quiet":
+        level = "incomplete"
     return {"score": round(score, 1), "level": level, "factors": factors,
             "parts": {k: round(v, 1) for k, v in parts.items()},
-            "reference": "peers" if peer_pct is not None else "market"}
+            "reference": "peers" if peer_pct is not None else "market",
+            "missing": missing}
 
 
 # --- data assembly ----------------------------------------------------
@@ -283,13 +295,22 @@ def fetch_row(ticker: str, market_pct, peer_pct=None) -> dict:
     except Exception as exc:
         row["error"] = str(exc)
     row["history"] = safe(history_of, ticker, default=[])
-    news = safe(news_of, ticker, default=[])
-    events = safe(events_of, ticker, default={})
+    # A failed lookup is recorded, not defaulted to "none": no headlines
+    # because the source broke isn't a company with no news.
+    missing = []
+    news = safe(news_of, ticker)
+    if news is None:
+        news, missing = [], missing + ["news"]
+    events = safe(events_of, ticker)
+    if events is None:
+        events, missing = {}, missing + ["events"]
 
     row["news_count"] = len(news)
     row["top_headline"] = news[0]["title"] if news else None
     row["events"] = events
-    row["attention"] = compute_attention(row.get("price"), news, events, market_pct, peer_pct)
+    row["missing"] = missing
+    row["attention"] = compute_attention(row.get("price"), news, events, market_pct, peer_pct,
+                                         missing)
     return row
 
 
@@ -319,9 +340,10 @@ def theme_block(theme: dict, rows_by_ticker: dict, quotes: dict, market_pct) -> 
                              for k, v in relative[t].items()})
         # Re-scored against peers now that the theme is known. The news is
         # cached, so this costs nothing.
-        row["attention"] = compute_attention(base.get("price"), safe(news_of, t, default=[]),
-                                             base.get("events"), market_pct,
-                                             relative[t]["peer_median"])
+        missing = base.get("missing", [])
+        news = [] if "news" in missing else safe(news_of, t, default=[])
+        row["attention"] = compute_attention(base.get("price"), news, base.get("events"),
+                                             market_pct, relative[t]["peer_median"], missing)
         rows.append(row)
     rows.sort(key=lambda r: r["attention"]["score"], reverse=True)
 
@@ -438,6 +460,10 @@ the reaction to the report. median_abs_abnormal is its typical size and beat_but
 beats followed by a negative abnormal move. Never say which way it will go this time; that \
 isn't knowable and stating it would be invention in a confident voice.
 
+If unavailable is present, it lists inputs that failed to load. Their empty values mean the \
+lookup failed, not that there was nothing: don't say there's no news or no report coming. If \
+the gap matters, say that part couldn't be loaded.
+
 Stick to what you were given. Don't add background about the company from your own memory \
 -- not its history, not its usual volatility, not what its products do. Your training data \
 is old and the reader can't tell which half of a sentence was looked up and which half you \
@@ -498,6 +524,13 @@ def analyze(ticker: str, data: dict) -> str:
         "next_earnings_in_days": days_until_earnings(data.get("events")),
         "earnings_setup": data.get("setup"),
     }
+    # The stock page records a failed lookup as <key>_error and an empty
+    # value; without this the model reads the empty value as "none".
+    unavailable = [name for key, name in (("price", "price"), ("news", "news"),
+                                          ("events", "events"), ("setup", "earnings_setup"))
+                   if f"{key}_error" in data]
+    if unavailable:
+        payload["unavailable"] = unavailable
     theme = data.get("theme")
     if theme:
         payload["theme_comparison"] = {
@@ -935,6 +968,7 @@ def stock_detail(ticker: str):
         data["attention"] = compute_attention(
             data.get("price"), data.get("news"), data.get("events"), market_pct,
             (data["theme"] or {}).get("peer_median"),
+            [k for k in ("news", "events") if f"{k}_error" in data],
         )
         data["analysis"] = analyze(ticker, data)
         return data
@@ -1065,14 +1099,15 @@ def extract_themes(movers: list[dict], news: list[dict]) -> list[dict]:
 
 def enrich_mover(mover: dict, market_pct: float) -> dict:
     ticker = mover["ticker"]
+    missing = []
     try:
         news = get_recent_news(ticker, limit=4)
     except Exception:
-        news = []
+        news, missing = [], missing + ["news"]
     try:
         events = get_upcoming_events(ticker)
     except Exception:
-        events = {}
+        events, missing = {}, missing + ["events"]
     try:
         history = get_price_history(ticker, period="1mo")
     except Exception:
@@ -1093,7 +1128,8 @@ def enrich_mover(mover: dict, market_pct: float) -> dict:
         "top_headline": news[0]["title"] if news else None,
         "events": events,
         "screens": mover.get("screens", []),
-        "attention": compute_attention(price, news, events, market_pct),
+        "missing": missing,
+        "attention": compute_attention(price, news, events, market_pct, missing=missing),
     }
 
 
@@ -1227,6 +1263,9 @@ State calendar facts directly, and only the ones the data contains. "NVDA report
 days" -- not "if you're watching for catalysts, NVDA's report is the one to mark", which says \
 the same thing while telling them what to do about it. A null next_earnings_in_days means no \
 date is known, not that nothing is scheduled: don't turn unknown dates into an empty calendar.
+A name's unavailable, when present, lists data that failed to load for it ("price", "news", \
+"events"). Its missing figures mean the lookup failed: don't call that name quiet, newsless or \
+without a report coming.
 
 Name companies by ticker symbol -- NVDA, not Nvidia -- since that is how they appear on \
 screen beside what you write.
@@ -1248,7 +1287,7 @@ memory: your training data is old, and an invented detail is worse than a missin
 
 
 def _brief_name(r: dict) -> dict:
-    return {
+    name = {
         "ticker": r["ticker"],
         "change_percent": rounded((r.get("price") or {}).get("change_percent")),
         "attention": (r.get("attention") or {}).get("level"),
@@ -1259,6 +1298,10 @@ def _brief_name(r: dict) -> dict:
         # reports this week" was never supported by its input.
         "next_earnings_in_days": days_until_earnings(r.get("events")),
     }
+    missing = (r.get("attention") or {}).get("missing")
+    if missing:
+        name["unavailable"] = missing
+    return name
 
 
 def build_brief(rows: list[dict], market_pct, indices: list[dict],
