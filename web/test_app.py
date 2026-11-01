@@ -955,6 +955,15 @@ def main() -> int:
                                                    "missing": ["news"]}})
     failures += not check("and a brief name carries it", brief_name.get("unavailable") == ["news"],
                           str(brief_name))
+    failures += not check("a name whose news failed says so where its headline would be",
+                          brief_name.get("top_headline") == "(couldn't be loaded)", str(brief_name))
+    plain = server._brief_name({"ticker": "QUIET", "price": fake_price("QUIET"), "top_headline": None,
+                                "attention": {"level": "quiet", "factors": [], "missing": []}})
+    failures += not check("a name with no headline, and no failure, still has none",
+                          plain.get("top_headline") is None, str(plain))
+    failures += not check("the brief prompt says to leave such a name out of a group's 'no news'",
+                          "leave that name out of anything you say about a group having no news"
+                          in server.BRIEF_SYSTEM)
 
     print("\nThe brief's calendar names the dates it doesn't know")
     # Told about failed lookups only in a paragraph, 22 of 24 briefs still

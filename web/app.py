@@ -1344,7 +1344,9 @@ the same thing while telling them what to do about it. A null next_earnings_in_d
 date is known, not that nothing is scheduled: don't turn unknown dates into an empty calendar.
 A name's unavailable, when present, lists data that failed to load for it ("price", "news", \
 "events"). Its missing figures mean the lookup failed: don't call that name quiet, newsless or \
-without a report coming.
+without a report coming. When its news failed, its top_headline reads "(couldn't be loaded)": \
+leave that name out of anything you say about a group having no news, and say its headlines \
+couldn't be loaded.
 
 Name companies by ticker symbol -- NVDA, not Nvidia -- since that is how they appear on \
 screen beside what you write.
@@ -1380,6 +1382,11 @@ def _brief_name(r: dict) -> dict:
     missing = (r.get("attention") or {}).get("missing")
     if missing:
         name["unavailable"] = missing
+    # In the field a news sentence is written from, not only in a list
+    # beside it: with null there, 5 of 24 briefs said the group a failed
+    # name sat in had no news (evals/tuning/batch1-2026-11.md).
+    if missing and "news" in missing:
+        name["top_headline"] = "(couldn't be loaded)"
     return name
 
 
