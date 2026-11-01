@@ -1094,7 +1094,11 @@ def main() -> int:
     # Saved briefs had "more than triple the S&P's -0.4%" for a 1.2% fall,
     # exactly triple. The brief's prompt is unchanged; only a brief with a
     # multiple costs a second call.
-    rows = [{"ticker": "CRASH", "price": fake_price("CRASH"), "top_headline": None, "events": {},
+    # A known report date, so only the multiples guard is in play here: with
+    # an unknown one, "Nothing reports this week" is the failed-data guard's.
+    from datetime import date as _date, timedelta as _td
+    rows = [{"ticker": "CRASH", "price": fake_price("CRASH"), "top_headline": None,
+             "events": {"next_earnings_date": str(_date.today() + _td(days=30))},
              "attention": {"level": "high", "factors": []}}]
     spx = [{"label": "S&P 500", "change_percent": -0.4}]
     bad_brief = "CRASH fell 6%. The Nasdaq 100 fell 1.2%, more than triple the S&P's 0.4% decline."
@@ -1138,6 +1142,58 @@ def main() -> int:
     failures += not check("two sentences with multiples give None",
                           without_multiple_sentence("A fell twice as much as B. It fell three times "
                                                     "as far as C. D rose.") is None)
+
+    print("\nThe brief's failed-data guard")
+    # The prompt, told three ways, still left "nothing reports this week"
+    # and "no news" about a failed name in about one brief in ten.
+    from datetime import date as _d2, timedelta as _t2
+    soon = str(_d2.today() + _t2(days=30))
+    known_row = {"ticker": "CRASH", "price": fake_price("CRASH"), "top_headline": None,
+                 "events": {"next_earnings_date": soon}, "attention": {"level": "high", "factors": []}}
+    failed_row = {"ticker": "STX", "price": fake_price("QUIET"), "top_headline": None, "events": {},
+                  "attention": {"level": "incomplete", "factors": [], "missing": ["events", "news"]}}
+    cal_bad = "CRASH fell 6%.\n\nSTX barely moved.\n\nNothing reports in the next week. STX's date couldn't be loaded."
+    cal_ok = "CRASH fell 6%.\n\nSTX barely moved.\n\nNo known report falls this week; STX's date couldn't be loaded."
+    server.client = _Scripted(cal_bad)
+    out = server.build_brief([known_row], -0.4, spx, [], [])
+    failures += not check("with every lookup answered, the guard makes no call, whatever the brief says",
+                          out == cal_bad and len(server.client.calls) == 1, out)
+    server.client = _Scripted(cal_bad, cal_ok)
+    out = server.build_brief([known_row, failed_row], -0.4, spx, [], [])
+    ask = server.client.calls[-1]["messages"][2]["content"] if len(server.client.calls) == 2 else ""
+    failures += not check("a calendar claim over an unknown date is rewritten, and the rewrite shown",
+                          out == cal_ok and len(server.client.calls) == 2, out)
+    failures += not check("the request quotes the sentence, says what failed, and asks for known dates",
+                          '"Nothing reports in the next week."' in ask
+                          and "STX (headlines couldn't be loaded, report date couldn't be loaded)" in ask
+                          and '"no known report falls this week"' in ask, ask[:300])
+    server.client = _Scripted(cal_ok)
+    out = server.build_brief([known_row, failed_row], -0.4, spx, [], [])
+    failures += not check("a brief limited to known dates is left alone",
+                          out == cal_ok and len(server.client.calls) == 1, out)
+    news_bad = ("CRASH fell 6%.\n\nMU, WDC and STX held up. All three were quiet, with no headlines to note.\n\n"
+                "No known report falls this week; STX's date couldn't be loaded.")
+    server.client = _Scripted(news_bad, cal_ok)
+    server.build_brief([known_row, failed_row], -0.4, spx, [], [])
+    ask = server.client.calls[-1]["messages"][2]["content"] if len(server.client.calls) == 2 else ""
+    failures += not check("a group's 'no headlines' beside a failed name is flagged too",
+                          '"All three were quiet, with no headlines to note."' in ask, ask[:300])
+    server.client = _Scripted(cal_bad, RuntimeError("overloaded"))
+    out = server.build_brief([known_row, failed_row], -0.4, spx, [], [])
+    failures += not check("a failed rewrite drops the flagged sentence when two are left",
+                          out == "CRASH fell 6%.\n\nSTX barely moved.\n\nSTX's date couldn't be loaded.", repr(out))
+    short_bad = "Nothing reports in the next week. STX's date couldn't be loaded."
+    server.client = _Scripted(short_bad, RuntimeError("overloaded"))
+    out = server.build_brief([known_row, failed_row], -0.4, spx, [], [])
+    failures += not check("and keeps the brief when dropping would leave one sentence", out == short_bad, out)
+    both = cal_bad.replace("CRASH fell 6%.", "CRASH fell 6%, more than triple the S&P's 0.4% decline.")
+    server.client = _Scripted(both, both.replace("Nothing reports in the next week.", "No known report falls this week."),
+                              cal_ok)
+    out = server.build_brief([known_row, failed_row], -0.4, spx, [], [])
+    asks = [c["messages"][2]["content"] for c in server.client.calls[1:]]
+    failures += not check("it runs before the multiples guard, which still catches a multiple after it",
+                          len(asks) == 2 and "didn't load" in asks[0] and "multiple" in asks[1] and out == cal_ok,
+                          str([a[:60] for a in asks]))
 
     print("\nSummary text")
     from tools.market_data import _plain_text

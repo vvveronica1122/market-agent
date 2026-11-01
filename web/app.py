@@ -37,7 +37,8 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
 from config import MODEL
-from guards import find_multiple, sentence_around, without_multiple_sentence
+from guards import (find_failed_data_claims, find_multiple, sentence_around,
+                    without_multiple_sentence, without_sentences)
 import themes as theme_store
 from themes import ThemeError
 from tools.relative import relative_rows, theme_summary
@@ -1486,10 +1487,76 @@ def build_brief(rows: list[dict], market_pct, indices: list[dict],
         text = "".join(b.text for b in response.content if b.type == "text").strip()
     except Exception as exc:
         return ai_unavailable("The AI brief", exc)
+    news_failed = [r["ticker"] for r in rows
+                   if "news" in ((r.get("attention") or {}).get("missing") or [])]
+    text = without_failed_data_claims(content, text, news_failed,
+                                      payload.get("report_dates_unknown", []))
     # The prompt is left as it was, so a brief without a multiple comes from
     # the same single call as before; only a brief with one is rewritten.
     return without_multiples(content, text, system=BRIEF_SYSTEM, max_tokens=700,
                              ask=REWRITE_MULTIPLE_BRIEF)
+
+
+REWRITE_FAILED_DATA = (
+    "Some of what this brief says isn't known, because data for these names didn't load: "
+    "{failed}. These sentences may claim it anyway: {sentences} Rewrite the brief so that no "
+    "sentence says or implies those names had no news, or that nothing reports in a window their "
+    'unknown dates could fall in. Say what is known -- "no known report falls this week", "the '
+    'next known reports are..." -- and that their headlines or dates couldn\'t be loaded. A quoted '
+    "sentence that is only about other names can stay as it is. Keep everything else as it was, "
+    "and reply with the brief only."
+)
+
+
+def without_failed_data_claims(content: str, text: str, news_failed: list[str],
+                               dates_unknown: list[dict]) -> str:
+    """The brief, with claims a failed lookup can't support rewritten once.
+
+    Told in the prompt, three ways, not to call a name whose news failed
+    newsless or to say nothing reports this week while a date is unknown,
+    the brief still did in about one run in ten
+    (evals/tuning/batch1-2026-11.md). So the code checks (guards.py) and
+    asks once, quoting the sentences. The rewrite is used as it comes back:
+    a flag can be wrong, as a multiple can't, so the model's second look is
+    trusted. If the call fails, the flagged sentences are dropped when two
+    are left; otherwise the brief stands. No failed name, no call.
+    """
+    if not news_failed and not dates_unknown:
+        return text
+    flagged = find_failed_data_claims(text, news_failed, [d["ticker"] for d in dates_unknown])
+    if not flagged:
+        return text
+    why = {t: ["headlines couldn't be loaded"] for t in news_failed}
+    for d in dates_unknown:
+        why.setdefault(d["ticker"], []).append(
+            "report date couldn't be loaded" if d.get("why") == "couldn't be loaded"
+            else "report date not announced")
+    failed = "; ".join(f"{t} ({', '.join(w)})" for t, w in why.items())
+    ask = REWRITE_FAILED_DATA.format(failed=failed,
+                                     sentences=" ".join(f'"{s}"' for s in flagged))
+    try:
+        response = client.messages.create(
+            model=MODEL,
+            max_tokens=700,
+            system=BRIEF_SYSTEM,
+            messages=[
+                {"role": "user", "content": content},
+                {"role": "assistant", "content": text},
+                {"role": "user", "content": ask},
+            ],
+        )
+        rewrite = "".join(b.text for b in response.content if b.type == "text").strip()
+    except Exception:
+        rewrite = ""
+    if rewrite:
+        app.logger.warning("failed-data claim rewritten: %r", flagged)
+        return rewrite
+    trimmed = without_sentences(text, flagged)
+    if trimmed is not None:
+        app.logger.warning("failed-data claim not rewritten; sentences dropped: %r", flagged)
+        return trimmed
+    app.logger.warning("failed-data claim not rewritten; brief kept: %r", flagged)
+    return text
 
 
 REWRITE_MULTIPLE_BRIEF = (
