@@ -917,7 +917,7 @@ function renderThemeEarnings(holder, data) {
   wrap.appendChild(el("p", "metric-note",
     "Abnormal reaction: the move on the first session that could react, minus what the company's " +
     "market model predicted given SPY that session; sd says how many of its ordinary daily moves " +
-    "that is. Run-up: the abnormal move over the 20 sessions before the report. Click a company " +
+    "that is. It takes out the market, not other news that session. Run-up: the abnormal move over the 20 sessions before the report. Click a company " +
     "for its full history."));
   frag.appendChild(wrap);
 
@@ -2461,7 +2461,9 @@ function buildSetupPanel(setup, ticker, daysAway) {
     "Each bar is one past report: the abnormal return on the first session that could react " +
     "-- the next day after an after-close report, the same day after a before-open one. " +
     "Abnormal means the stock's move minus what its market model predicted given SPY that " +
-    "session (beta estimated over the 120 sessions ending two weeks before the report). Grey " +
+    "session: beta \u00d7 SPY's move, beta estimated over the 120 sessions ending two weeks before " +
+    "the report. That takes out the market, not other news that session, so not all of it is " +
+    "the report. Grey " +
     "bars had too little earlier history for a model and show the raw move. Hover a bar for " +
     "the prices, SPY's move and the run-up into the report. This is what happened, not what will.";
   legend.style.margin = "10px 0 0";

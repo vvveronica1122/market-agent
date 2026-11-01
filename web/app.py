@@ -455,8 +455,10 @@ don't describe a video as something the reader can read.
 If earnings_setup is present and a report is close, say what the evidence shows about how \
 this stock handles earnings -- the typical size of the move, and whether beating estimates \
 has actually meant the stock rose. Where reactions carry abnormal_move, prefer it: it is the \
-move beyond what the stock's market model expected given SPY that session, so it isolates \
-the reaction to the report. median_abs_abnormal is its typical size and beat_but_lagged counts \
+move beyond what the stock's usual relation to SPY explains for that session. That takes out \
+the market's move, not everything else that happened that day -- sector news, other \
+companies' reports -- so call it the move around the report beyond the market, never the \
+reaction to the report alone. median_abs_abnormal is its typical size and beat_but_lagged counts \
 beats followed by a negative abnormal move. Never say which way it will go this time; that \
 isn't knowable and stating it would be invention in a confident voice.
 

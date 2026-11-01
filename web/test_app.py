@@ -945,6 +945,9 @@ def main() -> int:
                           "unavailable" not in sent[1])
     failures += not check("the analysis prompt says an unavailable part isn't an empty one",
                           "lookup failed, not that there was nothing" in server.ANALYSIS_SYSTEM)
+    failures += not check("the analysis prompt no longer says abnormal_move isolates the report",
+                          "isolates" not in server.ANALYSIS_SYSTEM
+                          and "not everything else that happened that day" in server.ANALYSIS_SYSTEM)
     failures += not check("the brief prompt says the same of a name's unavailable data",
                           "unavailable" in server.BRIEF_SYSTEM and "lookup failed" in server.BRIEF_SYSTEM)
     brief_name = server._brief_name({"ticker": "QUIET", "price": fake_price("QUIET"),
