@@ -529,6 +529,28 @@ def main() -> int:
                                         "calendar_unavailable"))
                           and "(e) Presenting" not in ANALYSIS_SCENARIOS["company_rise_no_news"]["rubric"])
 
+    print("\nEvery run's text is kept")
+    # Criteria that rest on reading every run can't be checked from the
+    # failing runs alone, which was all a saved result used to keep.
+    try:
+        server.client = Recorder(_BriefStub("First brief.", '{"pass": true, "reason": "ok"}',
+                                            "Second brief.", '{"pass": true, "reason": "ok"}'))
+        with contextlib.redirect_stdout(io.StringIO()):
+            outcome = run_evals.run_scenario("quiet_day", _BRIEFS["quiet_day"], 2)
+        failures += not check("a brief scenario keeps every run's text, passing ones included",
+                              outcome["record"]["outputs"] == ["First brief.", "Second brief."],
+                              str(outcome["record"].get("outputs")))
+        server.client = Recorder(_BriefStub("First analysis.", '{"pass": true, "reason": "ok"}',
+                                            "Second analysis.", '{"pass": true, "reason": "ok"}'))
+        with contextlib.redirect_stdout(io.StringIO()):
+            outcome = run_evals.run_analysis_scenario(
+                "company_rise_no_news", ANALYSIS_SCENARIOS["company_rise_no_news"], 2)
+        failures += not check("so does an analysis scenario",
+                              outcome["record"]["outputs"] == ["First analysis.", "Second analysis."],
+                              str(outcome["record"].get("outputs")))
+    finally:
+        server.client = saved_client
+
     print("\nSeveral scenarios in one run")
     real_argv, real_today = sys.argv, server.local_today
     try:

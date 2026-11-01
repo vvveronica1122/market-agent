@@ -116,6 +116,9 @@ def run_scenario(name: str, spec: dict, runs: int) -> dict:
     first_brief = ""
     failed_runs: list[dict] = []
     rewrites: list[dict] = []
+    # Every run's text, passing or not: a check that rests on reading the
+    # output, not the judge, needs the passing runs too.
+    outputs: list[str] = []
     for attempt in range(runs):
         calls = server.client.calls
         brief = server.build_brief(
@@ -124,6 +127,7 @@ def run_scenario(name: str, spec: dict, runs: int) -> dict:
         )
 
         evidence = server.client.last_input  # the payload build_brief just sent
+        outputs.append(brief)
         rewrite = _rewrite_record(calls, attempt, brief)
         if rewrite:
             rewrites.append(rewrite)
@@ -169,7 +173,7 @@ def run_scenario(name: str, spec: dict, runs: int) -> dict:
         print(f"  {DIM}guard asked for a rewrite in {len(rewrites)} of {runs} runs{RESET}")
     record = {"description": spec["description"], "runs": runs,
               "checks": summarize(totals), "first_output": first_brief,
-              "failed_runs": failed_runs, "rewrites": rewrites}
+              "failed_runs": failed_runs, "rewrites": rewrites, "outputs": outputs}
     return {"checks": len(totals), "failed": failed, "record": record}
 
 
@@ -203,10 +207,12 @@ def run_analysis_scenario(name: str, spec: dict, runs: int) -> dict:
     first_text = ""
     failed_runs: list[dict] = []
     rewrites: list[dict] = []
+    outputs: list[str] = []
     for attempt in range(runs):
         calls = server.client.calls
         text = server.analyze(spec["ticker"], copy.deepcopy(spec["data"]))
         evidence = server.client.last_input
+        outputs.append(text)
         rewrite = _rewrite_record(calls, attempt, text)
         if rewrite:
             rewrites.append(rewrite)
@@ -249,7 +255,8 @@ def run_analysis_scenario(name: str, spec: dict, runs: int) -> dict:
     if rewrites:
         print(f"  {DIM}guard asked for a rewrite in {len(rewrites)} of {runs} runs{RESET}")
     record = {"description": spec["description"], "runs": runs, "checks": summarize(totals),
-              "first_output": first_text, "failed_runs": failed_runs, "rewrites": rewrites}
+              "first_output": first_text, "failed_runs": failed_runs, "rewrites": rewrites,
+              "outputs": outputs}
     return {"checks": len(totals), "failed": failed, "record": record}
 
 
