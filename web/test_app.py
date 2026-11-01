@@ -989,6 +989,11 @@ def main() -> int:
     failures += not check("the calendar paragraph says to name the unknown ones",
                           "report_dates_unknown is present, upcoming_reports is not the whole watchlist"
                           in server.BRIEF_SYSTEM)
+    # It used to ask for "that nothing reports this week" with the unknown
+    # names beside it: a whole-list claim the names then contradicted.
+    failures += not check("with dates unknown, it asks for known dates only, never 'nothing reports'",
+                          '"no known report falls this week"' in server.BRIEF_SYSTEM
+                          and 'never "nothing reports this week"' in server.BRIEF_SYSTEM)
 
     print("\nHeadline-only news is said as such")
     # In October 2026 every ticker's news came from the search fallback,

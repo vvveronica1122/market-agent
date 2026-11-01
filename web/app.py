@@ -1294,9 +1294,10 @@ convert days into dates yourself. Each name also carries next_earnings_in_days (
 date is known). If none falls within seven days, one short sentence saying so is \
 enough, or leave it out -- don't put a judgement about what kind of week it is in its place. \
 When report_dates_unknown is present, upcoming_reports is not the whole watchlist: it lists the \
-names whose next date isn't known, and why. Whenever you say what reports next or that nothing \
-reports this week, name those as unknown in the same breath -- "STX's date couldn't be loaded" \
--- rather than leaving them out.
+names whose next date isn't known, and why. Then speak only of known dates -- "no known report \
+falls this week", "the next known reports are..." -- never "nothing reports this week" or "the \
+next reports on your watchlist are...", and name the unknown ones in the same breath: "STX's date \
+couldn't be loaded".
 
 The watchlist is a list of names the reader is TRACKING. It is not a portfolio and this app
 has no holdings data, so never write "you own", "your holdings" or "your position" -- write
