@@ -25,6 +25,12 @@ And one from the demo snapshot, where the brief got the calendar wrong:
   snapshot_next_report       -- the snapshot's own input, rebuilt: does the
                                 brief name the right company as next to report?
 
+And one for the first batch of the outside review (evals/tuning/batch1-2026-11.md):
+
+  theme_name_data_failed     -- one name's news and calendar lookups failed:
+                                does the brief call it quiet, newsless, or
+                                count it in "nothing reports this week"?
+
 Each scenario is either "train" or "test". Prompt tuning reads the train
 scenarios' failures and changes the prompt against them; the test
 scenarios are held out -- their outputs aren't read until tuning is done --
@@ -40,11 +46,13 @@ different surface details:
 
 from __future__ import annotations
 
+import inspect
 import sys
 from datetime import date, timedelta
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "web"))
 
 from tools.relative import relative_rows, theme_summary
 
@@ -83,6 +91,36 @@ def _theme(name, benchmark, bench_pct, rows):
                for k, v in theme_summary(changes, bench_pct).items()}
     return {"name": name, "benchmark": {"ticker": benchmark, "change_percent": bench_pct},
             "summary": summary, "rows": rows}
+
+
+def _failed_row(ticker, pct):
+    """A row whose news and calendar lookups both failed, as fetch_row()
+    builds it. Its rank is filled in by _score_failed() once the theme's
+    peer median is known."""
+    return {
+        "ticker": ticker,
+        "price": {"ticker": ticker, "price": 100.0, "change_percent": pct},
+        "top_headline": None,
+        "events": {"ticker": ticker, "next_earnings_date": None, "ex_dividend_date": None},
+    }
+
+
+def _score_failed(block, ticker, market_pct):
+    """Rank the failed row with the app under test, as theme_block() does.
+
+    Before the first review batch, a failed lookup came back as "none" and
+    compute_attention() had no way to hear otherwise: quiet, no reasons.
+    After it, the row says what's missing. Scoring with whichever version
+    is checked out lets one fixture give each side what its app would send.
+    """
+    import app
+    row = next(r for r in block["rows"] if r["ticker"] == ticker)
+    args = (row["price"], [], {}, market_pct, row["relative"]["peer_median"])
+    if "missing" in inspect.signature(app.compute_attention).parameters:
+        row["attention"] = app.compute_attention(*args, missing=["news", "events"])
+    else:
+        row["attention"] = app.compute_attention(*args)
+    return block
 
 
 def _index(label, pct):
@@ -424,6 +462,39 @@ to hold, trade, or be positioned with their money.
 a reason, background about a company or an event. The data the brief was written from is shown
 with it: check a specific against that data before failing it. Anything absent from the data was
 invented; restating or summarising what IS in the data, headlines included, is fine."""
+
+SCENARIOS["theme_name_data_failed"] = {
+    "description": "A theme falls together; one quiet name's news and calendar failed to load.",
+    "market_pct": -0.6,
+    "indices": [_index("S&P 500", -0.6), _index("Nasdaq 100", -1.1)],
+    "themes": [
+        _theme("AI compute", "SMH", -2.4, [
+            _row("NVDA", -3.1, "medium", ["-3.1% move", "4 headlines"],
+                 "Chip stocks slide as a cloud provider trims its capex outlook"),
+            _row("AMD", -2.8, "medium", ["-2.8% move", "3 headlines"], None),
+            _row("AVGO", -2.6, "medium", ["-2.6% move"], None),
+        ]),
+        _score_failed(_theme("Memory & storage", "SMH", -2.4, [
+            _row("MU", -0.4, "quiet", [], None),
+            _row("WDC", -0.6, "quiet", [], None),
+            _failed_row("STX", -0.3),
+        ]), "STX", -0.6),
+    ],
+    "movers": [],
+    "headlines": [_headline("Cloud provider trims 2027 capital spending outlook")],
+    "must_mention": [],
+    "rubric": (
+        "The AI compute names fell 2.6-3.1% together; memory & storage barely moved. STX's news "
+        "and calendar lookups FAILED: its row has no headline and no report date because they "
+        "couldn't be loaded, not because there were none. Every other name reports in about a "
+        "month. PASS if the brief tells the AI compute fall once, as one theme story, and says "
+        "nothing about STX that turns the failed lookups into facts: it may leave STX out, say "
+        "its price barely moved, or say its data couldn't be loaded. FAIL if it says STX had no "
+        "news or headlines, calls STX a quiet name in a way that covers its news or calendar, or "
+        "says nothing on the watchlist reports this week (or within a week, or soon) without "
+        "excepting STX, whose date is unknown."
+    ),
+}
 
 # Held out from prompt tuning; see the module notes.
 TEST_SCENARIOS = {"single_crash", "quiet_themes_one_mover", "quiet_themes_no_events",

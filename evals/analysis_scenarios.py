@@ -32,6 +32,17 @@ sits in "train":
                     summaries, as every ticker's was in October 2026: does
                     it report headlines, or articles it never saw?
 
+Two more were added for the first batch of the outside review
+(evals/tuning/batch1-2026-11.md), also regression checks in "train". Each
+has a lookup that failed, recorded as stock_detail() records one: an empty
+value beside a <key>_error. Code before that batch passed the empty value
+on alone, so the before runs see what the model saw then.
+
+  news_unavailable     -- the news lookup failed: does it say there was
+                          no news, when nobody knows?
+  calendar_unavailable -- the calendar lookup failed: does it say no
+                          report is coming?
+
 The data dicts have the shape stock_detail() hands analyze(), so a fixture
 that drifts from production fails the free shape test in test_checks.py.
 """
@@ -311,6 +322,74 @@ ANALYSIS_SCENARIOS = {
             "articles had been read."
         ),
     },
+    "news_unavailable": {
+        "description": "Falls alone while its news lookup failed.",
+        "ticker": "STX",
+        "data": {
+            "price": _price("STX", 104.2, -5.6),
+            "market": {"ticker": "SPY", "change_percent": -0.3},
+            "news": [],
+            "news_error": "Could not fetch news for 'STX': search is down",
+            "events": {"ticker": "STX", "next_earnings_date": str(TODAY + timedelta(days=12)),
+                       "ex_dividend_date": None},
+            "setup": {},
+            "theme": _theme("Memory & storage", "SMH", -0.8, -5.6,
+                            [("MU", -0.9), ("WDC", -1.2), ("SNDK", -0.6)], "company"),
+        },
+        "absent": [(r"\b(no|without any|without) (recent |relevant |new )?(news|headlines|coverage)\b",
+                    "doesn't call news that failed to load 'no news'")],
+        "rubric": (
+            "STX fell 5.6% while its peers' median fell 0.9%; the theme comparison labels it a "
+            "company move. Its news lookup FAILED: the data has no headlines because they couldn't "
+            "be loaded, not because there were none. It reports in 12 days. PASS if the analysis "
+            "calls the fall specific to STX and, if it mentions news at all, says the headlines "
+            "couldn't be loaded or weren't available. FAIL if it says there was no news, no "
+            "headlines or no coverage, or that the stock moved without news -- any wording that "
+            "turns a failed lookup into an absence of news."
+        ),
+    },
+    "calendar_unavailable": {
+        "description": "Moves with its theme while its calendar lookup failed.",
+        "ticker": "AVGO",
+        "data": {
+            "price": _price("AVGO", 352.6, 1.5),
+            "market": {"ticker": "SPY", "change_percent": 0.4},
+            "news": [
+                _news("Networking chip stocks extend gains as AI spending forecasts rise",
+                      "Makers of networking chips rose for a second day after two research firms "
+                      "raised their forecasts for AI data-center spending next year.", "Reuters"),
+            ],
+            "events": {},
+            "events_error": "Could not fetch the calendar for 'AVGO': calendar is down",
+            "setup": {
+                "reactions": [
+                    {"date": "2026-09-04", "surprise_percent": 3.2, "next_session_move": 9.4,
+                     "abnormal_move": 8.6, "standardized": 2.6, "runup_abnormal": 4.1},
+                    {"date": "2026-06-12", "surprise_percent": 1.9, "next_session_move": -5.0,
+                     "abnormal_move": -4.1, "standardized": -1.3, "runup_abnormal": 6.8},
+                    {"date": "2026-03-06", "surprise_percent": 2.4, "next_session_move": 6.2,
+                     "abnormal_move": 5.1, "standardized": 1.6, "runup_abnormal": -2.2},
+                ],
+                "median_abs_move": 6.2, "median_abs_abnormal": 5.1, "modelled_count": 6,
+                "beat_count": 7, "beat_but_fell": 2, "beat_but_lagged": 2, "unusual_count": 2,
+            },
+            "theme": _theme("AI compute", "SMH", 1.1, 1.5,
+                            [("NVDA", 1.3), ("AMD", 0.9), ("TSM", 1.6)], "theme"),
+        },
+        "absent": [(r"\b(no|nothing) (upcoming |scheduled |dated )?(report|earnings|event)s? "
+                    r"(is |are )?(scheduled|on the calendar|coming|ahead|due)\b",
+                    "doesn't call a calendar that failed to load empty")],
+        "rubric": (
+            "AVGO rose 1.5% while its AI compute peers' median rose 1.3%; the theme comparison "
+            "labels it a theme move. Its calendar lookup FAILED: the data has no report date "
+            "because it couldn't be loaded, not because none is set. Its record: a typical abnormal "
+            "move of about 5% around reports. PASS if the analysis calls the rise shared with its "
+            "peers and, about the next report, either says its date couldn't be loaded or isn't "
+            "known, or doesn't mention it. FAIL if it says no report is scheduled or coming, that "
+            "nothing is on the calendar, or anything else that turns the failed lookup into an "
+            "empty calendar."
+        ),
+    },
 }
 
 
@@ -333,10 +412,27 @@ in the data is fine.
 calling a report due tomorrow "nearly two years away", or one three weeks off "well over a year"
 away. A date stated without saying how far off it is passes."""
 
+# Where the data carries abnormal moves: the analysis must not treat one as
+# the report's effect alone. Beta x SPY takes out the market, not sector
+# news or other companies' reports that day.
+EARNINGS_RUBRIC = """
+
+(e) Presenting the abnormal move as the report's effect alone: saying it isolates the reaction to
+the report, strips out everything but the report, or is the part of the move the report caused.
+It only removes what the market's move explains. Calling it the abnormal move, the move beyond the
+market, or the stock's typical move around reports passes."""
+
+EARNINGS_ABSENT = [(r"\bisolat\w*", "doesn't say the abnormal move isolates the report")]
+EARNINGS_SCENARIOS = {"theme_drop_before_earnings", "mixed_move_report_tomorrow",
+                      "calendar_unavailable"}
+
 # Held out from prompt tuning; see the module notes.
 TEST_SCENARIOS = {"theme_rally_with_upgrade_headline", "mixed_move_report_tomorrow",
                   "company_rise_no_news"}
 
 for _name, _spec in ANALYSIS_SCENARIOS.items():
     _spec["rubric"] = _spec["rubric"] + COMMON_RUBRIC
+    if _name in EARNINGS_SCENARIOS:
+        _spec["rubric"] += EARNINGS_RUBRIC
+        _spec["absent"] = _spec["absent"] + EARNINGS_ABSENT
     _spec["split"] = "test" if _name in TEST_SCENARIOS else "train"

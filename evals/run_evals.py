@@ -11,6 +11,7 @@ Usage:
     python3 evals/run_evals.py                  # every scenario, once
     python3 evals/run_evals.py --runs 3         # three times each, for variance
     python3 evals/run_evals.py --scenario quiet_day
+    python3 evals/run_evals.py --scenario quiet_day,news_unavailable   # several, brief or analysis
     python3 evals/run_evals.py --dry-run        # exercise the harness, no API calls
     python3 evals/run_evals.py --runs 5 --save  # keep the result in evals/results/
 
@@ -350,7 +351,7 @@ def judge_stability(name: str, times: int, text_path: str | None = None) -> dict
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--runs", type=int, default=1, help="runs per scenario (variance)")
-    parser.add_argument("--scenario", help="run only this scenario")
+    parser.add_argument("--scenario", help="run only this scenario, or these, comma-separated")
     parser.add_argument("--dry-run", action="store_true", help="no API calls; exercise the harness")
     parser.add_argument("--skip-themes", action="store_true")
     parser.add_argument("--skip-analysis", action="store_true",
@@ -392,13 +393,14 @@ def main() -> int:
         return 0
 
     known = list(SCENARIOS) + list(ANALYSIS_SCENARIOS)
-    if args.scenario and args.scenario not in known:
-        print(f"Unknown scenario. Available: {', '.join(known)}")
+    wanted = [n.strip() for n in args.scenario.split(",")] if args.scenario else []
+    unknown = [n for n in wanted if n not in known]
+    if unknown:
+        print(f"Unknown scenario {', '.join(unknown)}. Available: {', '.join(known)}")
         return 1
-    if args.scenario:
-        chosen = {args.scenario: SCENARIOS[args.scenario]} if args.scenario in SCENARIOS else {}
-        analyses = ({args.scenario: ANALYSIS_SCENARIOS[args.scenario]}
-                    if args.scenario in ANALYSIS_SCENARIOS else {})
+    if wanted:
+        chosen = {n: SCENARIOS[n] for n in wanted if n in SCENARIOS}
+        analyses = {n: ANALYSIS_SCENARIOS[n] for n in wanted if n in ANALYSIS_SCENARIOS}
     elif args.analysis_only:
         chosen = {}
         analyses = {n: sp for n, sp in ANALYSIS_SCENARIOS.items()

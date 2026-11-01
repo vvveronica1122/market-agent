@@ -508,6 +508,47 @@ def main() -> int:
         server.local_today = real_today
         server.client = saved_client
 
+    print("\nFailed lookups, as each side's app would send them")
+    # The first review batch (evals/tuning/batch1-2026-11.md) compares code
+    # before and after it on these, so they must hold on both sides.
+    import inspect
+    for name, key, empty in (("news_unavailable", "news", []), ("calendar_unavailable", "events", {})):
+        data = ANALYSIS_SCENARIOS[name]["data"]
+        failures += not check(f"'{name}' records its failed lookup as stock_detail does",
+                              data.get(key) == empty and bool(data.get(f"{key}_error")))
+    stx = next(r for r in _BRIEFS["theme_name_data_failed"]["rows"] if r["ticker"] == "STX")
+    after = "missing" in inspect.signature(server.compute_attention).parameters
+    failures += not check("the brief's failed row is ranked by the app under test",
+                          stx["attention"]["level"] == ("incomplete" if after else "quiet")
+                          and stx["attention"].get("missing", []) == (["events", "news"] if after else [])
+                          and stx["top_headline"] is None,
+                          str(stx["attention"]))
+    failures += not check("the abnormal-move rule is graded where the data has abnormal moves",
+                          all("(e) Presenting the abnormal move" in ANALYSIS_SCENARIOS[n]["rubric"]
+                              for n in ("theme_drop_before_earnings", "mixed_move_report_tomorrow",
+                                        "calendar_unavailable"))
+                          and "(e) Presenting" not in ANALYSIS_SCENARIOS["company_rise_no_news"]["rubric"])
+
+    print("\nSeveral scenarios in one run")
+    real_argv, real_today = sys.argv, server.local_today
+    try:
+        sys.argv = ["run_evals.py", "--dry-run", "--scenario", "quiet_day, news_unavailable"]
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            code = run_evals.main()
+        printed = out.getvalue()
+        failures += not check("--scenario takes a comma-separated list, brief and analysis alike",
+                              code == 0 and "\nquiet_day " in printed
+                              and "analysis:news_unavailable " in printed
+                              and "single_crash" not in printed, printed[-200:])
+        sys.argv = ["run_evals.py", "--dry-run", "--scenario", "quiet_day,nope"]
+        with contextlib.redirect_stdout(io.StringIO()):
+            code = run_evals.main()
+        failures += not check("an unknown name in the list is refused before anything runs", code == 1)
+    finally:
+        sys.argv, server.local_today = real_argv, real_today
+        server.client = saved_client
+
     print("\nJudge evidence")
     # The first saved baseline failed a correct answer as "invented" because
     # the judge never saw the tool results. These pin the fix in place.
