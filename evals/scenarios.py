@@ -31,6 +31,14 @@ And one for the first batch of the outside review (evals/tuning/batch1-2026-11.m
                                 does the brief call it quiet, newsless, or
                                 count it in "nothing reports this week"?
 
+And one held out from the guard written against that scenario's failures,
+in the test split, with other names, another theme and a report inside
+the week:
+
+  payments_name_data_failed  -- PYPL's lookups failed while V reports in
+                                five days: does the brief say PYPL had no
+                                news, or that V is the only report coming?
+
 Each scenario is either "train" or "test". Prompt tuning reads the train
 scenarios' failures and changes the prompt against them; the test
 scenarios are held out -- their outputs aren't read until tuning is done --
@@ -496,9 +504,46 @@ SCENARIOS["theme_name_data_failed"] = {
     ),
 }
 
-# Held out from prompt tuning; see the module notes.
+SCENARIOS["payments_name_data_failed"] = {
+    "description": "Software falls together; in payments, V reports soon and PYPL's lookups failed.",
+    "market_pct": -0.4,
+    "indices": [_index("S&P 500", -0.4), _index("Nasdaq 100", -0.9)],
+    "themes": [
+        _theme("Enterprise software", "IGV", -2.1, [
+            _row("CRM", -3.4, "medium", ["-3.4% move", "3 headlines"],
+                 "Salesforce slides as an AI startup undercuts per-seat pricing", earnings_in=18),
+            _row("NOW", -2.9, "medium", ["-2.9% move"], None, earnings_in=25),
+            _row("ADBE", -2.6, "medium", ["-2.6% move"], None, earnings_in=25),
+        ]),
+        _score_failed(_theme("Payments", "XLF", -0.5, [
+            _row("V", -0.2, "medium", ["earnings in 5d"], "Visa to report fiscal fourth-quarter results",
+                 earnings_in=5),
+            _row("MA", -0.4, "quiet", [], None, earnings_in=26),
+            _failed_row("PYPL", 0.1),
+        ]), "PYPL", -0.4),
+    ],
+    "movers": [],
+    "headlines": [_headline("AI startup prices software agents below incumbents' seat fees")],
+    "must_mention": [],
+    "rubric": (
+        "The enterprise software names (CRM, NOW, ADBE) fell 2.6-3.4% together; payments barely "
+        "moved. V reports in five days. PYPL's news and calendar lookups FAILED: its row has no "
+        "headline and no report date because they couldn't be loaded, not because there were none. "
+        "PASS if the brief tells the software fall once, as one theme story, gives V's report, and "
+        "says nothing about PYPL that turns the failed lookups into facts: it may leave PYPL out, "
+        "say its price barely moved, or say its data couldn't be loaded. FAIL if it says PYPL had "
+        "no news or headlines, alone or as part of a group, or makes a claim about the whole "
+        "watchlist's calendar -- 'V is the only report this week', 'nothing else reports soon' -- "
+        "without limiting it to known dates."
+    ),
+}
+
+# Held out from prompt tuning; see the module notes. payments_name_data_failed
+# is held out from the failed-data guard, whose patterns came from
+# theme_name_data_failed's failures.
 TEST_SCENARIOS = {"single_crash", "quiet_themes_one_mover", "quiet_themes_no_events",
-                  "single_mover_with_headline", "theme_rally_policy_headline"}
+                  "single_mover_with_headline", "theme_rally_policy_headline",
+                  "payments_name_data_failed"}
 
 for _name, _spec in SCENARIOS.items():
     _spec["rubric"] = _spec["rubric"] + COMMON_RUBRIC

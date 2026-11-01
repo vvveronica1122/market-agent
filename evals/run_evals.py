@@ -88,9 +88,13 @@ class Recorder:
         # rewrite (a second call), and keep what it replaced.
         self.calls = 0
         self.last_messages = None
+        # Every call's messages, so a run with more than one guard rewrite
+        # can say which guard asked for each.
+        self.log: list[list[dict]] = []
 
     def create(self, **kwargs):
         self.calls += 1
+        self.log.append(kwargs["messages"])
         self.last_messages = kwargs["messages"]
         self.last_input = kwargs["messages"][0]["content"]
         return self.inner.messages.create(**kwargs)
@@ -182,8 +186,10 @@ def _rewrite_record(calls_before: int, attempt: int, final: str) -> dict | None:
     for a rewrite. Keep the first text beside the final one, so what the
     guard changed can be read rather than taken on trust."""
     if server.client.calls - calls_before > 1:
-        return {"run": attempt + 1, "original": server.client.last_messages[1]["content"],
-                "final": final}
+        log = server.client.log
+        asks = [log[i][2]["content"] for i in range(calls_before + 1, server.client.calls)]
+        return {"run": attempt + 1, "original": log[calls_before + 1][1]["content"],
+                "final": final, "asked": asks}
     return None
 
 

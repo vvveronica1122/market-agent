@@ -437,8 +437,11 @@ def main() -> int:
                 "mixed_move_report_tomorrow", ANALYSIS_SCENARIOS["mixed_move_report_tomorrow"], 1)
         rewrites = outcome["record"].get("rewrites")
         failures += not check("a rewrite is recorded with the text it replaced",
-                              rewrites == [{"run": 1, "original": "AMD fell twice as much as its peers.",
-                                            "final": "AMD fell 2.2 points more than its peers."}],
+                              [{k: r[k] for k in ("run", "original", "final")} for r in rewrites or []]
+                              == [{"run": 1, "original": "AMD fell twice as much as its peers.",
+                                   "final": "AMD fell 2.2 points more than its peers."}]
+                              and len(rewrites[0]["asked"]) == 1
+                              and "multiple" in rewrites[0]["asked"][0],
                               str(rewrites))
         failures += not check("and the checks grade the final text",
                               outcome["record"]["checks"]["never states a move as a multiple of another"]
@@ -472,7 +475,10 @@ def main() -> int:
         with contextlib.redirect_stdout(io.StringIO()):
             outcome = run_evals.run_scenario("sector_selloff", _BRIEFS["sector_selloff"], 1)
         failures += not check("a brief the guard rewrote is recorded beside its original",
-                              outcome["record"]["rewrites"] == [{"run": 1, "original": bad, "final": fixed}],
+                              [{k: r[k] for k in ("run", "original", "final")}
+                               for r in outcome["record"]["rewrites"]]
+                              == [{"run": 1, "original": bad, "final": fixed}]
+                              and "multiple" in outcome["record"]["rewrites"][0]["asked"][0],
                               str(outcome["record"]["rewrites"]))
     finally:
         server.client = saved_client
@@ -523,6 +529,12 @@ def main() -> int:
                           and stx["attention"].get("missing", []) == (["events", "news"] if after else [])
                           and stx["top_headline"] is None,
                           str(stx["attention"]))
+    pypl = next(r for r in _BRIEFS["payments_name_data_failed"]["rows"] if r["ticker"] == "PYPL")
+    failures += not check("so is the held-out brief's, which is in the test split",
+                          pypl["attention"]["level"] == ("incomplete" if after else "quiet")
+                          and pypl["attention"].get("missing", []) == (["events", "news"] if after else [])
+                          and _BRIEFS["payments_name_data_failed"]["split"] == "test",
+                          str(pypl["attention"]))
     failures += not check("the abnormal-move rule is graded where the data has abnormal moves",
                           all("(e) Presenting the abnormal move" in ANALYSIS_SCENARIOS[n]["rubric"]
                               for n in ("theme_drop_before_earnings", "mixed_move_report_tomorrow",
