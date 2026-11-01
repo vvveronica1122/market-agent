@@ -586,6 +586,26 @@ def main() -> int:
     fenced = server.extract_themes([{"ticker": "MU"}], [])
     failures += not check("code-fenced JSON is still parsed",
                           fenced and fenced[0]["theme"] == "Fenced", str(fenced))
+    server.client = FakeClient(themes_text='[{"theme":"Chips","what":"x","tickers":["mu","MADEUP","MU"]}]')
+    made_up = server.extract_themes([{"ticker": "MU"}], [])
+    failures += not check("a ticker that wasn't among the movers is dropped; case and repeats are tidied",
+                          made_up and made_up[0]["tickers"] == ["MU"], str(made_up))
+    server.client = FakeClient(themes_text='[{"theme":"Invented","what":"x","tickers":["MADEUP"]}]')
+    failures += not check("a theme whose tickers are all made up is dropped",
+                          server.extract_themes([{"ticker": "MU"}], []) == [])
+    for bad_tickers in ('"MU"', "42", '{"a": 1}', "[42, null]"):
+        server.client = FakeClient(themes_text=f'[{{"theme":"Odd","what":"x","tickers":{bad_tickers}}},'
+                                               '{"theme":"Fine","what":"x","tickers":["MU"]}]')
+        try:
+            odd = server.extract_themes([{"ticker": "MU"}], [])
+        except Exception as exc:
+            odd = f"raised {type(exc).__name__}"
+        failures += not check(f"tickers given as {bad_tickers} don't crash or spell a symbol out",
+                              isinstance(odd, list) and [t["theme"] for t in odd] == ["Fine"], str(odd))
+    server.client = FakeClient(themes_text='[{"theme": 7, "tickers": ["MU"]}, {"theme": "Ok", "what": null}]')
+    odd = server.extract_themes([{"ticker": "MU"}], [])
+    failures += not check("a theme that isn't text is skipped; a missing 'what' is empty, not 'None'",
+                          odd == [{"theme": "Ok", "what": "", "tickers": []}], str(odd))
 
     print("\nDegradation")
     server._cache.clear()

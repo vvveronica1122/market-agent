@@ -1083,15 +1083,39 @@ def extract_themes(movers: list[dict], news: list[dict]) -> list[dict]:
     if not isinstance(parsed, list):
         return []
 
+    # Every field is checked, not trusted: "tickers": "NVDA" used to come
+    # out as N, V, D, A, "tickers": 42 raised, and a symbol that wasn't
+    # among the movers was shown as if it were. A theme whose tickers are
+    # all made up is dropped with them.
+    given = {str(m["ticker"]).upper() for m in movers}
     themes = []
     for item in parsed[:4]:
-        if not isinstance(item, dict) or not item.get("theme"):
+        if not isinstance(item, dict) or not isinstance(item.get("theme"), str) \
+                or not item["theme"].strip():
             continue
+        named = item.get("tickers") or []
+        if not isinstance(named, list):
+            app.logger.warning("theme %r dropped: tickers is %r", item["theme"], named)
+            continue
+        tickers, unknown = [], []
+        for t in named:
+            symbol = t.strip().upper() if isinstance(t, str) else None
+            if symbol in given:
+                if symbol not in tickers:
+                    tickers.append(symbol)
+            else:
+                unknown.append(t)
+        if unknown:
+            app.logger.warning("theme %r: tickers not among the movers dropped: %r",
+                               item["theme"], unknown)
+        if named and not tickers:
+            continue
+        what = item.get("what")
         themes.append(
             {
-                "theme": str(item.get("theme"))[:80],
-                "what": str(item.get("what", ""))[:400],
-                "tickers": [str(t)[:12] for t in (item.get("tickers") or [])][:8],
+                "theme": item["theme"].strip()[:80],
+                "what": what.strip()[:400] if isinstance(what, str) else "",
+                "tickers": tickers[:8],
             }
         )
     return themes
