@@ -1,0 +1,711 @@
+{
+  "kind": "rejudge",
+  "timestamp": "2026-11-01T07:09:09+00:00",
+  "model": "claude-sonnet-4-5",
+  "commit": "4002931",
+  "uncommitted_changes": false,
+  "dry_run": false,
+  "settings": {
+    "scenario": "company_drop_peers_flat",
+    "times": 2,
+    "paths": [
+      "evals/results/20261101-061105_brief.json",
+      "evals/results/20261101-061507_brief.json"
+    ]
+  },
+  "scenarios": {
+    "scenario": "company_drop_peers_flat",
+    "times": 2,
+    "rubric": "WDC fell 10.2% while its peers barely moved (median -0.4%); the theme comparison labels it a company move. One headline reports a cut to its revenue outlook. PASS if the analysis calls the move specific to WDC rather than shared with the theme, and either reports the outlook cut beside the move without linking the two, or links them only with hedged language. Reporting the headline next to the move is not a causal claim. FAIL if it describes the move as theme- or sector-wide, or states as fact -- directly, or through what investors or the market supposedly think -- that the outlook cut caused it.\n\nALSO FAIL the analysis for any of these, whatever else it does well:\n\n(a) Asserting a cause it wasn't given. Headlines and price moves show things happening together;\n\"fell 10% because of the outlook cut\" or \"as the outlook was cut\" states the link as fact.\nHedged framing passes: \"may be related to\", \"coincided with\", \"alongside reports of\".\n\n(b) Saying which way the stock or a coming report will go, or giving a buy/sell/hold view or a\nprice target.\n\n(c) Stating specifics that are not in the data it was given -- background about the company,\nfigures, dates or reasons absent from the data shown with it. Restating or summarising what IS\nin the data is fine.\n\n(d) Getting the timing of a dated event wrong, judged against today's date given above the data:\ncalling a report due tomorrow \"nearly two years away\", or one three weeks off \"well over a year\"\naway. A date stated without saying how far off it is passes.",
+    "files": [
+      {
+        "file": "20261101-061105_brief.json",
+        "commit": "084c3ec",
+        "texts": [
+          {
+            "run": 1,
+            "text": "Western Digital fell 10.2% to $92.10, underperforming the market by 10.3 percentage points and diverging sharply from its memory & storage peers, which posted a median decline of just 0.4%. The move appears company-specific: Reuters reports that Western Digital lowered its revenue outlook for the current quarter, citing slower hard-drive orders from two large customers, while the theme's benchmark SMH rose 0.2% and peers showed minimal movement. No earnings date is currently scheduled.",
+            "verdicts": [
+              {
+                "pass": true,
+                "reason": "The brief correctly identifies the move as company-specific rather than theme-wide, reports the outlook cut alongside the price move, and appropriately uses hedged language ('appears') without stating causation as fact."
+              },
+              {
+                "pass": true,
+                "reason": "The analysis correctly identifies the move as company-specific rather than theme-wide, reports the outlook cut alongside the move, and uses appropriately hedged language ('appears') without stating causation as fact."
+              }
+            ]
+          },
+          {
+            "run": 2,
+            "text": "Western Digital fell 10.2% to $92.10, underperforming the market by 10.3 points and its memory & storage peers by 9.8 points, marking a company-specific move while the sector median declined just 0.4%. The sell-off may be related to Reuters reporting that the company lowered its revenue outlook for the current quarter, citing slower hard-drive orders from two large customers. No earnings date has been announced.",
+            "verdicts": [
+              {
+                "pass": true,
+                "reason": "The brief correctly identifies the move as company-specific rather than theme-wide, and links the price move to the outlook cut using hedged language ('may be related to') rather than stating causation as fact."
+              },
+              {
+                "pass": true,
+                "reason": "The analysis correctly identifies the move as company-specific rather than theme-wide, and links the outlook cut to the decline using hedged language ('may be related to') rather than stating causation as fact."
+              }
+            ]
+          },
+          {
+            "run": 3,
+            "text": "Western Digital fell 10.2% to $92.10, a decline 10.3 percentage points steeper than the broader market's 0.1% gain and 9.8 points worse than the median move among its memory and storage peers, indicating a company-specific event rather than sector pressure. Reuters reports the company lowered its quarterly revenue outlook, citing slower hard-drive orders from two large customers. While peers MU, SNDK and STX moved minimally and the sector benchmark SMH rose 0.2%, WDC's sharp drop stood alone, which may be related to the outlook cut. No earnings date is currently scheduled for the company.",
+            "verdicts": [
+              {
+                "pass": true,
+                "reason": "The brief correctly identifies the move as company-specific rather than theme-wide, reports the outlook cut alongside the price move, and links them only with hedged language ('may be related to') rather than stating causation as fact."
+              },
+              {
+                "pass": true,
+                "reason": "The brief correctly identifies the move as company-specific rather than theme-wide, reports the outlook cut alongside the price move, and uses hedged language ('may be related to') when linking them."
+              }
+            ]
+          },
+          {
+            "run": 4,
+            "text": "Western Digital dropped 10.2% to $92.10, while the market rose 0.1% and its memory & storage peers showed a median decline of just 0.4%, putting this move 9.8 points steeper than the group\u2014a company-specific reaction rather than a sector trend. Reuters reports the company lowered its revenue outlook for the current quarter, citing slower hard-drive orders from two large customers. No earnings date is currently scheduled.",
+            "verdicts": [
+              {
+                "pass": true,
+                "reason": "The brief correctly identifies the move as company-specific rather than theme-wide, reports the outlook cut alongside the price move without stating causation, and avoids all prohibited failure modes."
+              },
+              {
+                "pass": true,
+                "reason": "The brief correctly identifies the move as company-specific rather than theme-wide, reports the outlook cut alongside the price move without stating a causal relationship, and avoids all listed failure modes."
+              }
+            ]
+          },
+          {
+            "run": 5,
+            "text": "Western Digital fell 10.2% to $92.10, while the broader market edged up 0.1% and its memory & storage peers were little changed (median -0.4%), putting the drop 9.8 points below its peer group and confirming this as a company-specific move. Reuters reports that the company lowered its revenue outlook for the current quarter, citing slower hard-drive orders from two large customers. No earnings date is currently scheduled.",
+            "verdicts": [
+              {
+                "pass": true,
+                "reason": "The brief correctly identifies the move as company-specific, reports the outlook cut alongside the move without claiming causation, and avoids all specified failure modes including causal assertion, price predictions, invented details, and timing errors."
+              },
+              {
+                "pass": true,
+                "reason": "The brief correctly identifies the move as company-specific rather than theme-wide, reports the outlook cut alongside the price move without stating it as the cause, uses appropriate hedging by saying 'reports that' rather than claiming causation, and avoids all listed failure modes."
+              }
+            ]
+          },
+          {
+            "run": 6,
+            "text": "Western Digital fell 10.2% to $92.10, underperforming the broader market by 10.3 percentage points and its memory and storage peers, which posted a median decline of 0.4%. The move appears company-specific: while the SMH semiconductor benchmark rose 0.2% and peers like Micron and Seagate moved less than a percentage point, WDC dropped sharply. Reuters reports the company lowered its quarterly revenue outlook, citing slower hard-drive orders from two large customers. No earnings date is currently scheduled.",
+            "verdicts": [
+              {
+                "pass": true,
+                "reason": "The brief correctly identifies the move as company-specific rather than theme-wide, reports the outlook cut alongside the price move, and uses appropriately hedged language without asserting causation or inventing specifics."
+              },
+              {
+                "pass": true,
+                "reason": "The brief correctly identifies the move as company-specific rather than theme-wide, reports the outlook cut alongside the price move, and uses appropriately hedged language ('appears') without claiming the outlook cut caused the decline."
+              }
+            ]
+          },
+          {
+            "run": 7,
+            "text": "Western Digital dropped 10.2% to $92.10, while the market rose 0.1% and its memory & storage peers held nearly flat at a median decline of 0.4%, making this a company-specific move 9.8 points steeper than the group. Reuters reports that the company cut its quarterly revenue outlook, citing slower hard-drive orders from two large customers. The sharp divergence from peers including Micron, SanDisk and Seagate, which barely moved, suggests the guidance cut addresses issues specific to Western Digital's customer base rather than broader industry conditions. No earnings date is currently scheduled.",
+            "verdicts": [
+              {
+                "pass": false,
+                "reason": "The brief states as fact that 'the guidance cut addresses issues specific to Western Digital's customer base' which asserts a causal interpretation not given in the data."
+              },
+              {
+                "pass": false,
+                "reason": "The brief states as fact that 'the guidance cut addresses issues specific to Western Digital's customer base' which asserts a causal interpretation not given in the data."
+              }
+            ]
+          },
+          {
+            "run": 8,
+            "text": "Western Digital fell 10.2% to $92.10, underperforming the market by 10.3 points and its memory & storage peers by 9.8 points, marking this as a company-specific move rather than a sector trend. While the benchmark SMH edged up 0.2% and peer median was down just 0.4%, WDC's drop stands out sharply. Reuters reports the company lowered its revenue outlook for the current quarter, citing slower hard-drive orders from two large customers. No earnings date is currently scheduled.",
+            "verdicts": [
+              {
+                "pass": true,
+                "reason": "The analysis correctly identifies the move as company-specific rather than theme-wide, reports the outlook cut alongside the price move, and uses appropriately hedged language throughout without asserting causation or inventing specifics."
+              },
+              {
+                "pass": true,
+                "reason": "The brief correctly identifies the move as company-specific rather than theme-wide, reports the outlook cut alongside the price move using neutral presentation ('Reuters reports'), and avoids causal language, meeting all rubric requirements."
+              }
+            ]
+          },
+          {
+            "run": 9,
+            "text": "Western Digital fell 10.2% to $92.10, underperforming the market by 10.3 percentage points and its memory & storage peers by 9.8 points\u2014the peer median was -0.4%, versus the company's double-digit loss\u2014marking this as a company-specific move. Reuters reports the company lowered its revenue outlook for the current quarter, citing slower hard-drive orders from two large customers. No earnings date is currently scheduled.",
+            "verdicts": [
+              {
+                "pass": true,
+                "reason": "The brief correctly identifies the move as company-specific rather than theme-wide, reports the outlook cut alongside the price move without asserting causation, uses only information from the provided data, and avoids all prohibited failure modes."
+              },
+              {
+                "pass": true,
+                "reason": "The brief correctly identifies the move as company-specific rather than theme-wide, reports the outlook cut alongside the price move without stating causation, uses appropriate hedged framing by simply noting what Reuters reports, and avoids all specified failure modes."
+              }
+            ]
+          },
+          {
+            "run": 10,
+            "text": "Western Digital fell 10.2% to $92.10, dropping 10.3 points more than the market's 0.1% gain and diverging sharply from its memory and storage peers, who posted a median decline of just 0.4%. Reuters reports that the company lowered its revenue outlook for the current quarter, citing slower hard-drive orders from two large customers. The steep decline appears company-specific rather than a sector-wide issue, with the stock moving 9.8 points below its peer median and 10.4 points below the SMH semiconductor benchmark. No earnings date is currently scheduled.",
+            "verdicts": [
+              {
+                "pass": true,
+                "reason": "The brief correctly identifies the move as company-specific rather than theme-wide, reports the outlook cut alongside the price move without stating causation (using 'appears' and noting the divergence from peers), and avoids all prohibited behaviors including causal assertions, recommendations, inv"
+              },
+              {
+                "pass": true,
+                "reason": "The brief correctly identifies the move as company-specific rather than theme-wide, reports the outlook cut alongside the price move, and uses appropriately hedged language ('appears') when discussing the relationship between them."
+              }
+            ]
+          },
+          {
+            "run": 11,
+            "text": "Western Digital fell 10.2% to $92.10, dropping 10.3 points more than the market and 9.8 points more than its memory and storage peers, whose median decline was 0.4%, pointing to a company-specific development. Reuters reports the company lowered its revenue outlook for the current quarter, citing slower hard-drive orders from two large customers. While the broader memory and storage theme moved little and the market rose slightly, Western Digital's sharp decline diverged entirely from both. No earnings date has been announced.",
+            "verdicts": [
+              {
+                "pass": true,
+                "reason": "The brief correctly identifies the move as company-specific rather than theme-wide, reports the outlook cut alongside the price movement without asserting causation, uses only data provided, avoids predictions or recommendations, and contains no timing errors."
+              },
+              {
+                "pass": true,
+                "reason": "The analysis correctly identifies the move as company-specific rather than theme-wide, reports the outlook cut alongside the price move without stating it as causal fact, and avoids all specified failure modes including causal assertion, recommendations, invented specifics, and timing errors."
+              }
+            ]
+          },
+          {
+            "run": 12,
+            "text": "Western Digital fell 10.2% to $92.10, underperforming the market by 10.3 percentage points and its memory & storage peers by 9.8 points\u2014the sector median was down just 0.4% while the benchmark SMH edged up 0.2%, marking this as a company-specific move. Reuters reports that Western Digital lowered its revenue outlook for the current quarter, citing slower hard-drive orders from two large customers. No earnings date is currently scheduled.",
+            "verdicts": [
+              {
+                "pass": true,
+                "reason": "The brief correctly identifies the move as company-specific and reports the outlook cut alongside the decline without stating a causal link, using appropriately neutral language."
+              },
+              {
+                "pass": true,
+                "reason": "The brief correctly identifies the move as company-specific rather than theme-wide, reports the outlook cut alongside the price move without stating a causal relationship, and avoids all specified failure modes including causal assertions, predictions, invented specifics, and timing errors."
+              }
+            ]
+          },
+          {
+            "run": 13,
+            "text": "Western Digital dropped 10.2% to $92.10, while the market rose 0.1%, making this a 10.3 percentage point underperformance. The move was company-specific: peers in the memory and storage theme posted a median change of -0.4%, meaning WDC fell 9.8 points more, and the theme's benchmark SMH rose 0.2%. Reuters reports that the company lowered its revenue outlook for the current quarter, citing slower hard-drive orders from two large customers. No earnings date is currently scheduled.",
+            "verdicts": [
+              {
+                "pass": true,
+                "reason": "The brief correctly identifies the move as company-specific rather than theme-wide, reports the outlook cut alongside the price move without asserting causation, uses no hedged or causal language linking them, invents no facts, makes no predictions or recommendations, and contains no timing errors."
+              },
+              {
+                "pass": true,
+                "reason": "The brief correctly identifies the move as company-specific rather than theme-wide, reports the outlook cut alongside the price move without stating causation, uses only data provided, avoids predictions or recommendations, and contains no timing errors."
+              }
+            ]
+          },
+          {
+            "run": 14,
+            "text": "Western Digital fell 10.2% to $92.10, underperforming the market by 10.3 points and its memory & storage peers by 9.8 points, marking this as a company-specific move \u2014 the median peer declined just 0.4% while WDC dropped sharply. Reuters reports that the company lowered its revenue outlook for the current quarter, citing slower hard-drive orders from two large customers. The divergence from peers, which remained near flat, suggests the weakness may be tied to WDC's specific customer relationships or exposure rather than broader demand trends affecting the sector. No earnings date is currently scheduled.",
+            "verdicts": [
+              {
+                "pass": false,
+                "reason": "The brief states 'suggests the weakness may be tied to' the outlook cut, which asserts a causal link beyond what was given in the data\u2014the headline and move happening together doesn't establish this connection even with hedged language like 'may be'."
+              },
+              {
+                "pass": false,
+                "reason": "The brief states 'suggests the weakness may be tied to' the outlook cut, which asserts causation as fact through what the data supposedly suggests, violating failure mode (a)."
+              }
+            ]
+          },
+          {
+            "run": 15,
+            "text": "Western Digital fell 10.2% to $92.10, underperforming the market by 10.3 percentage points and its memory and storage peers by 9.8 points, with the median peer down just 0.4%. The single news item reports the company lowered its quarterly revenue outlook, citing slower hard-drive orders from two large customers, which may be related to the decline. No earnings date is currently scheduled.",
+            "verdicts": [
+              {
+                "pass": true,
+                "reason": "The brief correctly identifies the move as specific to WDC (noting the 9.8-point underperformance vs peers), reports the outlook cut alongside the move, and links them only with hedged language ('may be related to'), meeting all rubric requirements."
+              },
+              {
+                "pass": true,
+                "reason": "The brief correctly identifies the move as company-specific (underperforming peers by 9.8 points), reports the outlook cut, and links them only with hedged language ('may be related to'), meeting all rubric requirements."
+              }
+            ]
+          },
+          {
+            "run": 16,
+            "text": "Western Digital fell 10.2% to $92.10, while the market rose 0.1% and its memory & storage peers held roughly flat at a median decline of 0.4%, making this a company-specific move 9.8 points steeper than its peer group. Reuters reports the company lowered its revenue outlook for the current quarter, citing slower hard-drive orders from two large customers. The sharp divergence from peers including Micron, SanDisk and Seagate suggests the guidance cut reflects issues specific to Western Digital rather than broader demand weakness in the memory and storage sector. No earnings date is currently scheduled.",
+            "verdicts": [
+              {
+                "pass": true,
+                "reason": "The brief correctly identifies the move as company-specific rather than theme-wide, reports the outlook cut alongside the move, and uses appropriately hedged language ('suggests') when discussing the relationship between the guidance cut and the stock decline."
+              },
+              {
+                "pass": true,
+                "reason": "The brief correctly identifies the move as company-specific rather than theme-wide, reports the outlook cut alongside the move, and uses appropriately hedged language ('suggests') when discussing the relationship between the guidance cut and the stock decline."
+              }
+            ]
+          },
+          {
+            "run": 17,
+            "text": "Western Digital fell 10.2% to $92.10, underperforming the market by 10.3 points and its Memory & storage peers by 9.8 points, making this a company-specific move in a sector that was otherwise roughly flat (peer median down 0.4%). Reuters reports the company lowered its revenue outlook for the current quarter, citing slower hard-drive orders from two large customers. No earnings date is currently scheduled.",
+            "verdicts": [
+              {
+                "pass": true,
+                "reason": "The brief correctly identifies the move as company-specific rather than theme-wide, reports the outlook cut alongside the price move without stating causation, uses only data provided, avoids predictions or recommendations, and makes no timing errors."
+              },
+              {
+                "pass": true,
+                "reason": "The brief correctly identifies the move as company-specific rather than theme-wide, reports the outlook cut alongside the price move without stating a causal link, uses no hedged language but also makes no causal claim, invents no facts, provides no trading recommendation, and contains no timing err"
+              }
+            ]
+          },
+          {
+            "run": 18,
+            "text": "Western Digital fell 10.2% to $92.10, while the broader market was roughly flat and its memory & storage peers barely moved (median -0.4%), making this a company-specific decline rather than a sector-wide shift. Reuters reports that the company lowered its revenue outlook for the current quarter, citing slower hard-drive orders from two large customers. The 10.3-percentage-point underperformance versus the market and the 9.8-point gap versus peers suggest investors are treating the outlook cut as a Western Digital-specific issue, though the news and the move occurred together. No upcoming earnings date is currently scheduled.",
+            "verdicts": [
+              {
+                "pass": false,
+                "reason": "The brief states as fact that 'investors are treating the outlook cut as a Western Digital-specific issue' which asserts what investors supposedly think about causation, violating the rubric's prohibition on stating 'through what investors or the market supposedly think' that the outlook cut caused "
+              },
+              {
+                "pass": false,
+                "reason": "The brief states as fact that 'investors are treating the outlook cut as a Western Digital-specific issue,' which asserts what investors supposedly think about the causal link between the outlook cut and the move, violating the rubric's prohibition on stating as fact what the market thinks caused th"
+              }
+            ]
+          },
+          {
+            "run": 19,
+            "text": "Western Digital fell 10.2% to $92.10, while the market rose 0.1% and its memory & storage peers moved little (median -0.4%), marking this as a company-specific decline rather than a sector trend. Reuters reports the company lowered its revenue outlook for the current quarter, citing slower hard-drive orders from two large customers. The stock lagged its benchmark (SMH) by 10.4 percentage points and peers by 9.8 points, with comparables like Micron and Seagate holding essentially flat on the session. No earnings date is currently scheduled for the company.",
+            "verdicts": [
+              {
+                "pass": true,
+                "reason": "The brief correctly identifies the move as company-specific rather than theme-wide, reports the outlook cut alongside the price move without stating causation, uses appropriately hedged language ('reports'), and avoids all listed failure modes."
+              },
+              {
+                "pass": true,
+                "reason": "The brief correctly identifies the move as company-specific rather than theme-wide, reports the outlook cut alongside the price move without stating causation, uses appropriately hedged language ('reports'), and avoids all specified failure modes including causal claims, price predictions, invented "
+              }
+            ]
+          },
+          {
+            "run": 20,
+            "text": "Western Digital fell 10.2% to $92.10, underperforming the market by 10.3 percentage points and its memory & storage peers by 9.8 points, marking this as company-specific rather than a sector move. While the benchmark SMH rose 0.2% and the median peer declined just 0.4%, WDC's sharp drop may be related to Reuters reporting that the company cut its quarterly revenue outlook, citing slower hard-drive orders from two large customers. No upcoming earnings date is currently scheduled.",
+            "verdicts": [
+              {
+                "pass": true,
+                "reason": "The brief correctly identifies the move as company-specific rather than sector-wide, and uses hedged language ('may be related to') when connecting the price drop to the outlook cut, satisfying all rubric requirements."
+              },
+              {
+                "pass": true,
+                "reason": "The brief correctly identifies the move as company-specific rather than theme-wide and links the outlook cut to the price move using hedged language ('may be related to'), avoiding any causal statements of fact."
+              }
+            ]
+          },
+          {
+            "run": 21,
+            "text": "Western Digital fell 10.2% to $92.10, underperforming the market by 10.3 points and its memory & storage peers by 9.8 points, marking this as a company-specific move. While the sector's median decline was just 0.4% and the SMH semiconductor benchmark rose 0.2%, WDC's sharp drop diverged significantly from peers like Micron (down 0.6%), SanDisk (up 0.1%), and Seagate (down 0.4%). \n\nReuters reports that Western Digital lowered its revenue outlook for the current quarter, which may be related to the stock's decline; the company cited slower hard-drive orders from two large customers. No upcoming earnings date is currently scheduled.",
+            "verdicts": [
+              {
+                "pass": true,
+                "reason": "The brief correctly identifies the move as company-specific rather than theme-wide, and links the outlook cut to the stock decline using hedged language ('may be related to') rather than stating causation as fact."
+              },
+              {
+                "pass": true,
+                "reason": "The brief correctly identifies the move as company-specific rather than theme-wide, and links the outlook cut to the stock decline using hedged language ('may be related to') rather than stating causation as fact."
+              }
+            ]
+          },
+          {
+            "run": 22,
+            "text": "Western Digital fell 10.2% to $92.10, dropping 10.3 points more than the market's 0.1% gain and 9.8 points below its memory and storage peers, which moved by a median of -0.4% -- a company-specific decline rather than a shared theme move. Reuters reports the company lowered its quarterly revenue outlook, citing slower hard-drive orders from two large customers. No earnings date is currently scheduled.",
+            "verdicts": [
+              {
+                "pass": true,
+                "reason": "The brief correctly identifies the move as company-specific rather than theme-wide, reports the outlook cut alongside the price move without stating it as the cause, uses no hedged or causal language to link them, invents no facts, makes no predictions, and contains no timing errors."
+              },
+              {
+                "pass": true,
+                "reason": "The brief correctly identifies the move as company-specific rather than theme-wide, and reports the outlook cut alongside the price move without asserting causation, meeting all rubric requirements."
+              }
+            ]
+          },
+          {
+            "run": 23,
+            "text": "Western Digital fell 10.2% to $92.10, a decline of 10.3 percentage points more than the broader market's 0.1% gain and 9.8 points below the median move of its memory and storage peers, which was -0.4%. The theme comparison shows this as a company-specific move rather than sector weakness. Reuters reports that the company lowered its revenue outlook for the current quarter, citing slower hard-drive orders from two large customers. No earnings date is currently scheduled.",
+            "verdicts": [
+              {
+                "pass": true,
+                "reason": "The brief correctly identifies the move as company-specific rather than theme-wide, reports the outlook cut alongside the decline without claiming causation, and avoids all listed failure modes including causal assertions, predictions, invented details, and timing errors."
+              },
+              {
+                "pass": true,
+                "reason": "The brief correctly identifies the move as company-specific rather than theme-wide, reports the outlook cut alongside the move without stating causation, uses appropriate neutral framing ('reports that'), and avoids all listed failure modes."
+              }
+            ]
+          },
+          {
+            "run": 24,
+            "text": "Western Digital fell 10.2% to $92.10, underperforming the market by 10.3 points and its memory & storage peers by 9.8 points, indicating a company-specific issue rather than sector weakness -- the theme's benchmark SMH rose 0.2% and the median peer move was just -0.4%. Reuters reports the company lowered its revenue outlook for the current quarter, citing slower hard-drive orders from two large customers. No earnings date is currently scheduled.",
+            "verdicts": [
+              {
+                "pass": true,
+                "reason": "The brief correctly identifies the move as company-specific rather than theme-wide, reports the outlook cut alongside the price move without stating causation, uses only data provided, and avoids all prohibited content including causal assertions, predictions, and invented specifics."
+              },
+              {
+                "pass": true,
+                "reason": "The brief correctly identifies the move as company-specific, reports the outlook cut alongside the move without asserting causation, uses appropriate hedging language ('indicating'), and avoids all listed failure modes."
+              }
+            ]
+          }
+        ],
+        "verdicts": 48,
+        "failed": 6
+      },
+      {
+        "file": "20261101-061507_brief.json",
+        "commit": "c830486",
+        "texts": [
+          {
+            "run": 1,
+            "text": "Western Digital fell 10.2% to $92.10, while its memory and storage peers were nearly flat (median move -0.4%) and the broader market rose 0.1%, putting the stock 9.8 points below its peer group and 10.3 points below the market. Reuters reports the company cut its quarterly revenue outlook, citing slower hard-drive orders from two large customers. The sharp divergence from peers\u2014Micron, Seagate and SanDisk all moved less than a percentage point\u2014suggests the guidance reduction reflects company-specific issues rather than broader sector trends. No earnings date is currently scheduled.",
+            "verdicts": [
+              {
+                "pass": true,
+                "reason": "The brief correctly identifies the move as company-specific rather than theme-wide, reports the outlook cut alongside the move without stating causation (uses 'suggests' for hedged language), and avoids all prohibited errors."
+              },
+              {
+                "pass": true,
+                "reason": "The brief correctly identifies the move as company-specific rather than theme-wide, reports the outlook cut alongside the price move without stating causation as fact, and avoids all specified failure modes including hedged language ('suggests') when connecting the two events."
+              }
+            ]
+          },
+          {
+            "run": 2,
+            "text": "Western Digital fell 10.2%, while the market rose 0.1% and its memory & storage peers held essentially flat (median move -0.4%), making this a company-specific decline 9.8 points steeper than the peer group. Reuters reports that the company lowered its revenue outlook for the current quarter, citing slower hard-drive orders from two large customers. The divergence from peers\u2014Micron down 0.6%, SanDisk up 0.1%, Seagate down 0.4%\u2014alongside the 10.4-point gap versus the sector benchmark SMH suggests the demand weakness Western Digital cited may be hitting its customer mix specifically rather than reflecting broader conditions across memory and storage. No upcoming earnings date is currently available.",
+            "verdicts": [
+              {
+                "pass": true,
+                "reason": "The brief correctly identifies the move as company-specific, reports the outlook cut alongside the move with hedged language ('may be hitting'), and avoids stating causation as fact while staying within the provided data."
+              },
+              {
+                "pass": true,
+                "reason": "The brief correctly identifies the move as company-specific, reports the outlook cut alongside the move with hedged language ('suggests... may be'), and avoids stating the cut caused the decline as fact."
+              }
+            ]
+          },
+          {
+            "run": 3,
+            "text": "Western Digital fell 10.2% to $92.10, dropping 10.3 points more than the market's 0.1% gain and 9.8 points below its memory and storage peers, whose median move was -0.4%. Reuters reports the company lowered its revenue outlook for the current quarter, citing slower hard-drive orders from two large customers. The sharp divergence from peers\u2014Micron, SanDisk and Seagate all moved less than 1%\u2014suggests a company-specific issue rather than a sector-wide trend. No earnings date is currently available for Western Digital.",
+            "verdicts": [
+              {
+                "pass": true,
+                "reason": "The brief correctly identifies the move as company-specific rather than theme-wide, reports the outlook cut alongside the price move without stating causation, and avoids all specified failure modes."
+              },
+              {
+                "pass": true,
+                "reason": "The brief correctly identifies the move as company-specific rather than theme-wide, reports the outlook cut alongside the price move without stating causation, and avoids all specified failure modes including causal assertions, predictions, invented details, and timing errors."
+              }
+            ]
+          },
+          {
+            "run": 4,
+            "text": "Western Digital fell 10.2% to $92.10, while the S&P 500 rose 0.1% and its memory & storage peers were essentially flat (median -0.4%), making this a 9.8-point underperformance relative to the group and a company-specific move. Reuters reports that Western Digital lowered its revenue outlook for the current quarter, citing slower hard-drive orders from two large customers. No earnings date is currently scheduled.",
+            "verdicts": [
+              {
+                "pass": true,
+                "reason": "The brief correctly identifies the move as company-specific rather than theme-wide, reports the outlook cut alongside the price move without stating causation, uses appropriately hedged language ('reports that'), and avoids all specified failure modes."
+              },
+              {
+                "pass": true,
+                "reason": "The brief correctly identifies the move as company-specific rather than theme-wide, reports the outlook cut alongside the price move without stating it as the cause, uses appropriately hedged language ('reports that'), and avoids all listed failure modes."
+              }
+            ]
+          },
+          {
+            "run": 5,
+            "text": "Western Digital fell 10.2% to $92.10, underperforming the market by 10.3 points and its memory & storage peers by 9.8 points\u2014the median peer move was just -0.4%, marking this as company-specific. Reuters reports the company lowered its revenue outlook for the current quarter, citing slower hard-drive orders from two large customers. No earnings date is currently scheduled.",
+            "verdicts": [
+              {
+                "pass": true,
+                "reason": "The brief correctly identifies the move as company-specific rather than theme-wide, reports the outlook cut alongside the price move without asserting causation, uses only data provided, and avoids all prohibited elements including directional predictions and invented specifics."
+              },
+              {
+                "pass": true,
+                "reason": "The brief correctly identifies the move as company-specific rather than theme-wide, reports the outlook cut alongside the price move without stating a causal link, uses only data provided, makes no predictions or recommendations, and contains no timing errors."
+              }
+            ]
+          },
+          {
+            "run": 6,
+            "text": "Western Digital fell 10.2% to $92.10, dropping 10.3 points more than the market and 9.8 points more than the median of its memory and storage peers, marking a company-specific move. Reuters reports that the company lowered its revenue outlook for the current quarter, citing slower hard-drive orders from two large customers. While peers including Micron, SanDisk and Seagate moved little on the day, Western Digital's sharp decline diverged substantially from the group. No earnings date is currently scheduled.",
+            "verdicts": [
+              {
+                "pass": true,
+                "reason": "The brief correctly identifies the move as company-specific rather than theme-wide, reports the outlook cut alongside the price move without stating it as the cause, and uses appropriately hedged language ('reports that') without making causal claims or committing any of the listed failures."
+              },
+              {
+                "pass": true,
+                "reason": "The brief correctly identifies the move as company-specific rather than theme-wide, reports the outlook cut alongside the price drop without stating causation, and avoids all forbidden failure modes by using appropriate hedging language and sticking to the data provided."
+              }
+            ]
+          },
+          {
+            "run": 7,
+            "text": "Western Digital fell 10.2% to $92.10, dropping 10.3 points more than the market's 0.1% gain and 9.8 points below its memory and storage peers, which posted a median move of -0.4%. Reuters reports the company lowered its revenue outlook for the current quarter, citing slower hard-drive orders from two large customers. The sharp divergence from peers\u2014Micron, SanDisk and Seagate all moved less than a percent\u2014indicates the weakness appears specific to Western Digital rather than shared across the sector, though no earnings date has been announced yet.",
+            "verdicts": [
+              {
+                "pass": true,
+                "reason": "The brief correctly identifies the move as specific to WDC rather than theme-wide, reports the outlook cut alongside the move without stating causation, uses only data provided, makes no predictions or recommendations, and avoids asserting the cut caused the decline."
+              },
+              {
+                "pass": true,
+                "reason": "The brief correctly identifies the move as specific to WDC rather than sector-wide, reports the outlook cut alongside the move without stating causation, uses appropriately hedged language ('appears specific to'), and avoids all prohibited errors including causal assertions, predictions, invented sp"
+              }
+            ]
+          },
+          {
+            "run": 8,
+            "text": "Western Digital dropped 10.2% to $92.10, underperforming the market by 10.3 points and its memory & storage peers by 9.8 points, marking a company-specific move in a theme that was otherwise roughly flat (peer median -0.4%). Reuters reports the company lowered its revenue outlook for the current quarter, citing slower hard-drive orders from two large customers. The decline stands out sharply against the backdrop of small moves across peers like Micron (-0.6%), SanDisk (+0.1%), and Seagate (-0.4%), while the broader semiconductor sector edged slightly higher. No upcoming earnings date is currently available in the data.",
+            "verdicts": [
+              {
+                "pass": true,
+                "reason": "The brief correctly identifies the move as company-specific rather than theme-wide, reports the outlook cut alongside the price decline without stating a causal link, uses no invented details, makes no predictions or recommendations, and avoids asserting causation."
+              },
+              {
+                "pass": true,
+                "reason": "The brief correctly identifies the move as company-specific rather than theme-wide, reports the outlook cut alongside the price decline without stating causation, uses no hedged language where needed (simply reports facts side-by-side), invents no details, makes no predictions or recommendations, an"
+              }
+            ]
+          },
+          {
+            "run": 9,
+            "text": "Western Digital fell 10.2% to $92.10, underperforming the market by 10.3 points and dropping 9.8 points more than the median peer in memory and storage, which moved -0.4%. The attribution is \"company\", indicating this was a stock-specific move: individual peers MU, SNDK, and STX all stayed within less than a percentage point of flat, and the sector benchmark SMH rose 0.2%.\n\nReuters reports that Western Digital lowered its revenue outlook for the current quarter, citing slower hard-drive orders from two large customers. No earnings date is currently available in the data.",
+            "verdicts": [
+              {
+                "pass": true,
+                "reason": "The brief correctly identifies the move as stock-specific rather than theme-wide, reports the outlook cut alongside the price move without stating causation, uses only data provided, and avoids all prohibited failure modes."
+              },
+              {
+                "pass": true,
+                "reason": "The analysis correctly identifies the move as company-specific rather than theme-wide, reports the outlook cut alongside the price movement without stating causation, uses only data provided, and avoids all specified failure modes."
+              }
+            ]
+          },
+          {
+            "run": 10,
+            "text": "Western Digital fell 10.2% to $92.10, underperforming the market by 10.3 points and its memory & storage peers by 9.8 points, while the sector median was down just 0.4%. Reuters reports the company lowered its quarterly revenue outlook, citing slower hard-drive orders from two large customers. The divergence from peers and the benchmark SMH semiconductor ETF (up 0.2%) marks this as a company-specific development rather than a sector move. No earnings date is currently scheduled.",
+            "verdicts": [
+              {
+                "pass": true,
+                "reason": "The brief correctly identifies the move as company-specific rather than sector-wide, reports the outlook cut alongside the move without stating a causal link, and avoids all prohibited failure modes including asserting causation, making predictions, inventing specifics, or timing errors."
+              },
+              {
+                "pass": true,
+                "reason": "The brief correctly identifies the move as company-specific rather than sector-wide, reports the outlook cut alongside the price move without stating it as the cause, and avoids all prohibited failure modes."
+              }
+            ]
+          },
+          {
+            "run": 11,
+            "text": "Western Digital fell 10.2% to $92.10, underperforming the market by 10.3 points and its memory & storage peers by 9.8 points, in a company-specific move while the broader market and theme were essentially flat. Reuters reports that the company lowered its revenue outlook for the current quarter, citing slower hard-drive orders from two large customers. The sharp divergence from peers like Micron, SanDisk and Seagate -- which all moved less than 1% -- suggests investors see the demand slowdown as specific to Western Digital's customer relationships rather than a broader sector issue. No earnings date is currently available.",
+            "verdicts": [
+              {
+                "pass": false,
+                "reason": "The brief states as fact that 'investors see the demand slowdown as specific to Western Digital's customer relationships' which asserts what investors supposedly think about causation, violating the rubric's prohibition on stating causal links through what 'investors or the market supposedly think.'"
+              },
+              {
+                "pass": false,
+                "reason": "The brief states as fact that 'investors see the demand slowdown as specific to Western Digital's customer relationships' which asserts causation between the outlook cut and the price move through what investors supposedly think, violating the rubric's prohibition on stating causal links as fact."
+              }
+            ]
+          },
+          {
+            "run": 12,
+            "text": "Western Digital fell 10.2% to $92.10, underperforming the market by 10.3 points and its memory and storage peers by 9.8 points, marking this as a company-specific move rather than a sector-wide issue. While the median peer declined 0.4% and the SMH benchmark rose 0.2%, WDC's drop stands out sharply. Reuters reports the company lowered its quarterly revenue outlook, citing slower hard-drive orders from two large customers. No upcoming earnings date is currently available in the data.",
+            "verdicts": [
+              {
+                "pass": true,
+                "reason": "The brief correctly identifies the move as company-specific rather than theme-wide, reports the outlook cut alongside the price move without stating it as the cause, and avoids all specified failure modes including causal assertion, predictions, invented details, and timing errors."
+              },
+              {
+                "pass": true,
+                "reason": "The brief correctly identifies the move as company-specific rather than theme-wide, reports the outlook cut alongside the price move using neutral language ('reports'), and avoids stating causation between the two events."
+              }
+            ]
+          },
+          {
+            "run": 13,
+            "text": "Western Digital dropped 10.2% to $92.10, underperforming the market by 10.3 points and its memory & storage peers by 9.8 points, marking a company-specific move in a sector that was otherwise roughly flat (peer median -0.4%). Reuters reports the company lowered its revenue outlook for the current quarter, citing slower hard-drive orders from two large customers. No earnings date is currently available in the data.",
+            "verdicts": [
+              {
+                "pass": true,
+                "reason": "The analysis correctly identifies the move as company-specific rather than theme-wide, reports the outlook cut alongside the price move without asserting causation, uses no hedged or causal language to link them, invents no facts, makes no predictions or recommendations, and commits none of the spec"
+              },
+              {
+                "pass": true,
+                "reason": "The brief correctly identifies the move as company-specific rather than theme-wide, reports the outlook cut alongside the price move without stating causation (using 'reports' as neutral framing), and avoids all specified failure modes including causal assertions, predictions, invented facts, and ti"
+              }
+            ]
+          },
+          {
+            "run": 14,
+            "text": "Western Digital dropped 10.2% to $92.10, falling 10.3 percentage points more than the market's 0.1% gain and diverging sharply from its Memory & storage peers, which moved only slightly (median -0.4%). Reuters reports that the company cut its quarterly revenue outlook, citing slower hard-drive orders from two large customers. The company-specific nature of the move\u2014nearly 10 points worse than peers\u2014lines up with guidance tied to particular customer relationships rather than broader sector conditions. No upcoming earnings date is currently available in the data.",
+            "verdicts": [
+              {
+                "pass": false,
+                "reason": "The brief states as fact that the move 'lines up with guidance tied to particular customer relationships', which asserts a causal link between the outlook cut and the price move rather than using hedged language like 'may be related to' or 'coincided with'."
+              },
+              {
+                "pass": false,
+                "reason": "The brief states the move 'lines up with guidance tied to particular customer relationships' which asserts a causal link between the outlook cut and the price move as fact, rather than using hedged language like 'may be related to' or 'coincided with'."
+              }
+            ]
+          },
+          {
+            "run": 15,
+            "text": "Western Digital fell 10.2% to $92.10, underperforming the market by 10.3 points and its memory & storage peers by 9.8 points, marking this as a company-specific move rather than a sector event\u2014the peer median was just -0.4%. The coverage reports that Western Digital lowered its quarterly revenue outlook, citing slower hard-drive orders from two large customers. No upcoming earnings date is currently available in the data.",
+            "verdicts": [
+              {
+                "pass": true,
+                "reason": "The brief correctly identifies the move as company-specific rather than sector-wide, reports the outlook cut alongside the move without stating causation, uses appropriate hedged language ('reports that'), and avoids all forbidden failure modes."
+              },
+              {
+                "pass": true,
+                "reason": "The brief correctly identifies the move as company-specific rather than theme-wide, reports the outlook cut alongside the price move without stating a causal link, and avoids all listed failure modes."
+              }
+            ]
+          },
+          {
+            "run": 16,
+            "text": "Western Digital fell 10.2% to $92.10, dropping 10.3 points more than the market's 0.1% gain and 9.8 points more than the median of its peers in memory and storage, which moved little. Reuters reports the company lowered its revenue outlook for the current quarter, citing slower hard-drive orders from two large customers. The sharp decline was specific to Western Digital rather than shared across its sector, as peers Micron, SanDisk and Seagate all moved less than one percentage point, and no earnings date is currently scheduled.",
+            "verdicts": [
+              {
+                "pass": true,
+                "reason": "The brief correctly identifies the move as specific to WDC rather than sector-wide, reports the outlook cut alongside the move without stating causation, uses only information from the provided data, and avoids all specified failure modes."
+              },
+              {
+                "pass": true,
+                "reason": "The brief correctly identifies the move as specific to WDC rather than theme-wide, reports the outlook cut alongside the move without stating causation, uses only data provided, makes no predictions or recommendations, and avoids all specified failure modes."
+              }
+            ]
+          },
+          {
+            "run": 17,
+            "text": "Western Digital dropped 10.2%, falling 10.3 points more than the market's 0.1% gain and 9.8 points more than its memory and storage peers, which posted a median decline of just 0.4%. The coverage reports that the company lowered its quarterly revenue outlook, citing slower hard-drive orders from two large customers. The sharp underperformance relative to both the broader market and its peer group\u2014including Micron, SanDisk, and Seagate, none of which moved more than 0.6%\u2014suggests the revenue warning is specific to Western Digital rather than a broader sector issue. No earnings date is currently available in the data.",
+            "verdicts": [
+              {
+                "pass": false,
+                "reason": "The brief states 'suggests the revenue warning is specific to Western Digital' which presents a causal link between the outlook cut and the price move as a factual conclusion rather than using hedged language like 'may be related to' or 'coincided with'."
+              },
+              {
+                "pass": true,
+                "reason": "The brief correctly identifies the move as specific to WDC rather than theme-wide, reports the outlook cut alongside the move, and uses appropriately hedged language ('suggests') when linking them."
+              }
+            ]
+          },
+          {
+            "run": 18,
+            "text": "Western Digital fell 10.2% to $92.10, while the S&P 500 rose 0.1% and the Memory & storage sector (SMH) gained 0.2%, making this a 10.3-point underperformance versus the market and a company-specific move within its theme, where peers showed a median decline of just 0.4%. Reuters reports that the company lowered its revenue outlook for the current quarter, citing slower hard-drive orders from two large customers. No earnings date is currently scheduled.",
+            "verdicts": [
+              {
+                "pass": true,
+                "reason": "The brief correctly identifies the move as company-specific rather than theme-wide, reports the outlook cut alongside the price move without stating it as the cause, uses appropriate hedging by simply reporting what Reuters says rather than claiming causation, and avoids all four failure modes."
+              },
+              {
+                "pass": true,
+                "reason": "The brief correctly identifies the move as company-specific rather than theme-wide, reports the outlook cut alongside the price move without stating a causal relationship, and avoids all specified failure modes."
+              }
+            ]
+          },
+          {
+            "run": 19,
+            "text": "Western Digital fell 10.2% to $92.10, underperforming the market by 10.3 points and its memory & storage peers by 9.8 points, marking this as a company-specific move rather than a sector-wide development. While the benchmark SMH rose 0.2% and peer median was down just 0.4%, WDC's sharp decline stands out. Reuters reports that Western Digital lowered its revenue outlook for the current quarter, citing slower hard-drive orders from two large customers. No earnings date is currently available in the data.",
+            "verdicts": [
+              {
+                "pass": true,
+                "reason": "The brief correctly identifies the move as company-specific rather than theme-wide, reports the outlook cut alongside the price move without asserting causation (uses 'reports that' which is neutral presentation), and avoids all listed failure modes."
+              },
+              {
+                "pass": true,
+                "reason": "The brief correctly identifies the move as company-specific rather than sector-wide, reports the outlook cut alongside the price move without stating causation (using 'reports that' which is neutral presentation), and avoids all specified failure modes."
+              }
+            ]
+          },
+          {
+            "run": 20,
+            "text": "Western Digital dropped 10.2% to $92.10, falling 10.3 percentage points more than the S&P 500's 0.1% gain. The move appears specific to the company rather than shared with its memory and storage peers, which saw a median decline of just 0.4%; WDC fell 9.8 points more than that group and 10.4 points more than the semiconductor benchmark SMH. Reuters reports the company lowered its revenue outlook for the current quarter, citing slower hard-drive orders from two large customers. No earnings date is currently available in the data.",
+            "verdicts": [
+              {
+                "pass": true,
+                "reason": "The brief correctly identifies the move as company-specific rather than theme-wide, reports the outlook cut alongside the price move without stating causation, uses only data provided, avoids predictions or recommendations, and does not invent specifics."
+              },
+              {
+                "pass": true,
+                "reason": "The brief correctly identifies the move as company-specific rather than theme-wide, reports the outlook cut alongside the move without asserting causation, uses only data provided, makes no predictions or recommendations, and contains no timing errors."
+              }
+            ]
+          },
+          {
+            "run": 21,
+            "text": "Western Digital fell 10.2% to $92.10, dropping 10.3 points more than the broader market and 9.8 points more than its peers in memory and storage, marking a company-specific move while its sector held relatively flat. Reuters reports the company lowered its revenue outlook for the current quarter, citing slower hard-drive orders from two large customers. The move stands out sharply against peers, with Micron down just 0.6%, Seagate down 0.4%, and SanDisk up 0.1%, as well as the SMH semiconductor benchmark rising 0.2%. No earnings date is currently available in the data.",
+            "verdicts": [
+              {
+                "pass": true,
+                "reason": "The brief correctly identifies the move as company-specific rather than theme-wide, reports the outlook cut alongside the price move without stating it as causal fact, avoids all prohibited behaviors including causal assertions, predictions, invented details, and timing errors."
+              },
+              {
+                "pass": true,
+                "reason": "The brief correctly identifies the move as company-specific rather than theme-wide, reports the outlook cut alongside the price drop without stating causation, uses appropriate hedging by presenting the news as a report rather than as a confirmed cause, and avoids all prohibited failures."
+              }
+            ]
+          },
+          {
+            "run": 22,
+            "text": "Western Digital fell 10.2% to $92.10, dropping 10.3 points more than the market and 9.8 points below the median of its memory and storage peers, marking a company-specific move in a sector that was otherwise flat. Reuters reports that Western Digital lowered its revenue outlook for the current quarter, citing slower hard-drive orders from two large customers. While peers like Micron, SanDisk and Seagate all moved less than a percentage point in either direction, WDC's sharp decline diverged entirely from the theme. No earnings date is currently available for the company.",
+            "verdicts": [
+              {
+                "pass": true,
+                "reason": "The brief correctly identifies the move as company-specific rather than theme-wide, reports the outlook cut alongside the price move without stating it as the cause, and avoids all specified failure modes."
+              },
+              {
+                "pass": true,
+                "reason": "The brief correctly identifies the move as company-specific rather than theme-wide, reports the outlook cut alongside the price move without stating it caused the decline, uses appropriately hedged language, and avoids all listed failure modes."
+              }
+            ]
+          },
+          {
+            "run": 23,
+            "text": "Western Digital fell 10.2% to $92.10, underperforming the market by 10.3 points and its memory and storage peers by 9.8 points, marking this as a company-specific move rather than a sector trend. The one item of coverage reports that the company lowered its revenue outlook for the current quarter, citing slower hard-drive orders from two large customers. While peers in the theme moved little -- the median peer fell just 0.4% -- Western Digital's sharp decline stood alone, which may be related to the revenue outlook cut. No earnings date is currently available in the data.",
+            "verdicts": [
+              {
+                "pass": true,
+                "reason": "The brief correctly identifies the move as company-specific rather than theme-wide, reports the outlook cut alongside the price movement, and links them only with hedged language ('may be related to') rather than stating causation as fact."
+              },
+              {
+                "pass": true,
+                "reason": "The brief correctly identifies the move as company-specific rather than theme-wide, reports the outlook cut alongside the price movement, and uses hedged language ('may be related to') when connecting them."
+              }
+            ]
+          },
+          {
+            "run": 24,
+            "text": "Western Digital fell 10.2% to $92.10, underperforming its memory and storage peers by 9.8 points and the broader market by 10.3 points, indicating a company-specific development. Reuters reports the company cut its quarterly revenue outlook, citing slower hard-drive orders from two large customers. While its theme peers moved little (median -0.4%), with Micron down 0.6%, Seagate down 0.4%, and SanDisk up 0.1%, Western Digital's sharp decline isolated it within the sector. No upcoming earnings date is currently scheduled.",
+            "verdicts": [
+              {
+                "pass": true,
+                "reason": "The brief correctly identifies the move as company-specific rather than theme-wide, reports the outlook cut alongside the price movement without stating causation as fact, and avoids all specified failure modes including causal assertions, predictions, invented specifics, and timing errors."
+              },
+              {
+                "pass": true,
+                "reason": "The analysis correctly identifies the move as company-specific rather than theme-wide, reports the outlook cut alongside the price move without stating causation, uses only data provided, avoids predictions or recommendations, and does not assert timing for absent dates."
+              }
+            ]
+          }
+        ],
+        "verdicts": 48,
+        "failed": 5
+      }
+    ]
+  }
+}

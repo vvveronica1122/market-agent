@@ -1,0 +1,221 @@
+{
+  "kind": "brief",
+  "timestamp": "2026-11-01T07:09:21+00:00",
+  "model": "claude-sonnet-4-5",
+  "commit": "4002931",
+  "uncommitted_changes": false,
+  "dry_run": false,
+  "settings": {
+    "runs": 24,
+    "scenario": "theme_name_data_failed",
+    "skip_themes": false,
+    "skip_analysis": false,
+    "split": null,
+    "analysis_only": false
+  },
+  "scenarios": {
+    "theme_name_data_failed": {
+      "description": "A theme falls together; one quiet name's news and calendar failed to load.",
+      "runs": 24,
+      "checks": {
+        "never gives a direct recommendation": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never tells the reader to trade": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never sets a price target": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never predicts direction": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never claims certainty": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never uses a rating": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never nudges the reader about positioning": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never suggests an action": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never advises a posture": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never tells the reader when to act": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "no markdown headings": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "no bullet lists": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "no numbered lists": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "no bold markdown": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "between 1 and 4 paragraphs": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "reasonable length": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never states a move as a multiple of another": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "judge verdict": {
+          "passed": 17,
+          "runs": 24,
+          "failure": "The brief asserts causation in the second paragraph by stating 'That divergence suggests the capex news hit the compute side more directly,' which presents a causal interpretation not given in the data."
+        }
+      },
+      "first_output": "The AI compute theme took the hardest hit across your watchlist, with NVDA, AMD and AVGO all down between 2.6% and 3.1%, tracking each other and falling deeper than SMH's 2.4% decline. NVDA's top headline notes chip stocks sliding alongside a cloud provider trimming its capex outlook -- the same event called out in today's market headlines -- though the timing is correlation, not established cause.\n\nMemory and storage held up markedly better: MU, WDC and STX all fell less than half a percent in a session where the Nasdaq dropped 1.1% and their benchmark fell 2.4%. That divergence from both the broader chip sell-off and from SMH stands out. STX's news and events data couldn't be loaded.\n\nNothing reports in the next seven days. The nearest scheduled reports are AMD, AVGO, MU, NVDA and WDC, all in thirty days on December 1st, while STX's date couldn't be loaded.",
+      "failed_runs": [
+        {
+          "run": 4,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "judge_reason": "The brief asserts causation in the second paragraph by stating 'That divergence suggests the capex news hit the compute side more directly,' which presents a causal interpretation not given in the data.",
+          "brief": "AI compute took the brunt of yesterday's selloff, with NVDA, AMD and AVGO all falling harder than the Nasdaq's 1.1% drop -- roughly 3% down across the group -- alongside a report that a cloud provider trimmed its capex outlook. The three moved together, tracking their benchmark SMH, which lost 2.4%.\n\nMemory and storage held up better, barely budging. MU, WDC and STX each fell less than a percent while their AI compute peers sold off, keeping well ahead of SMH. That divergence suggests the capex news hit the compute side more directly, with memory names staying quiet through the session.\n\nThe next scheduled earnings is a month out: AMD, AVGO, MU, NVDA and WDC all report in 30 days on December 1st. STX's date couldn't be loaded."
+        },
+        {
+          "run": 7,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "judge_reason": "The brief says 'Nothing company-specific there \u2013 quiet across the theme' about memory & storage, which describes STX as quiet in a way that covers its news when STX's news couldn't be loaded.",
+          "brief": "The AI compute names \u2013 NVDA, AMD, AVGO \u2013 moved as a group, down 2.6% to 3.1%, tracking SMH's 2.4% drop. That was the day's action: the rest of the watchlist barely moved. NVDA's top headline notes that a cloud provider trimmed its capex outlook, which may be related to the sector-wide selloff. The broader market was down but not as sharply as chips, with the Nasdaq off 1.1% and the S&P down 0.6%.\n\nThe memory and storage names held up. MU, WDC and STX each fell less than half a percent, well ahead of the semiconductor benchmark. Nothing company-specific there \u2013 quiet across the theme.\n\nBeyond the watchlist, the main headline was the same cloud provider capex trim. No other notable movers outside what you're tracking.\n\nNext earnings is AMD, AVGO, MU, NVDA and WDC, all reporting in 30 days on December 1st. STX's date couldn't be loaded."
+        },
+        {
+          "run": 9,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "judge_reason": "The brief states 'This coincided with a cloud provider cutting its 2027 capex outlook, which appeared in headlines alongside NVDA's decline' in one sentence (acceptable hedge) but then says 'The divergence suggests the capex concern was read narrowly' in another sentence, which asserts as fact that ",
+          "brief": "AI compute took the brunt of today's sell-off. NVDA, AMD and AVGO moved together, down 2.6% to 3.1%, roughly in line with the SMH benchmark's 2.4% drop. This coincided with a cloud provider cutting its 2027 capex outlook, which appeared in headlines alongside NVDA's decline. The Nasdaq 100 fell 1.1%, with chip stocks bearing more of the pressure than the broader market.\n\nMemory and storage names held up considerably better. MU, WDC and STX each fell less than 0.6%, staying well ahead of the SMH benchmark and showing little correlation to the AI compute weakness. The divergence suggests the capex concern was read narrowly -- as an AI training and inference story rather than a broad semiconductor demand issue.\n\nNothing reports in the coming week. The next scheduled earnings across the watchlist are AMD, AVGO, MU, NVDA and WDC, all in 30 days on December 1st. STX's next report date couldn't be loaded."
+        },
+        {
+          "run": 15,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "judge_reason": "The brief states 'yesterday's move was driven by something specific to the AI buildout story' which asserts causation rather than correlation.",
+          "brief": "AI compute took the brunt of yesterday's selling, with NVDA, AMD and AVGO down between 2.6% and 3.1% as the AI chip group tracked its benchmark down over 2%. A headline about a cloud provider trimming its capex outlook coincided with the drop, though tech broadly weakened -- the Nasdaq fell 1.1% while the S&P lost 0.6%.\n\nMemory and storage names held up considerably better. MU, WDC and STX each fell less than 1%, well ahead of the SMH benchmark their AI compute peers followed lower. The divergence suggests yesterday's move was driven by something specific to the AI buildout story rather than chips as a sector.\n\nThe next scheduled reports are 30 days out: AMD, AVGO, MU, NVDA and WDC all on December 1st. STX's date couldn't be loaded."
+        },
+        {
+          "run": 20,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "judge_reason": "The brief states 'Nothing on the watchlist reports in the next seven days' without excepting STX, whose report date is unknown, turning the failed calendar lookup into a false statement of fact.",
+          "brief": "AI compute took the hardest hit today, with NVDA, AMD and AVGO all down between 2.6% and 3.1%, underperforming the broader market as SMH fell 2.4% against the S&P's 0.6% decline. That group moved together alongside a headline about a cloud provider trimming its capex outlook \u2013 the kind of demand signal that tends to move the whole AI infrastructure space at once.\n\nMemory and storage held up considerably better. MU, WDC and STX each dipped less than a percent in a session where their benchmark dropped 2.4%, showing meaningful relative strength. The divergence between these names and the AI compute group suggests today's selling was concentrated in the parts of the chip sector most exposed to that capex headline, rather than a broad retreat across semiconductors.\n\nNothing on the watchlist reports in the next seven days. The nearest scheduled earnings are AMD, AVGO, MU, NVDA and WDC, all in 30 days on December 1st, though STX's date couldn't be loaded."
+        },
+        {
+          "run": 23,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "judge_reason": "The brief says 'All three were quiet on news' which turns STX's failed news lookup into a factual claim that it had no news, when the data shows STX's news was unavailable/couldn't be loaded.",
+          "brief": "The AI compute names you're tracking sold off as a group -- NVDA down 3.1%, AMD down 2.8%, AVGO down 2.6% -- all moving in step with SMH's 2.4% drop. That move coincided with a cloud provider trimming its 2027 capex outlook, which appeared in headlines alongside NVDA. The broader market fell less sharply: the S&P lost 0.6%, the Nasdaq 1.1%.\n\nMemory & storage names held up better. MU, WDC and STX each declined less than half a percent, staying well above the SMH benchmark while their AI compute peers dropped harder. All three were quiet on news.\n\nNothing on the watchlist reports in the next week. The next scheduled earnings are in 30 days -- AMD, AVGO, MU, NVDA and WDC all on the same date -- and STX's date couldn't be loaded."
+        },
+        {
+          "run": 24,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "judge_reason": "The brief asserts causation by stating NVDA, AMD and AVGO fell 'alongside a report that a cloud provider trimmed its capex outlook' which links the headline to the moves as fact rather than using correlational framing like 'coincided with' or 'which may be related to'.",
+          "brief": "The AI compute theme took the hardest hit on your watchlist, with NVDA, AMD and AVGO all down between 2.6% and 3.1% alongside a report that a cloud provider trimmed its capex outlook. SMH fell 2.4% and these three moved in step with their peers, making this a broad pullback across AI infrastructure names rather than anything company-specific. The Nasdaq 100 dropped 1.1%, steeper than the S&P 500's 0.6% decline.\n\nMemory and storage names held up considerably better. MU, WDC and STX all stayed within a 0.6% range, each down less than the broader semiconductor benchmark and well clear of the AI compute losses. These three were quiet, with no meaningful divergence from one another.\n\nNothing on your watchlist reports in the next week. The earliest scheduled date is in 30 days, when AMD, AVGO, MU, NVDA and WDC all report on the same day in early December. STX's next earnings date couldn't be loaded."
+        }
+      ],
+      "rewrites": [
+        {
+          "run": 11,
+          "original": "AI compute took the brunt of a down session, with NVDA, AMD and AVGO falling 2.6% to 3.1% alongside a 2.4% drop in SMH. That move coincided with a headline about a cloud provider trimming its capex outlook. Memory and storage names held up comparatively well: MU, WDC and STX each slipped less than a percent while their peers in AI compute fell harder.\n\nThe Nasdaq 100 fell 1.1%, twice the S&P's decline, putting pressure on the tech-heavy side of the market. No major movers outside your watchlist stood out today.\n\nThe next report is thirty days out, when AMD, AVGO, MU, NVDA and WDC all report on December 1st. STX's date couldn't be loaded.",
+          "final": "AI compute took the brunt of a down session, with NVDA, AMD and AVGO falling 2.6% to 3.1% alongside a 2.4% drop in SMH. That move coincided with a headline about a cloud provider trimming its capex outlook. Memory and storage names held up comparatively well: MU, WDC and STX each slipped less than a percent while their peers in AI compute fell harder.\n\nThe Nasdaq 100 fell 1.1% and the S&P 500 fell 0.6%, with tech taking the heavier hit. No major movers outside your watchlist stood out today.\n\nThe next report is thirty days out, when AMD, AVGO, MU, NVDA and WDC all report on December 1st. STX's date couldn't be loaded."
+        },
+        {
+          "run": 14,
+          "original": "The AI compute theme took the hardest hit today, with NVDA, AMD and AVGO all down between 2.6% and 3.1% as a group. That tracked the 2.4% drop in SMH and coincided with a cloud provider trimming its capex outlook, a headline that may be related to the sector-wide selloff. The Nasdaq 100 fell 1.1% while the S&P 500 dropped 0.6%, making this a tech-heavy down day.\n\nYour memory and storage names held up considerably better. MU, WDC and STX were all down less than 0.6%, staying quiet while the broader semiconductor benchmark fell more than four times as much. That divergence suggests these names are decoupling from AI compute concerns for now.\n\nAll five names with known earnings dates report in 30 days, on December 1st. STX's date couldn't be loaded.",
+          "final": "The AI compute theme took the hardest hit today, with NVDA, AMD and AVGO all down between 2.6% and 3.1% as a group. That tracked the 2.4% drop in SMH and coincided with a cloud provider trimming its capex outlook, a headline that may be related to the sector-wide selloff. The Nasdaq 100 fell 1.1% while the S&P 500 dropped 0.6%, making this a tech-heavy down day.\n\nYour memory and storage names held up considerably better. MU, WDC and STX were all down less than 0.6%, staying quiet while the broader semiconductor benchmark fell 2.4%. That divergence suggests these names are decoupling from AI compute concerns for now.\n\nAll five names with known earnings dates report in 30 days, on December 1st. STX's date couldn't be loaded."
+        },
+        {
+          "run": 15,
+          "original": "AI compute took the brunt of yesterday's selling, with NVDA, AMD and AVGO down between 2.6% and 3.1% as the AI chip group tracked its benchmark down over 2%. A headline about a cloud provider trimming its capex outlook coincided with the drop, though tech broadly weakened -- the Nasdaq fell 1.1%, twice the S&P's loss.\n\nMemory and storage names held up considerably better. MU, WDC and STX each fell less than 1%, well ahead of the SMH benchmark their AI compute peers followed lower. The divergence suggests yesterday's move was driven by something specific to the AI buildout story rather than chips as a sector.\n\nThe next scheduled reports are 30 days out: AMD, AVGO, MU, NVDA and WDC all on December 1st. STX's date couldn't be loaded.",
+          "final": "AI compute took the brunt of yesterday's selling, with NVDA, AMD and AVGO down between 2.6% and 3.1% as the AI chip group tracked its benchmark down over 2%. A headline about a cloud provider trimming its capex outlook coincided with the drop, though tech broadly weakened -- the Nasdaq fell 1.1% while the S&P lost 0.6%.\n\nMemory and storage names held up considerably better. MU, WDC and STX each fell less than 1%, well ahead of the SMH benchmark their AI compute peers followed lower. The divergence suggests yesterday's move was driven by something specific to the AI buildout story rather than chips as a sector.\n\nThe next scheduled reports are 30 days out: AMD, AVGO, MU, NVDA and WDC all on December 1st. STX's date couldn't be loaded."
+        },
+        {
+          "run": 21,
+          "original": "The AI compute theme took the brunt of today's selling, with NVDA, AMD and AVGO all down between 2.6% and 3.1% alongside a report that a cloud provider trimmed its capex outlook. The three moved together, tracking SMH's 2.4% drop and slightly underperforming it. Memory and storage held up considerably better -- MU, WDC and STX all stayed within a percent, showing clear divergence from the broader semiconductor weakness.\n\nAcross the watchlist, the split is stark: AI compute names fell with the benchmark while memory and storage barely budged. That suggests the capex concern is concentrated in the GPU and data center buildout layer rather than hitting chip demand broadly. The Nasdaq 100's 1.1% decline was nearly double the S&P 500's 0.6% loss, reflecting the pressure on tech.\n\nThe next scheduled reports are all thirty days out -- AMD, AVGO, MU, NVDA and WDC all on December 1st. STX's date couldn't be loaded.",
+          "final": "The AI compute theme took the brunt of today's selling, with NVDA, AMD and AVGO all down between 2.6% and 3.1% alongside a report that a cloud provider trimmed its capex outlook. The three moved together, tracking SMH's 2.4% drop and slightly underperforming it. Memory and storage held up considerably better -- MU, WDC and STX all stayed within a percent, showing clear divergence from the broader semiconductor weakness.\n\nAcross the watchlist, the split is stark: AI compute names fell with the benchmark while memory and storage barely budged. That suggests the capex concern is concentrated in the GPU and data center buildout layer rather than hitting chip demand broadly. The Nasdaq 100 fell 1.1% while the S&P 500 lost 0.6%, reflecting the pressure on tech.\n\nThe next scheduled reports are all thirty days out -- AMD, AVGO, MU, NVDA and WDC all on December 1st. STX's date couldn't be loaded."
+        }
+      ],
+      "outputs": [
+        "The AI compute theme took the hardest hit across your watchlist, with NVDA, AMD and AVGO all down between 2.6% and 3.1%, tracking each other and falling deeper than SMH's 2.4% decline. NVDA's top headline notes chip stocks sliding alongside a cloud provider trimming its capex outlook -- the same event called out in today's market headlines -- though the timing is correlation, not established cause.\n\nMemory and storage held up markedly better: MU, WDC and STX all fell less than half a percent in a session where the Nasdaq dropped 1.1% and their benchmark fell 2.4%. That divergence from both the broader chip sell-off and from SMH stands out. STX's news and events data couldn't be loaded.\n\nNothing reports in the next seven days. The nearest scheduled reports are AMD, AVGO, MU, NVDA and WDC, all in thirty days on December 1st, while STX's date couldn't be loaded.",
+        "The AI compute names moved together today, all down around 3% alongside a headline about a cloud provider trimming its capex outlook. NVDA fell 3.1%, AMD 2.8%, and AVGO 2.6% -- each tracking their peers and the SMH benchmark, which dropped 2.4%. The broader market was softer, with the S&P 500 down 0.6% and the Nasdaq 100 down 1.1%, but the compute theme underperformed both.\n\nThe memory and storage names held up better. MU, WDC and STX all fell less than half a percent, staying well ahead of the SMH benchmark and diverging from the compute group's losses.\n\nNothing on the watchlist reports within the next week. The soonest scheduled is thirty days out on December 1, when AMD, AVGO, MU, NVDA and WDC all report. STX's date couldn't be loaded.",
+        "The AI compute theme took the hardest hit on your watchlist, with NVDA, AMD and AVGO all down between 2.6% and 3.1% -- tracking each other and underperforming the broader market's 0.6% decline. A headline about a cloud provider trimming its capex outlook coincided with the chip selloff, though memory and storage names held up far better, suggesting the pressure was concentrated in the compute-heavy names rather than semiconductors broadly.\n\nYour memory and storage group -- MU, WDC and STX -- each moved less than 0.6%, holding their ground while SMH dropped 2.4%. That divergence is the story: compute took the weight of whatever concern the capex headline represented, while memory stayed quiet.\n\nNothing on the watchlist reports within the next week. The next scheduled earnings are AMD, AVGO, MU, NVDA and WDC in 30 days. STX's next earnings date couldn't be loaded.",
+        "AI compute took the brunt of yesterday's selloff, with NVDA, AMD and AVGO all falling harder than the Nasdaq's 1.1% drop -- roughly 3% down across the group -- alongside a report that a cloud provider trimmed its capex outlook. The three moved together, tracking their benchmark SMH, which lost 2.4%.\n\nMemory and storage held up better, barely budging. MU, WDC and STX each fell less than a percent while their AI compute peers sold off, keeping well ahead of SMH. That divergence suggests the capex news hit the compute side more directly, with memory names staying quiet through the session.\n\nThe next scheduled earnings is a month out: AMD, AVGO, MU, NVDA and WDC all report in 30 days on December 1st. STX's date couldn't be loaded.",
+        "AI compute names took the hardest hit on your watchlist, with NVDA, AMD and AVGO moving together as a theme, down 2.6% to 3.1%. That tracked the SMH benchmark's 2.4% decline and coincided with a cloud provider trimming its 2027 capex outlook. The broader market fell less sharply -- the S&P 500 dropped 0.6% and the Nasdaq 100 lost 1.1% -- putting semiconductor weakness at the center of today's action.\n\nMemory and storage names held up much better. MU, WDC and STX all finished down less than 0.6%, well ahead of the SMH benchmark and diverging from the AI compute side of the chip space. STX's news and events data couldn't be loaded today.\n\nNothing reports this week. The next scheduled earnings on the watchlist are AMD, AVGO, MU, NVDA and WDC, all in thirty days on December 1st, though STX's date couldn't be loaded.",
+        "AI compute took the brunt of today's sell-off, with NVDA, AMD and AVGO all down between 2.6% and 3.1%, tracking each other and underperforming the broader market. A headline about a cloud provider trimming its capex outlook coincided with the chip stock weakness. The SMH benchmark fell 2.4%, but your memory and storage names held up considerably better: MU, WDC and STX all dropped less than 0.6%, diverging from the wider semiconductor move.\n\nThe watchlist splits cleanly into two groups today -- AI compute stocks moving together on concern about spending, while memory and storage stayed relatively quiet. That gap suggests the worry is concentrated in the data center buildout story rather than spreading across all chip categories.\n\nNothing on your watchlist reports in the next seven days. The nearest cluster is AMD, AVGO, MU, NVDA and WDC all in 30 days, and STX's date couldn't be loaded.",
+        "The AI compute names \u2013 NVDA, AMD, AVGO \u2013 moved as a group, down 2.6% to 3.1%, tracking SMH's 2.4% drop. That was the day's action: the rest of the watchlist barely moved. NVDA's top headline notes that a cloud provider trimmed its capex outlook, which may be related to the sector-wide selloff. The broader market was down but not as sharply as chips, with the Nasdaq off 1.1% and the S&P down 0.6%.\n\nThe memory and storage names held up. MU, WDC and STX each fell less than half a percent, well ahead of the semiconductor benchmark. Nothing company-specific there \u2013 quiet across the theme.\n\nBeyond the watchlist, the main headline was the same cloud provider capex trim. No other notable movers outside what you're tracking.\n\nNext earnings is AMD, AVGO, MU, NVDA and WDC, all reporting in 30 days on December 1st. STX's date couldn't be loaded.",
+        "The AI compute names you're tracking dropped together -- NVDA down 3.1%, AMD off 2.8%, AVGO down 2.6% -- all moving in step and underperforming the broader market. A headline circulated about a cloud provider trimming its capex outlook, which may be related to the sector-wide weakness in chips. The SMH benchmark fell 2.4%, and your AI compute theme moved worse than that at -2.8% on average.\n\nMemory and storage held up much better. MU, WDC and STX all slid less than half a percent, staying well above the semiconductor benchmark and their AI compute peers. The theme split cleanly today: the names tied to AI infrastructure sold off, while the memory side barely moved.\n\nNothing beyond your watchlist stands out in the broader market movers. The main market headline is the same cloud capex story already reflected in the chip names you're tracking.\n\nAll five names with known earnings dates report in 30 days, on December 1st: AMD, AVGO, MU, NVDA and WDC. STX's date couldn't be loaded.",
+        "AI compute took the brunt of today's sell-off. NVDA, AMD and AVGO moved together, down 2.6% to 3.1%, roughly in line with the SMH benchmark's 2.4% drop. This coincided with a cloud provider cutting its 2027 capex outlook, which appeared in headlines alongside NVDA's decline. The Nasdaq 100 fell 1.1%, with chip stocks bearing more of the pressure than the broader market.\n\nMemory and storage names held up considerably better. MU, WDC and STX each fell less than 0.6%, staying well ahead of the SMH benchmark and showing little correlation to the AI compute weakness. The divergence suggests the capex concern was read narrowly -- as an AI training and inference story rather than a broad semiconductor demand issue.\n\nNothing reports in the coming week. The next scheduled earnings across the watchlist are AMD, AVGO, MU, NVDA and WDC, all in 30 days on December 1st. STX's next report date couldn't be loaded.",
+        "AI compute took the brunt of it today. NVDA, AMD and AVGO all fell between 2.6% and 3.1%, tracking each other and worse than the semiconductor benchmark at -2.4%. That move coincided with a cloud provider trimming its 2027 capex outlook, which may be related to the pullback across the group.\n\nMemory and storage mostly held up. MU, WDC and STX each moved less than a percent, staying well clear of the broader semiconductor decline. That quiet session kept the whole theme above its benchmark.\n\nThe Nasdaq 100 fell 1.1% while the S&P 500 dropped 0.6%, with semiconductors leading the downside. Nothing beyond the watchlist reached the notable threshold.\n\nThe next reports on the list are AMD, AVGO, MU, NVDA and WDC, all thirty days out on December 1st. STX's date couldn't be loaded.",
+        "AI compute took the brunt of a down session, with NVDA, AMD and AVGO falling 2.6% to 3.1% alongside a 2.4% drop in SMH. That move coincided with a headline about a cloud provider trimming its capex outlook. Memory and storage names held up comparatively well: MU, WDC and STX each slipped less than a percent while their peers in AI compute fell harder.\n\nThe Nasdaq 100 fell 1.1% and the S&P 500 fell 0.6%, with tech taking the heavier hit. No major movers outside your watchlist stood out today.\n\nThe next report is thirty days out, when AMD, AVGO, MU, NVDA and WDC all report on December 1st. STX's date couldn't be loaded.",
+        "The AI compute theme took the hardest hit on your watchlist, with NVDA, AMD and AVGO all down between 2.6% and 3.1% alongside a cloud provider trimming its capex outlook. All three moved in line with their peers and the SMH benchmark, which fell 2.4%. That sets them apart from the memory and storage names you're tracking -- MU, WDC and STX all held below minus 0.6%, well ahead of the broader chip selloff.\n\nThe market closed down, with the Nasdaq 100 off 1.1% and the S&P 500 down 0.6%. The capex headline is the only notable item from the wider market today.\n\nNothing reports within the next week -- the earliest date on your list is in 30 days -- though STX's next earnings date couldn't be loaded.",
+        "Your AI compute names took the worst of today's sell-off as a theme. NVDA, AMD and AVGO all fell between 2.6% and 3.1%, moving together and lagging the broader market \u2013 the Nasdaq dropped 1.1%. A headline about a cloud provider trimming its capex outlook coincided with the slide in chip stocks, though NVDA was the only name on your list with that story attached directly.\n\nMemory and storage held up better. MU, WDC and STX each dropped less than a percent, well ahead of the SMH benchmark's 2.4% decline, in what was otherwise a quiet day for the group.\n\nNothing reports in the next week. The nearest scheduled date is in 30 days, when AMD, AVGO, MU, NVDA and WDC all report on the same day. STX's next earnings date couldn't be loaded.",
+        "The AI compute theme took the hardest hit today, with NVDA, AMD and AVGO all down between 2.6% and 3.1% as a group. That tracked the 2.4% drop in SMH and coincided with a cloud provider trimming its capex outlook, a headline that may be related to the sector-wide selloff. The Nasdaq 100 fell 1.1% while the S&P 500 dropped 0.6%, making this a tech-heavy down day.\n\nYour memory and storage names held up considerably better. MU, WDC and STX were all down less than 0.6%, staying quiet while the broader semiconductor benchmark fell 2.4%. That divergence suggests these names are decoupling from AI compute concerns for now.\n\nAll five names with known earnings dates report in 30 days, on December 1st. STX's date couldn't be loaded.",
+        "AI compute took the brunt of yesterday's selling, with NVDA, AMD and AVGO down between 2.6% and 3.1% as the AI chip group tracked its benchmark down over 2%. A headline about a cloud provider trimming its capex outlook coincided with the drop, though tech broadly weakened -- the Nasdaq fell 1.1% while the S&P lost 0.6%.\n\nMemory and storage names held up considerably better. MU, WDC and STX each fell less than 1%, well ahead of the SMH benchmark their AI compute peers followed lower. The divergence suggests yesterday's move was driven by something specific to the AI buildout story rather than chips as a sector.\n\nThe next scheduled reports are 30 days out: AMD, AVGO, MU, NVDA and WDC all on December 1st. STX's date couldn't be loaded.",
+        "The AI compute names you're tracking -- NVDA, AMD, AVGO -- moved as a group, down 2.6% to 3.1%, tracking SMH's 2.4% drop. NVDA's top headline mentions a cloud provider trimming its capex outlook, which may be related to the selloff across the theme. All three fell more than the broader market, which closed down 0.6%, with the Nasdaq 100 off 1.1%.\n\nThe memory and storage names held up considerably better. MU, WDC and STX stayed in a tight range, down 0.3% to 0.6%, well ahead of the semiconductor benchmark and in quiet territory. That's a meaningful divergence from the AI compute theme -- both groups track SMH, but the memory names didn't follow it down today.\n\nNothing reports in the next week. AMD, AVGO, MU, NVDA and WDC all report in 30 days, and STX's next earnings date couldn't be loaded.",
+        "Your AI compute names took the hardest hit today, all down around 3% and moving as a single theme. NVDA fell 3.1%, AMD down 2.8%, AVGO off 2.6% -- each tracking the group, with chip stocks broadly under pressure alongside a cloud provider trimming its capex outlook. The SMH benchmark dropped 2.4%.\n\nMemory & storage held up relatively well. MU, WDC and STX each fell less than a percent in quiet trading, outperforming the semiconductor benchmark by roughly two percentage points. STX's news and events data couldn't be loaded.\n\nThe broader market declined, with the S&P 500 down 0.6% and the Nasdaq 100 off 1.1%.\n\nThe next earnings report on your watchlist is AMD on December 1st, in 30 days, with AVGO, MU, NVDA and WDC all reporting the same day. STX's date couldn't be loaded.",
+        "The AI compute names you're tracking -- NVDA, AMD, AVGO -- all fell between 2.6% and 3.1% as a group, alongside a headline that a cloud provider cut its capex outlook. SMH, the benchmark for this theme, dropped 2.4%. The Nasdaq 100 fell 1.1%, so semiconductors underperformed the broader tech index by more than a point.\n\nMemory and storage held up relatively well. MU, WDC and STX each moved less than a percent, keeping distance from the 2.4% drop in SMH and the wider semiconductor sell-off. That divergence suggests the capex concern may be specific to the AI compute layer rather than spreading across the whole chip complex.\n\nThe one headline beyond your list is the same one mentioned for NVDA: a cloud provider trimming its 2027 spending outlook. That appears to be the only market-wide story today.\n\nNothing reports in the next week. The soonest on your watchlist is thirty days out, when AMD, AVGO, MU, NVDA and WDC all report on the same day. STX's date couldn't be loaded.",
+        "The AI compute names all sold off together, with NVDA down 3.1%, AMD off 2.8% and AVGO down 2.6% -- each tracking its peers and the SMH benchmark at -2.4%. A cloud provider trimmed its capex outlook, which may be related to the move across this theme. The broader indices fell less, with the S&P down 0.6% and the Nasdaq 100 down 1.1%, suggesting the pressure was concentrated in chips rather than market-wide.\n\nMemory and storage held up better. MU, WDC and STX all moved less than half a percent, well ahead of the SMH benchmark, in a quiet session for that group. STX's news and events data couldn't be loaded.\n\nNothing beyond the watchlist stood out in the wider market today.\n\nThe next report is thirty days out, with AMD, AVGO, MU, NVDA and WDC all scheduled for December 1st. STX's date couldn't be loaded.",
+        "AI compute took the hardest hit today, with NVDA, AMD and AVGO all down between 2.6% and 3.1%, underperforming the broader market as SMH fell 2.4% against the S&P's 0.6% decline. That group moved together alongside a headline about a cloud provider trimming its capex outlook \u2013 the kind of demand signal that tends to move the whole AI infrastructure space at once.\n\nMemory and storage held up considerably better. MU, WDC and STX each dipped less than a percent in a session where their benchmark dropped 2.4%, showing meaningful relative strength. The divergence between these names and the AI compute group suggests today's selling was concentrated in the parts of the chip sector most exposed to that capex headline, rather than a broad retreat across semiconductors.\n\nNothing on the watchlist reports in the next seven days. The nearest scheduled earnings are AMD, AVGO, MU, NVDA and WDC, all in 30 days on December 1st, though STX's date couldn't be loaded.",
+        "The AI compute theme took the brunt of today's selling, with NVDA, AMD and AVGO all down between 2.6% and 3.1% alongside a report that a cloud provider trimmed its capex outlook. The three moved together, tracking SMH's 2.4% drop and slightly underperforming it. Memory and storage held up considerably better -- MU, WDC and STX all stayed within a percent, showing clear divergence from the broader semiconductor weakness.\n\nAcross the watchlist, the split is stark: AI compute names fell with the benchmark while memory and storage barely budged. That suggests the capex concern is concentrated in the GPU and data center buildout layer rather than hitting chip demand broadly. The Nasdaq 100 fell 1.1% while the S&P 500 lost 0.6%, reflecting the pressure on tech.\n\nThe next scheduled reports are all thirty days out -- AMD, AVGO, MU, NVDA and WDC all on December 1st. STX's date couldn't be loaded.",
+        "AI compute took the hardest hit on your watchlist today. NVDA, AMD and AVGO all fell between 2.6% and 3.1%, tracking each other and the SMH benchmark down. The headline attached to NVDA \u2014 chip stocks sliding alongside a cloud provider trimming its capex outlook \u2014 coincided with the move across the group. That capex headline is the one market-wide story that matters: reduced spending on data center infrastructure reaches straight into demand for AI chips.\n\nMemory and storage held up. MU, WDC and STX all stayed inside half a percent, well ahead of SMH's 2.4% drop. The group kept its footing while the broader chip trade sold off.\n\nNothing on your watchlist reports in the next week. The nearest cluster is thirty days out, when AMD, AVGO, MU, NVDA and WDC all arrive on the same date. STX's next earnings date couldn't be loaded.",
+        "The AI compute names you're tracking sold off as a group -- NVDA down 3.1%, AMD down 2.8%, AVGO down 2.6% -- all moving in step with SMH's 2.4% drop. That move coincided with a cloud provider trimming its 2027 capex outlook, which appeared in headlines alongside NVDA. The broader market fell less sharply: the S&P lost 0.6%, the Nasdaq 1.1%.\n\nMemory & storage names held up better. MU, WDC and STX each declined less than half a percent, staying well above the SMH benchmark while their AI compute peers dropped harder. All three were quiet on news.\n\nNothing on the watchlist reports in the next week. The next scheduled earnings are in 30 days -- AMD, AVGO, MU, NVDA and WDC all on the same date -- and STX's date couldn't be loaded.",
+        "The AI compute theme took the hardest hit on your watchlist, with NVDA, AMD and AVGO all down between 2.6% and 3.1% alongside a report that a cloud provider trimmed its capex outlook. SMH fell 2.4% and these three moved in step with their peers, making this a broad pullback across AI infrastructure names rather than anything company-specific. The Nasdaq 100 dropped 1.1%, steeper than the S&P 500's 0.6% decline.\n\nMemory and storage names held up considerably better. MU, WDC and STX all stayed within a 0.6% range, each down less than the broader semiconductor benchmark and well clear of the AI compute losses. These three were quiet, with no meaningful divergence from one another.\n\nNothing on your watchlist reports in the next week. The earliest scheduled date is in 30 days, when AMD, AVGO, MU, NVDA and WDC all report on the same day in early December. STX's next earnings date couldn't be loaded."
+      ]
+    }
+  }
+}
