@@ -31,6 +31,7 @@ SUITES = [
     ("eval checks", "evals/test_checks.py"),
     ("eval results", "evals/test_results.py"),
     ("static demo build", "demo/test_build.py"),
+    ("project log", "docs/test_log.py"),
 ]
 
 

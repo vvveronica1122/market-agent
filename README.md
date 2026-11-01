@@ -272,6 +272,7 @@ demo/capture.py       screenshots and a walkthrough video of the snapshot
 validation/           backtests of the hand-set rules, with their reports
 run_tests.py          runs every offline suite
 docs/DESIGN.md        design decisions and lessons
+docs/LOG.md           project log: what was done, the results, and who decided what
 ```
 
 ## Known limits
