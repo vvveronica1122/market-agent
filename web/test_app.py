@@ -969,6 +969,7 @@ def main() -> int:
                           and "no article text" in server.ANALYSIS_SYSTEM)
 
     print("\nMultiples are checked in code, not only forbidden in the prompt")
+    from guards import find_multiple, without_multiple_sentence
     # The prompt's rule held in about 1% of analyses, then leaked in 3 of 40
     # when the news was thin. A multiple now gets one rewrite.
     class _Scripted:
@@ -1004,14 +1005,43 @@ def main() -> int:
                           and "while TSM's drop was nearly four times steeper." in ask[2]["content"]
                           and "No report date" not in ask[2]["content"], str(ask[2:]))
 
+    # These used to show the first text, multiple and all.
+    trimmed = "TSM fell 3.8%, 3.2 points more than its peers. No report date is scheduled."
     server.client = _Scripted(bad, bad.replace("four", "five"))
-    failures += not check("a rewrite that still has a multiple isn't used: the first text stands",
-                          REAL_ANALYZE("CRASH", tsm) == bad)
+    out = REAL_ANALYZE("CRASH", tsm)
+    failures += not check("a rewrite that still has a multiple isn't used: that sentence is dropped",
+                          out == trimmed, out)
     server.client = _Scripted(bad, RuntimeError("overloaded"))
-    failures += not check("a failed rewrite call leaves the first text, not an error",
-                          REAL_ANALYZE("CRASH", tsm) == bad)
+    out = REAL_ANALYZE("CRASH", tsm)
+    failures += not check("a failed rewrite call drops the sentence, not an error",
+                          out == trimmed, out)
+    server.client = _Scripted(bad, "")
+    out = REAL_ANALYZE("CRASH", tsm)
+    failures += not check("an empty rewrite drops the sentence too", out == trimmed, out)
 
-    from guards import find_multiple, sentence_around
+    twice = ("TSM fell 3.8%, twice as much as its peers. It fell three times as far as the market. "
+             "No report date is scheduled.")
+    full = {"price": fake_price("CRASH"), "market": {"ticker": "SPY", "change_percent": 0.2},
+            "events": fake_events("CRASH")}
+    server.client = _Scripted(twice, RuntimeError("overloaded"))
+    out = REAL_ANALYZE("CRASH", full)
+    failures += not check("two such sentences can't be dropped cleanly: the computed figures are shown",
+                          out.startswith("(The written analysis didn't pass a check")
+                          and "CRASH moved -6.0%" in out and "-6.2 points against the market" in out
+                          and "next report is in 3 days" in out, out)
+    failures += not check("the figures shown instead have no multiple of their own",
+                          find_multiple(out) is None, out)
+    short = "TSM fell 3.8%. That was twice as much as its peers."
+    server.client = _Scripted(short, RuntimeError("overloaded"))
+    out = REAL_ANALYZE("CRASH", full)
+    failures += not check("nor can one that would leave a single sentence",
+                          out.startswith("(The written analysis didn't pass a check"), out)
+    server.client = _Scripted(twice, RuntimeError("overloaded"))
+    out = REAL_ANALYZE("CRASH", dict(full, events={}, events_error="calendar is down"))
+    failures += not check("a calendar that failed is said as such in the figures, not 'no date known'",
+                          "report date couldn't be loaded" in out and "No upcoming report" not in out, out)
+
+    from guards import sentence_around
     text = "AMD fell 4.2%. It fell roughly twice as much as its peers, down 2.0%. The report is tomorrow."
     failures += not check("the quoted sentence is the one with the multiple, decimals and all",
                           sentence_around(text, find_multiple(text))
@@ -1045,6 +1075,29 @@ def main() -> int:
                           and "side by side" in retry["messages"][2]["content"],
                           str(retry.get("messages", [])[2:]))
 
+    long_brief = ("CRASH fell 6%.\n\nThe Nasdaq 100 fell 1.2%, more than triple the S&P's 0.4% "
+                  "decline. Chips led.\n\nNothing reports this week.")
+    server.client = _Scripted(long_brief, RuntimeError("overloaded"))
+    out = server.build_brief(rows, -0.4, spx, [], [])
+    failures += not check("a brief whose rewrite fails loses the sentence with the multiple",
+                          out == "CRASH fell 6%.\n\nChips led.\n\nNothing reports this week.", repr(out))
+    server.client = _Scripted(bad_brief, RuntimeError("overloaded"))
+    out = server.build_brief(rows, -0.4, spx, [], [])
+    failures += not check("a brief too short to lose one keeps its first text: it has no stand-in",
+                          out == bad_brief, out)
+
+    print("\nDropping a sentence")
+    failures += not check("text without a multiple comes back as it was",
+                          without_multiple_sentence("A fell 4%. B rose 1%.") == "A fell 4%. B rose 1%.")
+    failures += not check("decimals don't split a sentence when one is dropped",
+                          without_multiple_sentence("A fell 4.2%. It fell twice as much as B's 2.1%. "
+                                                    "C reports Friday.")
+                          == "A fell 4.2%. C reports Friday.")
+    failures += not check("two sentences with multiples give None",
+                          without_multiple_sentence("A fell twice as much as B. It fell three times "
+                                                    "as far as C. D rose.") is None)
+
+    print("\nSummary text")
     from tools.market_data import _plain_text
     failures += not check("html is stripped from summary text",
                           _plain_text("<p>Apple (<a href='x'>AAPL</a>) rose.</p>") == "Apple ( AAPL ) rose.",

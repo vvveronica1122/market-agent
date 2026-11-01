@@ -41,11 +41,36 @@ def find_multiple(text: str) -> re.Match | None:
     return None
 
 
-def sentence_around(text: str, match: re.Match) -> str:
-    """The sentence containing `match`. Sentences end at ". " or a line
-    break, not at any full stop, so "4.2%" doesn't split one."""
+def _sentence_span(text: str, match: re.Match) -> tuple[int, int]:
     before = [text.rfind(sep, 0, match.start()) for sep in (". ", "\n")]
     start = max((i + 1 for i in before if i >= 0), default=0)
     after = [i for i in (text.find(". ", match.end()), text.find("\n", match.end())) if i >= 0]
     end = min(after) + 1 if after else len(text)
+    return start, end
+
+
+def sentence_around(text: str, match: re.Match) -> str:
+    """The sentence containing `match`. Sentences end at ". " or a line
+    break, not at any full stop, so "4.2%" doesn't split one."""
+    start, end = _sentence_span(text, match)
     return text[start:end].strip()
+
+
+def _sentence_count(text: str) -> int:
+    return len([s for s in re.split(r"(?<=\.) |\n", text) if s.strip()])
+
+
+def without_multiple_sentence(text: str) -> str | None:
+    """`text` with its one sentence stating a multiple taken out, or None
+    when that can't be done cleanly: more than one such sentence, or fewer
+    than two sentences left to read."""
+    match = find_multiple(text)
+    if match is None:
+        return text
+    start, end = _sentence_span(text, match)
+    rest = text[:start] + text[end:]
+    rest = re.sub(r"[ \t]*\n[ \t]*", "\n", re.sub(r"[ \t]{2,}", " ", rest))
+    rest = re.sub(r"\n{3,}", "\n\n", rest).strip()
+    if find_multiple(rest) is not None or _sentence_count(rest) < 2:
+        return None
+    return rest

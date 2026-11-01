@@ -37,7 +37,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
 from config import MODEL
-from guards import find_multiple, sentence_around
+from guards import find_multiple, sentence_around, without_multiple_sentence
 import themes as theme_store
 from themes import ThemeError
 from tools.relative import relative_rows, theme_summary
@@ -553,7 +553,38 @@ def analyze(ticker: str, data: dict) -> str:
         text = "".join(b.text for b in response.content if b.type == "text").strip()
     except Exception as exc:
         return ai_unavailable("The analysis", exc)
-    return without_multiples(content, text)
+    return without_multiples(content, text,
+                             fallback=lambda: analysis_facts(ticker, payload))
+
+
+def analysis_facts(ticker: str, payload: dict) -> str:
+    """The figures an analysis was written from, as plain sentences: what
+    the page shows when the written one kept a multiple it couldn't lose.
+    Every number here was computed in code, so none can be a bad multiple."""
+    lines = ["(The written analysis didn't pass a check on how it compared moves, "
+             "so here are the figures it was written from.)"]
+    own = (payload.get("price") or {}).get("change_percent")
+    if own is not None:
+        lines.append(f"{ticker} moved {own:+.1f}% in its latest session.")
+    market = payload.get("market_comparison") or {}
+    if market.get("vs_market") is not None:
+        lines.append(f"SPY moved {market['change_percent']:+.1f}%, so {ticker} was "
+                     f"{market['vs_market']:+.1f} points against the market.")
+    theme = payload.get("theme_comparison") or {}
+    if theme.get("peer_median_change_percent") is not None and theme.get("vs_peers") is not None:
+        lines.append(f"The median move of its {theme['theme']} peers was "
+                     f"{theme['peer_median_change_percent']:+.1f}%, so it was "
+                     f"{theme['vs_peers']:+.1f} points against them.")
+    days = payload.get("next_earnings_in_days")
+    if days == 0:
+        lines.append("It reports today.")
+    elif days is not None and days > 0:
+        lines.append(f"Its next report is in {days} day{'s' if days != 1 else ''}.")
+    elif "events" in (payload.get("unavailable") or []):
+        lines.append("Its report date couldn't be loaded.")
+    else:
+        lines.append("No upcoming report date is known.")
+    return " ".join(lines)
 
 
 REWRITE_MULTIPLE = (
@@ -565,7 +596,8 @@ REWRITE_MULTIPLE = (
 
 
 def without_multiples(content: str, text: str, system: str = ANALYSIS_SYSTEM,
-                      max_tokens: int = 350, ask: str = REWRITE_MULTIPLE) -> str:
+                      max_tokens: int = 350, ask: str = REWRITE_MULTIPLE,
+                      fallback=None) -> str:
     """AI text, with a move stated as a multiple of another rewritten.
 
     The analysis prompt forbids multiples, and that held in about 1% of
@@ -573,13 +605,20 @@ def without_multiples(content: str, text: str, system: str = ANALYSIS_SYSTEM,
     it leaked in 3 of 40. The brief's prompt never forbade them, and saved
     briefs had "more than triple" for exactly triple. So the code checks,
     with the patterns the evals use (guards.py), and asks once for a
-    rewrite, quoting the sentence. If the rewrite still has one, or the call
-    fails, the first text stands: text with a multiple is better than none,
-    and the evals count it.
+    rewrite, quoting the sentence.
+
+    If the rewrite fails, comes back empty or still has one, the first
+    text loses that sentence, as long as it was the only one and two are
+    left. Failing that, `fallback()` is shown if there is one (the stock
+    page's figures, written in code), else the first text stands: the
+    brief has no code-written stand-in, and the evals count what's left.
+    It used to stand in every case, so a known-bad sentence reached the
+    reader whenever the rewrite failed.
     """
     match = find_multiple(text)
     if match is None:
         return text
+    sentence = sentence_around(text, match)
     try:
         response = client.messages.create(
             model=MODEL,
@@ -588,13 +627,23 @@ def without_multiples(content: str, text: str, system: str = ANALYSIS_SYSTEM,
             messages=[
                 {"role": "user", "content": content},
                 {"role": "assistant", "content": text},
-                {"role": "user", "content": ask.format(sentence=sentence_around(text, match))},
+                {"role": "user", "content": ask.format(sentence=sentence)},
             ],
         )
         rewrite = "".join(b.text for b in response.content if b.type == "text").strip()
     except Exception:
-        return text
-    return rewrite if rewrite and find_multiple(rewrite) is None else text
+        rewrite = ""
+    if rewrite and find_multiple(rewrite) is None:
+        return rewrite
+    trimmed = without_multiple_sentence(text)
+    if trimmed is not None:
+        app.logger.warning("multiple not rewritten; sentence dropped: %r", sentence)
+        return trimmed
+    if fallback is not None:
+        app.logger.warning("multiple not rewritten; figures shown instead: %r", sentence)
+        return fallback()
+    app.logger.warning("multiple not rewritten; first text kept: %r", sentence)
+    return text
 
 
 # --- routes -----------------------------------------------------------
