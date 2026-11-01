@@ -1292,7 +1292,11 @@ soonest first, with its date and the days until it. When you say which company r
 or when one reports, take it from that list -- don't work it out from the names, and don't \
 convert days into dates yourself. Each name also carries next_earnings_in_days (null when no \
 date is known). If none falls within seven days, one short sentence saying so is \
-enough, or leave it out -- don't put a judgement about what kind of week it is in its place.
+enough, or leave it out -- don't put a judgement about what kind of week it is in its place. \
+When report_dates_unknown is present, upcoming_reports is not the whole watchlist: it lists the \
+names whose next date isn't known, and why. Whenever you say what reports next or that nothing \
+reports this week, name those as unknown in the same breath -- "STX's date couldn't be loaded" \
+-- rather than leaving them out.
 
 The watchlist is a list of names the reader is TRACKING. It is not a portfolio and this app
 has no holdings data, so never write "you own", "your holdings" or "your position" -- write
@@ -1438,6 +1442,18 @@ def build_brief(rows: list[dict], market_pct, indices: list[dict],
             when = str((r.get("events") or {}).get("next_earnings_date"))[:10]
             upcoming.append({"ticker": r["ticker"], "date": when, "days": days})
     payload["upcoming_reports"] = sorted(upcoming, key=lambda e: (e["days"], e["ticker"]))
+    # The names with no known date, beside the list the calendar sentence is
+    # written from. Told only in a paragraph elsewhere, the brief still gave
+    # "the next reports on your watchlist" from upcoming_reports and left out
+    # a name whose calendar had failed to load, in 22 of 24 runs
+    # (evals/tuning/batch1-2026-11.md).
+    unknown = [{"ticker": r["ticker"],
+                "why": ("couldn't be loaded"
+                        if "events" in (r.get("attention") or {}).get("missing", [])
+                        else "not announced")}
+               for r in rows if days_until_earnings(r.get("events")) is None]
+    if unknown:
+        payload["report_dates_unknown"] = unknown
     payload.update({
         "market_wide_movers_not_on_watchlist": [
             {

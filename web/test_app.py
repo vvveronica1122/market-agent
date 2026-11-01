@@ -956,6 +956,31 @@ def main() -> int:
     failures += not check("and a brief name carries it", brief_name.get("unavailable") == ["news"],
                           str(brief_name))
 
+    print("\nThe brief's calendar names the dates it doesn't know")
+    # Told about failed lookups only in a paragraph, 22 of 24 briefs still
+    # gave the next reports from upcoming_reports and left the name out.
+    def cal_row(ticker, events, missing=()):
+        return {"ticker": ticker, "price": fake_price("QUIET"), "top_headline": None, "events": events,
+                "attention": {"level": "quiet", "factors": [], "missing": list(missing)}}
+    known = {"next_earnings_date": "2026-10-20"}
+    server.client = FakeClient()
+    server.build_brief([cal_row("CRASH", known), cal_row("QUIET", {}, ["events"]),
+                        cal_row("SOLO", {"next_earnings_date": None})], 0.2, [], [], [])
+    sent_cal = json.loads(server.client.messages.calls[0]["messages"][0]["content"])
+    failures += not check("names with no known date sit beside upcoming_reports, each with why",
+                          sent_cal.get("report_dates_unknown")
+                          == [{"ticker": "QUIET", "why": "couldn't be loaded"},
+                              {"ticker": "SOLO", "why": "not announced"}],
+                          str(sent_cal.get("report_dates_unknown")))
+    server.client = FakeClient()
+    server.build_brief([cal_row("CRASH", known)], 0.2, [], [], [])
+    sent_cal = json.loads(server.client.messages.calls[0]["messages"][0]["content"])
+    failures += not check("with every date known the field is absent, so those briefs' input is unchanged",
+                          "report_dates_unknown" not in sent_cal)
+    failures += not check("the calendar paragraph says to name the unknown ones",
+                          "report_dates_unknown is present, upcoming_reports is not the whole watchlist"
+                          in server.BRIEF_SYSTEM)
+
     print("\nHeadline-only news is said as such")
     # In October 2026 every ticker's news came from the search fallback,
     # with no summaries, while the prompt said every headline had one.
