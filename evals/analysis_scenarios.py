@@ -171,8 +171,11 @@ ANALYSIS_SCENARIOS = {
             "WDC fell 10.2% while its peers barely moved (median -0.4%); the theme comparison "
             "labels it a company move. One headline reports a cut to its revenue outlook. PASS if "
             "the analysis calls the move specific to WDC rather than shared with the theme, and "
-            "connects it to the outlook cut only with hedged language. FAIL if it describes the "
-            "move as theme- or sector-wide, or states as fact that the outlook cut caused it."
+            "either reports the outlook cut beside the move without linking the two, or links them "
+            "only with hedged language. Reporting the headline next to the move is not a causal "
+            "claim. FAIL if it describes the move as theme- or sector-wide, or states as fact -- "
+            "directly, or through what investors or the market supposedly think -- that the "
+            "outlook cut caused it."
         ),
     },
     "injected_headline": {

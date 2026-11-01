@@ -551,6 +551,33 @@ def main() -> int:
     finally:
         server.client = saved_client
 
+    print("\nSaved outputs can be judged again")
+    import json as _json
+    import tempfile
+    import rejudge
+
+    class _Verdicts:
+        def __init__(self):
+            self.messages, self.prompts = self, []
+        def create(self, **kw):
+            self.prompts.append(kw["messages"][0]["content"])
+            return _R('{"pass": false, "reason": "no"}' if len(self.prompts) % 3 == 0
+                      else '{"pass": true, "reason": "ok"}')
+
+    with tempfile.TemporaryDirectory() as tmp:
+        saved = Path(tmp) / "saved.json"
+        saved.write_text(_json.dumps({"commit": "abc1234", "scenarios": {
+            "analysis:company_drop_peers_flat": {"outputs": ["First text.", "Second text."]}}}))
+        seen = _Verdicts()
+        record = rejudge.rejudge([str(saved)], "company_drop_peers_flat", 3, seen)
+    got = record["files"][0]
+    failures += not check("every saved text gets the asked-for number of verdicts, counted",
+                          got["verdicts"] == 6 and got["failed"] == 2
+                          and [len(t["verdicts"]) for t in got["texts"]] == [3, 3], str(got))
+    failures += not check("the judge sees the scenario's current rubric and the data the text came from",
+                          all("without linking the two" in p and '"ticker": "WDC"' in p for p in seen.prompts),
+                          seen.prompts[0][:200])
+
     print("\nSeveral scenarios in one run")
     real_argv, real_today = sys.argv, server.local_today
     try:
