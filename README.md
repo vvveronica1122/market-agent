@@ -1,164 +1,162 @@
 # Market Agent
 
-A stock watchlist that ranks names by what needs attention today, plus a
-tool-using Claude agent that answers questions from live market data
-instead of from memory.
-
-Ranking is done by plain Python rules; Claude is used only to explain. The
-AI-written parts are covered by an eval suite that checks the model doesn't
-give investment advice, assert causes the data doesn't support, or invent
-facts that weren't in its input.
-
-![Home: an AI brief over four themes, each measured against its ETF and its peers](docs/images/home.png)
+A stock watchlist that tells you, theme by theme, which companies moved
+with their group and which moved on their own, and a tool-using Claude
+agent that answers questions from live market data instead of from memory.
+Plain Python rules do the ranking; Claude only explains.
 
 <!-- TODO: link to the hosted static demo once it's published -->
 
 > Not financial advice. Data comes from free, delayed Yahoo Finance endpoints
-> and can be incomplete or wrong. The prompts forbid buy/sell/hold opinions
-> and price targets.
+> and can be incomplete or wrong. The prompts forbid buy/sell/hold opinions,
+> price targets and predictions of direction.
 
-## What it does
+## One session with it
 
-**Dashboard** (`web/app.py`, a local web app)
+You follow four themes: AI compute, memory & storage, mega-cap tech, and AI
+power. You open the dashboard to answer three questions: what changed, why
+it might matter, and what to check next. The screenshots are from the
+static snapshot of the Monday 5 October 2026 close, and every page says
+which session its prices are from.
 
-The watchlist is organised into **themes**: groups of companies that share
-a driver, each with a benchmark ETF. It ships with four (AI compute, Memory
-& storage, Mega-cap tech, AI power & infrastructure), and themes and their
-companies can be created, edited and moved from the page.
+![Home: an AI brief over four themes, each measured against its ETF and its peers](docs/images/home.png)
 
-Every company is measured two ways: against its theme's ETF, and against
-its **peers** — the median move of the other companies in the same theme,
-the typical peer. The second matters because cap-weighted ETFs are
-dominated by the names being measured (NVDA is over a fifth of SMH), and
-the median because in a group of four one extreme name would decide an
-average. Each move is then
-labelled *with theme*, *partly shared* or *own move*, depending on how far
-it diverged from its peers.
+**What changed.** Home has one card per theme. Each shows the theme's
+equal-weighted move against its ETF, how many companies beat the ETF, and
+the spread between them. AI compute was up 1.65% against SMH's 0.50%, and
+each company is tagged *With theme*: the group moved together. Memory &
+storage was up 2.46% on average, but every company is tagged *Own move*.
+Above the cards, an AI brief tells each theme's story once and names the
+companies that broke from their group. It ends with the coming reports,
+here "TSM reports in 10 days".
 
-- **Home** — one card per theme: the theme's equal-weighted move against
-  its ETF, how many companies beat it (breadth), how far apart they moved
-  (dispersion), earnings this week, and the companies that most need
-  attention. An AI brief on top tells each theme's story once and names the
-  companies that diverged.
-- **Theme page**, in four tabs:
-  - *Today* — every company against the ETF and its peers, ranked by an
-    attention score (size of move, divergence from peers, earnings
-    proximity, news), with notes and the controls to edit the theme.
-  - *Performance* — returns over 1M, 3M, 6M, YTD and 1Y, each against the
-    ETF and the peers over the same window.
-  - *Earnings* — each company's recent reports measured with an
-    event-study market model: the abnormal reaction (the move beyond what
-    beta and SPY predicted), how unusual it was in standard deviations of
-    the stock's ordinary days, and the run-up before the report. Across the
-    theme: how often beats were rewarded, and the rank correlation between
-    surprise size and reaction, shown with its sample size.
-  - *Peers* — forward P/E, EV/sales, growth, margins and the direction of
-    analyst estimates, with the theme median and flags where a figure would
-    mislead (one-off gains, near-zero earnings, base effects).
-- **Stock page**, in three tabs: *Overview* (place in its theme today,
-  six-month chart, AI analysis, headlines), *Earnings* (next report, and
-  the abnormal reaction to each of the last eight), *Fundamentals & peers*
-  (metrics with definitions, quarterly revenue, the theme's peer table).
-- **Earnings calendar** — the next two weeks by theme, then three months.
-- **Discover** — a market-wide scan of top gainers, losers and unusually
-  active names (above $2B market cap and $5 a share), grouped into themes,
-  each addable to one of yours.
-- **Ask** — a chat panel backed by the same agent as the terminal, showing
-  every tool call it made before answering.
+![Memory & storage, Today tab: companies ordered by what needs attention](docs/images/theme-today.png)
 
-<table>
-<tr>
-<td width="50%"><img src="docs/images/theme-today.png" alt="A theme's companies ranked by attention, each against its peers and the ETF"></td>
-<td width="50%"><img src="docs/images/theme-earnings.png" alt="Earnings reactions measured with a market model, surprise against abnormal reaction"></td>
-</tr>
-<tr>
-<td><img src="docs/images/theme-peers.png" alt="Peer table with the theme median and flags where a figure would mislead"></td>
-<td><img src="docs/images/ask.png" alt="The Ask panel showing every tool call the agent made before answering"></td>
-</tr>
-</table>
+**Why it might matter.** On the theme page, the *Today* tab orders the
+companies by an attention score. Each row shows the chips that earned its
+rank, such as "+6.3% move", "+6.8pt vs peers" or "earnings in 3d", so you
+can see why a company sits where it does. WDC (+6.32%) and STX (+4.78%)
+*need attention*. SNDK and MU fell slightly and are *worth a look*: each
+was more than 5 points behind its peers. The page notes that SMH holds
+only MU, so for this theme the peer comparison is the one to read.
 
-**Agent** (`agent.py`, terminal or the Ask panel)
+"Peers" means the median move of the *other* companies in the theme. This
+matters because cap-weighted ETFs are dominated by the names being
+measured. The median is used because in a group of four, one extreme name
+would decide an average.
 
-Twelve tools covering prices, history, news, earnings schedules and setups,
-quarterly results, key stats, the market scanner, market news, upcoming
-events, the watchlist, and a calculator. The agent chains them as needed,
-e.g. *"which of my watchlist names reports soonest, and how did it do last
-quarter?"*
+![MU's stock page: its move against its peer median and SMH](docs/images/stock-overview.png)
 
-## How it works
+**What to check.** MU's page puts its −0.49% beside its peers' median of
++4.78% (−5.27pt) and SMH (−0.99pt). Below that come a six-month chart, an
+AI analysis (told to report the headlines beside the move, not to claim
+they caused it), and the headlines themselves. The *Earnings* tab measures
+the last eight reports with a market model: the move beyond what beta and
+SPY predicted, and how unusual it was for this stock. You can also ask the
+agent in the *Ask* panel, for example "which of my names reports soonest,
+and how did it do last quarter?". It shows every tool call it made before
+it answers.
 
-```mermaid
-flowchart TB
-    tools["tools/ : plain Python, no LLM inside<br/>prices, news, earnings, fundamentals, scanner, calculator"]
+**When data is missing.** If a news or calendar lookup fails, the page
+says "Headlines couldn't be loaded" instead of "No recent headlines". A
+company that would otherwise rank *quiet* is marked *Data incomplete*,
+because a broken source shouldn't read as a calm company. The AI analysis
+is told which lookup failed and says so.
 
-    subgraph dash["Dashboard: fixed pipeline"]
-        fetch["Fetch the same data for every row, in parallel"] --> rank["Rank by attention score (rules)"]
-        rank --> explain["Claude writes the brief, analysis and themes"]
-    end
+## Design choices
 
-    subgraph agt["Agent: open-ended questions"]
-        q["Question"] --> loop["Claude picks tools, reads results, repeats<br/>(capped at 12 steps)"]
-        loop --> a["Answer + every tool call shown"]
-    end
+- **Rules rank; the model explains.** The dashboard knows what every row
+  needs, so it fetches in parallel and ranks with Python. A model makes a
+  slow, costly and inconsistent sort function, but a good explainer. The
+  agent handles questions no one can anticipate, so there the model
+  chooses the tools.
+  [DESIGN](docs/DESIGN.md#rank-with-rules-explain-with-the-model)
+- **A move is measured against its peers, not just an ETF.** The rule
+  for calling a move the theme's or the company's own was rewritten twice
+  after live data broke it.
+  [DESIGN](docs/DESIGN.md#themes-measuring-a-move-against-its-peers)
+- **It refuses what it can't know.** It gives no buy/sell/hold opinion, no
+  price target and no forecast. Asked whether a stock will rise after
+  earnings, the agent says the direction isn't knowable and shows what
+  happened after past reports instead.
+  [DESIGN](docs/DESIGN.md#will-it-go-up-after-earnings)
+- **Rules that a prompt can't hold are enforced in code.** If the model
+  compares moves as multiples ("twice its peers"), or makes a claim that a
+  failed lookup can't support, `guards.py` catches it and the app asks for
+  a rewrite. [analysis-guard](evals/tuning/analysis-guard-2026-10.md)
+- **The AI text is evaluated with criteria written before the runs.** Each
+  tuning round commits its train/test split and pass criteria before any
+  run, keeps the test set unread until the end, and records missed
+  criteria as missed. Regex checks what is fixed; an LLM judge grades the
+  rest and fails closed; the checks are fed bad output to prove they can
+  fail. [evals/tuning/](evals/tuning/),
+  [DESIGN](docs/DESIGN.md#evals--testing-the-part-that-isnt-deterministic)
 
-    tools --> fetch
-    tools <--> loop
-```
+The reasoning and the mistakes behind these choices are in
+[docs/DESIGN.md](docs/DESIGN.md). [docs/LOG.md](docs/LOG.md), in Chinese,
+logs what was done and who decided what.
 
-## Key decisions
+## How well does it work?
 
-- **Rank with rules, explain with the model.** The dashboard knows in
-  advance what every row needs, so it calls the tools directly and ranks in
-  Python; LLMs make slow, costly and inconsistent sorting functions, and
-  good explainers. The agent handles questions nobody can anticipate, so
-  there the model chooses the tools.
-  [More](docs/DESIGN.md#the-two-agent-patterns-side-by-side)
-- **Measure a move against its peers, not just an ETF.** Cap-weighted ETFs
-  are dominated by the companies being compared with them, so each company
-  is also measured against the median of the *other* companies in its
-  theme. The rule for calling a move the theme's or the company's own was
-  rewritten twice after the first live run broke it, and the average became
-  a median after an eval fixture showed one jumping peer making three flat
-  ones look like they'd diverged.
-  [More](docs/DESIGN.md#themes-measuring-a-move-against-its-peers)
-- **Evidence, not predictions.** Asked whether a stock will rise after
-  earnings, the agent says direction isn't knowable and shows what already
-  happened instead. Getting that evidence right meant reading each report's
-  timestamp: a before-open report is traded the same day, an after-close
-  one the next, and the first version measured the wrong session for every
-  before-open reporter. [More](docs/DESIGN.md#will-it-go-up-after-earnings)
-- **Test the AI part, and test the tests.** Regex checks what is fixed; an
-  LLM judge grades what needs judgement and fails closed; repeated runs
-  turn single results into pass rates; and the checks are fed bad output to
-  prove they can fail.
-  [More](docs/DESIGN.md#evals--testing-the-part-that-isnt-deterministic)
+All figures come from the records linked. The model is claude-sonnet-4-5,
+and the same model acts as judge, so the two can share a blind spot.
 
-The full reasoning, and the mistakes that shaped it, are in
-[docs/DESIGN.md](docs/DESIGN.md).
+- **The brief prompt** ([brief-prompt-2026-10.md](evals/tuning/brief-prompt-2026-10.md)):
+  on a held-out test set, the judge pass rate rose from **14/40 (35%) to
+  31/40 (78%)**. The noise floor at this size is about 25 points. Fixing
+  the brief's input and the harness afterwards took it to 38/40, but by
+  then the test set had been read, so 35% → 78% is the honest headline.
+- **The stock-analysis prompt** ([analysis-prompt-2026-10.md](evals/tuning/analysis-prompt-2026-10.md)):
+  on a held-out test set, it rose from **18/24 (75%) to 45/48 (94%)**.
+  The gain of 19 points has a 95% interval of about ±19, so treat it as
+  directional.
+- **The multiples guard** ([analysis-guard-2026-10.md](evals/tuning/analysis-guard-2026-10.md)):
+  multiples in the shown text fell from **5 in 112 runs to 0 in 88**
+  (p = 0.07). The model wrote a multiple only once in those 88 runs, and
+  the guard caught it. That shows the mechanism works, not a measured
+  rate. It costs about one extra model call per hundred pages.
+- **The attention score** ([validation/attention-2026-10.md](validation/attention-2026-10.md),
+  a backtest over 19 companies and 439 sessions in 2025–26): it tracks
+  the market's own attention. Its correlation with same-day abnormal
+  volume is **IC +0.29 [+0.26, +0.33]**, and its top-ranked company had
+  its theme's most unusual volume on **42%** of theme-days, against 22% by
+  chance. It **barely beats simple baselines**, though:
+  - The day's move alone scores +0.27. The peer and earnings parts add
+    only **+0.026 [+0.007, +0.046]**.
+  - A volatility-scaled move on its own does as well as the whole score:
+    the difference is +0.006 [−0.025, +0.037].
+  - It doesn't predict the next session: **+0.00 [−0.02, +0.03]**.
+  - It favours volatile stocks. TSLA tops its theme on 41% of days,
+    against 17% for an even split.
 
-## Quick start
+  The changes the backtest suggests have not been made.
+- **The first batch of the outside review** ([batch1-2026-11.md](evals/tuning/batch1-2026-11.md)):
+  - When a lookup fails, the analysis now says so. "No news" for a failed
+    news lookup went from 24 of 24 runs to **0 of 24**, and "no report
+    scheduled" for a failed calendar went from 23 of 24 to **0 of 24**.
+  - The brief's calendar is fixed: **no calendar claim failed in 96 runs**
+    after the fix.
+  - The brief still claims that a name whose news failed had no news in
+    **about 1 brief in 10** (5 of 48, down from 12 of 24). That missed
+    its criterion of at most 2 of 48. The author merged the batch anyway
+    and deferred this item, along with a false match in the
+    forbidden-phrasing check ("buy these chips"), to the next batch.
+
+## Setup
 
 Requires Python 3.9+ and an [Anthropic API key](https://console.anthropic.com).
 
 ```bash
-git clone <repo-url> market-agent
-cd market-agent
-python3 -m venv .venv
-source .venv/bin/activate
+git clone <repo-url> market-agent && cd market-agent
+python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env          # then put your key in .env
+python3 web/app.py            # then open http://127.0.0.1:5050
 ```
 
-Run the dashboard, then open <http://127.0.0.1:5050>:
-
-```bash
-python3 web/app.py
-```
-
-On macOS you can instead double-click `start.command`, which activates the
-virtualenv, starts the server and opens the browser.
-
-Or ask the agent from the terminal:
+On macOS you can instead double-click `start.command`, which starts the
+server and opens the browser. You can also use the agent from the
+terminal:
 
 ```bash
 python3 agent.py                                  # interactive
@@ -166,86 +164,88 @@ python3 agent.py AAPL TSLA                        # quick update on each ticker
 python3 agent.py "what moved most in the market today?"
 ```
 
-### Configuration
-
 | Variable | Required | Purpose |
 |---|---|---|
 | `ANTHROPIC_API_KEY` | yes | Claude API access |
 | `MARKET_AGENT_MODEL` | no | Model for every Claude call, including the eval judge. Defaults to `claude-sonnet-4-5`. |
 
-Set them in `.env` or the environment. Themes are saved to
-`web/themes.json`, which is per-machine state and not committed; on first
-run it's created from the default themes, and anything in an older
-`web/watchlist.json` that they don't cover is kept in an "Other" theme.
+Themes are saved to `web/themes.json`, which is per-machine and not
+committed. On first run it's created from the default themes. Anything in
+an older `web/watchlist.json` that the themes don't cover is kept in an
+"Other" theme.
 
-## Static demo
-
-Running the app publicly would mean paying for every visitor's AI calls and
-being rate-limited by Yahoo from a cloud host. So the public version is a
-**static snapshot**: `demo/build.py` walks the live app once -- real data,
-real model -- and saves every page's data as JSON beside a copy of the
-frontend, which reads those files instead of a server.
+### Tests and evals
 
 ```bash
-python3 demo/build.py                       # writes demo/site/
-python3 demo/build.py --repo-url <url>      # adds a link to the banner
+python3 run_tests.py                     # offline: no network, no key; CI runs these
+python3 evals/run_evals.py               # brief, stock analysis, themes: real model, costs money
+python3 evals/run_agent_evals.py         # agent tool choices, real model on stubbed data
+python3 evals/run_evals.py --runs 5 --save   # pass rates, recorded to evals/results/
+python3 evals/run_evals.py --dry-run     # exercise the harness, no API calls
+python3 evals/rejudge.py --scenario <name> <saved.json>   # re-judge saved outputs
+```
+
+`--judge-stability N` tells a noisy judge apart from a noisy output.
+`python3 test_tools.py AAPL` is a live smoke test of the data tools, and
+`python3 tools/check_sources.py` reports which data sources are reachable
+from your network.
+
+### Static demo
+
+A public live app would pay for every visitor's AI calls and get
+rate-limited by Yahoo from a cloud host. Instead, `demo/build.py` walks
+the live app once and saves every page's data as JSON beside a copy of the
+frontend. The demo is read-only, says which session it's from, and replays
+the Ask panel's suggested questions as recorded. Build it after the
+close; during trading hours the prices are intraday.
+
+```bash
+python3 demo/build.py                       # writes demo/site/ (gitignored)
 python3 -m http.server -d demo/site 8000    # look at it locally
-python3 demo/capture.py --video             # retake the screenshots and walkthrough
+python3 demo/capture.py --video             # retake the screenshots (needs Playwright)
 ```
 
-Take it after the close: during trading hours the prices are intraday, and
-the banner says so. `demo/capture.py` (needs Playwright, which isn't a
-project dependency) regenerates the screenshots in this README from the
-snapshot, and a walkthrough video into `demo/media/`.
+The snapshot contains Yahoo Finance data via yfinance, whose use is
+governed by Yahoo's terms.
 
-The demo is read-only, says which session it's a snapshot of, and replays
-the Ask panel's suggested questions as recorded (answers and lookups). Any
-static host can serve `demo/site/` -- GitHub Pages, Netlify, Vercel, or a
-subfolder of another site. It's gitignored until you decide to publish it.
+## Features
 
-Before publishing, note that the snapshot contains market data from Yahoo
-Finance via yfinance, whose use is governed by Yahoo's terms.
+- **Home**: one card per theme: its move against its ETF, breadth,
+  dispersion, earnings this week, and the companies most in need of
+  attention, under an AI brief.
+- **Theme page**:
+  - *Today*: each company against the ETF and its peers, ranked by
+    attention, with notes and controls to edit the theme.
+  - *Performance*: 1M to 1Y returns against the ETF and the peers.
+  - *Earnings*: abnormal reactions from an event-study market model, the
+    run-up before each report, and the rank correlation between surprise
+    and reaction, with its sample size.
+  - *Peers*: valuation, growth, margins and estimate revisions, with the
+    theme median and flags where a figure would mislead.
+- **Stock page**: *Overview* (place in its theme, chart, AI analysis,
+  headlines), *Earnings* (next report, reaction to each of the last
+  eight), *Fundamentals & peers*.
+- **Earnings calendar**: the next two weeks by theme, then three months.
+- **Discover**: market-wide gainers, losers and unusually active names
+  (above $2B market cap and $5 a share), grouped into themes, each
+  addable to yours.
+- **Ask**: the agent, with every tool call shown. It has twelve tools,
+  covering prices, history, news, earnings, quarterly results, key stats,
+  the scanner, market news, events, the watchlist and a calculator, and
+  is capped at 12 steps.
+- Themes and their companies can be created, edited and moved from the
+  page.
 
-## Tests and evals
-
-**Offline tests** — free, instant, no network, no API key. CI runs these on
-every push.
-
-```bash
-python3 run_tests.py
-```
-
-They stub the model and the market data, so they cover the deterministic
-parts: ranking, routes, chat input handling, the agent loop (chaining,
-errors as data, runaway protection), the calculator's refusals, and the eval
-checks themselves, which are fed deliberately bad output to prove they can
-fail.
-
-**Evals** — call the real model and cost money. Run them after changing a
-prompt or the model.
-
-```bash
-python3 evals/run_evals.py              # brief: 9 scenarios; stock analysis: 6; themes
-python3 evals/run_agent_evals.py        # agent tool choices: 4 scenarios
-python3 evals/run_evals.py --runs 3     # repeat for pass rates, not anecdotes
-python3 evals/run_evals.py --dry-run    # exercise the harness, no API calls
-python3 evals/run_evals.py --runs 5 --save   # also write the result to evals/results/
-```
-
-`--save` (on either runner) records each check's pass count, the first
-output (with the agent's tool calls), the model, and the commit, so a
-pass rate can be cited later.
-
-Cheap checks (regex: required tickers, forbidden advice phrasing, format)
-run first; an LLM judge grades what needs judgement against a written
-rubric and fails closed. Agent evals use the real model on stubbed data, so
-they can assert on the tool-call trace as well as the answer.
-`--judge-stability N` separates a noisy judge from a noisy brief; see
-[When to stop tuning](docs/DESIGN.md#when-to-stop-tuning).
-
-`python3 test_tools.py AAPL` is a separate live smoke test of the data
-tools (network, no API key), and `python3 tools/check_sources.py` reports
-which data sources are reachable from your network.
+<table>
+<tr>
+<td width="50%"><img src="docs/images/theme-earnings.png" alt="Earnings reactions measured with a market model, surprise against abnormal reaction"></td>
+<td width="50%"><img src="docs/images/theme-peers.png" alt="Peer table with the theme median and flags where a figure would mislead"></td>
+</tr>
+<tr>
+<td><img src="docs/images/discover.png" alt="Discover: market-wide movers grouped into themes"></td>
+<td><img src="docs/images/ask.png" alt="The Ask panel showing every tool call the agent made before answering"></td>
+</tr>
+</table>
 
 ## Project layout
 
@@ -253,6 +253,7 @@ which data sources are reachable from your network.
 agent.py              the agent: tool schemas, the loop, the CLI
 config.py             shared settings (model, .env loading)
 themes.py             theme storage: defaults, validation, upgrade from the old watchlist
+guards.py             rules on AI text enforced in code (multiples, claims a failed lookup can't support)
 tools/
   market_data.py      price, price history, company news, upcoming events
   market_scan.py      market-wide movers and market news
@@ -263,53 +264,46 @@ tools/
   check_sources.py    which data sources work from this network
   probe_*.py          scripts that inspect raw API payloads
 web/
-  app.py              Flask server: ranking, brief, detail, Discover, earnings, chat
+  app.py              Flask server: ranking, brief, analysis, Discover, earnings, chat
   static/             single-page frontend, vanilla JS, no build step
 evals/                model evals, scenarios, and tests of the checks
-evals/tuning/         logs of the prompt tuning runs
+evals/rejudge.py      judges saved outputs again with a scenario's current rubric
+evals/results/        saved eval runs, cited by the tuning logs
+evals/tuning/         plans and results of each tuning round
+evals/borderline/     real outputs that sat on a rubric's edge, kept for re-judging
 demo/build.py         builds the static demo snapshot
 demo/capture.py       screenshots and a walkthrough video of the snapshot
 validation/           backtests of the hand-set rules, with their reports
 run_tests.py          runs every offline suite
 docs/DESIGN.md        design decisions and lessons
-docs/LOG.md           project log: what was done, the results, and who decided what
+docs/LOG.md           project log (Chinese): what was done, the results, and who decided what
+docs/MarketAgent_Review_and_Improvement_Plan.md   the outside review (Chinese)
 ```
 
 ## Known limits
 
-- Free delayed data via yfinance; no intraday streaming, options flow, or
-  dark pool data.
-- When a ticker's own Yahoo news feed is empty (as it was for every
-  ticker in October 2026), headlines come from Yahoo's search
-  endpoint instead. Those have no summaries, so the AI text works from
-  headlines alone.
-- Yahoo's operating margin is the latest quarter while its gross and net
-  margins are twelve months; the pages label it, and flag it when the
-  mismatch puts operating margin above gross margin.
-- Market open/closed doesn't account for holidays.
-- Notes and alerts are not built yet. Real alerts (fire while you're not
-  looking) need a background scheduler, not just a web server.
-- Discover depends on Yahoo's screener endpoint; if it's unavailable the
-  page falls back to a fixed large-cap list and labels itself as such.
-- The attention score's weights are hand-set. A two-year backtest
-  ([validation/attention-2026-10.md](validation/attention-2026-10.md))
-  found it agrees with the market's own attention (abnormal volume, IC
-  +0.29), but favours volatile stocks, gives earnings points before a
-  report rather than on the reaction, and says nothing about the next
-  session. The changes it suggests haven't been made yet. The attribution
-  thresholds (40% / 60% of the larger move, 1-point floor) haven't been
-  validated.
-- A theme that splits in two (hard-disk makers down 10%, memory makers down
-  2%) labels every company as diverging, which is true but hides that each
-  half moved together; there are no sub-groups within a theme yet.
-- Theme averages (as opposed to peer comparisons) are equal-weighted means,
-  so one extreme name still moves them -- SNDK's 2026 run dominates its
-  theme's YTD average.
-- Market-model betas estimated during a strong sector rally run high, which
-  enlarges both expected and abnormal returns; the earliest report in each
-  two-year history lacks enough prior data for a model and shows raw.
-- Earnings timestamps come from Yahoo; a report time recorded wrongly
-  (some carry a placeholder hour) puts the reaction on the wrong session.
+- The data is free and delayed, via yfinance. There's no intraday
+  streaming, options flow or dark pool data. When a ticker's own Yahoo
+  news feed is empty (as it was for every ticker in October 2026),
+  headlines come from Yahoo's search endpoint. Those have no summaries,
+  so the AI text works from headlines alone.
+- The news part of the attention score counts the latest headlines
+  whatever their age, so it barely varies. On 5 October every company
+  had the maximum.
+- The attention weights are hand-set. The attribution thresholds (40% /
+  60% of the larger move, with a 1-point floor) haven't been validated.
+- A theme that splits in two (disk makers up, flash and DRAM down, as on
+  5 October) labels every company *Own move*. That's true, but it hides
+  that each half moved together; there are no sub-groups yet.
+- Theme averages are equal-weighted, so one extreme name still moves them.
+- Market-model betas estimated during a strong sector rally run high.
+  The earliest report in each history lacks enough prior data for a
+  model and is shown raw. Some report times from Yahoo carry a
+  placeholder hour, which puts the reaction on the wrong session.
+- Yahoo's operating margin is quarterly, gross and net margins twelve
+  months; the pages label it. Market hours ignore holidays. Discover falls
+  back to a fixed large-cap list, and says so, if Yahoo's screener fails.
+- Notes and alerts aren't built; real alerts need a background scheduler.
 
 ## License
 
