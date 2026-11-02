@@ -517,8 +517,8 @@ def main() -> int:
 
     server._cache.clear()
     detail = client.get("/api/stock/CRASH").get_json()
-    failures += not check("detail view returns price, history, news and analysis",
-                          all(k in detail for k in ("price", "history", "news", "analysis")),
+    failures += not check("detail view returns price, history and news",
+                          all(k in detail for k in ("price", "history", "news")),
                           str(list(detail)))
     failures += not check("detail view includes market comparison",
                           detail.get("market") is not None)
@@ -539,6 +539,78 @@ def main() -> int:
     missing = client.get("/api/search?q=NOSUCH").get_json()
     failures += not check("search reports no results cleanly",
                           missing["results"] == [] and "message" in missing)
+
+    print("\nThe analysis loads on its own")
+    # The stock page used to wait for its analysis, a model call, before
+    # sending the price and chart. Now the page costs no call and the
+    # analysis has its own route, cached on its own key.
+    real_analyze = server.analyze
+    server.analyze = REAL_ANALYZE
+    try:
+        server._cache.clear()
+        server.client = FakeClient()
+        page = client.get("/api/stock/CRASH")
+        failures += not check("the stock page costs no model calls",
+                              len(server.client.messages.calls) == 0,
+                              f"{len(server.client.messages.calls)} calls")
+        failures += not check("and carries no analysis",
+                              page.status_code == 200 and "analysis" not in page.get_json(),
+                              str(sorted(page.get_json())))
+        first = client.get("/api/stock/CRASH/analysis")
+        failures += not check("the analysis route costs exactly ONE model call",
+                              len(server.client.messages.calls) == 1,
+                              f"{len(server.client.messages.calls)} calls")
+        failures += not check("and returns the model's text",
+                              first.status_code == 200
+                              and first.get_json() == {"analysis": "Stubbed model output."},
+                              str(first.get_json()))
+        sent = json.loads(server.client.messages.calls[0]["messages"][0]["content"])
+        failures += not check("it is written from the page's own data",
+                              sent.get("ticker") == "CRASH"
+                              and (sent.get("theme_comparison") or {}).get("theme") == "Chips",
+                              str(sorted(sent)))
+        again = client.get("/api/stock/crash/analysis")
+        failures += not check("a second request is served from the cache",
+                              len(server.client.messages.calls) == 1
+                              and again.get_json() == first.get_json(),
+                              f"{len(server.client.messages.calls)} calls")
+        fetched = []
+        real_price = server.get_stock_price
+        server.get_stock_price = lambda t: fetched.append(t) or real_price(t)
+        try:
+            server._cache.pop(f"stock-analysis:CRASH:{server.themes_key(server.load_themes())}")
+            client.get("/api/stock/CRASH/analysis")
+        finally:
+            server.get_stock_price = real_price
+        failures += not check("the analysis reuses the cached stock data instead of refetching",
+                              fetched == [], str(fetched))
+    finally:
+        server.analyze = real_analyze
+
+    def broken_analyze(ticker, data):
+        raise RuntimeError("overloaded")
+
+    server.analyze = broken_analyze
+    try:
+        server._cache.clear()
+        failed = client.get("/api/stock/CRASH/analysis")
+        body = failed.get_json() or {}
+        failures += not check("a failed analysis says it is unavailable",
+                              failed.status_code == 502 and "unavailable" in body.get("error", "")
+                              and "analysis" not in body,
+                              f"status={failed.status_code} body={body}")
+        page = client.get("/api/stock/CRASH")
+        failures += not check("and the stock page still loads in full",
+                              page.status_code == 200 and page.get_json().get("price")
+                              and page.get_json().get("history"),
+                              str(page.status_code))
+        server.analyze = REAL_ANALYZE
+        server.client = FakeClient()
+        retry = client.get("/api/stock/CRASH/analysis").get_json()
+        failures += not check("a failure isn't cached: the next request tries again",
+                              retry == {"analysis": "Stubbed model output."}, str(retry))
+    finally:
+        server.analyze = real_analyze
 
 
     print("\nDaily brief")
@@ -779,7 +851,7 @@ def main() -> int:
     body = broken.get_json()
     failures += not check("one failing sub-fetch doesn't take down the whole page",
                           broken.status_code == 200 and "price_error" in body
-                          and body.get("quarters") == [] and "analysis" in body,
+                          and body.get("quarters") == [],
                           f"status={broken.status_code} keys={sorted(body)[:8]}")
 
     print("\nChat endpoint")
@@ -904,7 +976,7 @@ def main() -> int:
     real_analyze = server.analyze
     server.analyze = capture_analyze
     try:
-        client.get("/api/stock/CRASH")
+        client.get("/api/stock/CRASH/analysis")
         news = captured.get("news") or []
         failures += not check("news items carry a summary through to analysis",
                               bool(news) and all(n.get("summary") for n in news),
@@ -1258,7 +1330,7 @@ def main() -> int:
     server.analyze = capture
     try:
         server._cache.clear()
-        client.get("/api/stock/CRASH")
+        client.get("/api/stock/CRASH/analysis")
         failures += not check("the setup reaches the analysis prompt",
                               "setup" in (captured.get("payload") or {}))
     finally:
