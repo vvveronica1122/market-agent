@@ -88,11 +88,37 @@ LONG_PATHS = {"CRASH": (100.0, 70.0), "PEER1": (100.0, 130.0), "PEER2": (100.0, 
               "CHIPETF": (100.0, 110.0)}
 
 
+# Each company's typical daily move, in percent, for the six months the
+# attention score reads: CRASH is a steady stock (-6% is four usual days),
+# its peers move twice as much, so the same fall is an ordinary day for them.
+USUAL_MOVE = {"CRASH": 1.5, "PEER1": 3.0, "PEER2": 3.0, "SOLO": 2.0, "QUIET": 2.0, "CALM": 1.2}
+
+
+def six_months(ticker, sessions=130, end="2026-09-10"):
+    """Closes that alternate up and down by the ticker's usual move, so its
+    typical move is known by hand (the standard deviation of +v, -v, ... over
+    60 sessions is v * sqrt(60/59)), ending on its own price's move."""
+    import pandas as pd
+    usual = USUAL_MOVE.get(ticker, 2.0)
+    try:
+        last = fake_price(ticker)["change_percent"]
+    except ValueError:
+        last = 0.0
+    days = pd.bdate_range(end=end, periods=sessions)
+    closes = [100.0]
+    for i in range(1, sessions):
+        move = last if i == sessions - 1 else (usual if i % 2 else -usual)
+        closes.append(closes[-1] * (1 + move / 100))
+    return [{"date": d.strftime("%Y-%m-%d"), "close": c} for d, c in zip(days, closes)]
+
+
 def fake_history(ticker, period="1mo"):
     # Mirror the real thing: an unknown ticker fails here too, so the
     # degradation test exercises a realistic scenario.
     if ticker not in KNOWN:
         raise ValueError(f"Could not fetch price history for '{ticker}'.")
+    if period == "6mo":
+        return six_months(ticker)
     if period == "2y":
         import pandas as pd
         start, end = LONG_PATHS.get(ticker, (100.0, 100.0))
@@ -352,6 +378,10 @@ def check_home_prototypes(client) -> int:
                           not any(c in css for c in (".protoA", ".protoC", ".tblock", ".crow", ".proto-switch",
                                                      ".proto-brief")))
 
+    failures += not check("no page text describes the old points scheme",
+                          not any(old in source for old in ("8 a point", "45 or more", "20 or more",
+                                                            "3 a headline", "earnings points")))
+
     node = shutil.which("node")
     if node is None:
         print("  [SKIP] node isn't installed: app.js parsing and the top-three checks didn't run")
@@ -365,36 +395,39 @@ def check_home_prototypes(client) -> int:
     earnings = client.get("/api/earnings").get_json()
     calm = [{"id": "calm", "name": "Calm", "summary": {}, "benchmark": {"ticker": "SPY"},
              "rows": [{"ticker": "QUIET", "relative": {"attribution": "quiet"},
-                       "attention": {"score": 1.0, "level": "quiet", "factors": []}},
+                       "attention": {"score": 0.4, "level": "quiet", "factors": []}},
                       {"ticker": "GAP", "relative": {},
-                       "attention": {"score": 12.0, "level": "incomplete", "factors": []}}]}]
+                       "attention": {"score": 1.2, "level": "incomplete", "factors": []}}]}]
     out = run_prototype_slice({"home": home, "earnings": earnings, "calm": calm})
 
     top = out["top"]
     shape = [(e["kind"], e["title"]) for e in top]
-    # CRASH -6% with a report in 3 days (82), PEER2 -6.5% with its theme
-    # (57), PEER1 -5.5% with its theme (56), SOLO +4% on its own (56).
+    # In usual daily moves: SOLO +4% on its own (2 from the move, 2 from its
+    # peers: 4.0); CRASH -6% with its theme, but four of its usual days
+    # (4.0), and a report in 3 days; PEER2 -6.5% with its theme, about two
+    # of its usual days (2.4); PEER1 -5.5% with it (2.1).
     failures += not check("the top three are the highest attention scores across themes",
-                          shape == [("company", "CRASH"), ("theme", "Chips"), ("company", "SOLO")], str(shape))
+                          shape == [("company", "SOLO"), ("company", "CRASH"), ("theme", "Chips")], str(shape))
     failures += not check("names that moved with their theme become one theme entry, led by the biggest",
-                          top[1]["ticker"] == "PEER2" and "PEER1" not in [e["ticker"] for e in out["ranked"]],
-                          str(top[1]))
+                          top[2]["ticker"] == "PEER2" and "PEER1" not in [e["ticker"] for e in out["ranked"]],
+                          str(top[2]))
     failures += not check("a company with a report due stays its own entry, even moving with its theme",
-                          top[0]["attribution"] == "theme" and "earnings in 3d" in [f["label"] for f in top[0]["factors"]],
-                          str(top[0]))
+                          top[1]["attribution"] == "theme" and "earnings in 3d" in [f["label"] for f in top[1]["factors"]],
+                          str(top[1]))
     failures += not check("company entries carry the server's own reason chips",
-                          [f["label"] for f in top[2]["factors"]] ==
+                          [f["label"] for f in top[0]["factors"]] ==
                           [f["label"] for r in home["themes"][1]["rows"] if r["ticker"] == "SOLO"
-                           for f in r["attention"]["factors"]], str(top[2]["factors"]))
+                           for f in r["attention"]["factors"]], str(top[0]["factors"]))
     failures += not check("the theme entry's reasons are its card's figures",
-                          any(f["label"].endswith("vs CHIPETF") for f in top[1]["factors"])
-                          and "3 of 3 moved together" in [f["label"] for f in top[1]["factors"]],
-                          str(top[1]["factors"]))
+                          any(f["label"].endswith("vs CHIPETF") for f in top[2]["factors"])
+                          and "3 of 3 moved together" in [f["label"] for f in top[2]["factors"]],
+                          str(top[2]["factors"]))
     failures += not check("each entry links to a page and states its level",
                           all(e["themeId"] and e["level"] in ("high", "medium") for e in top), str(top))
-    # CALM is "medium" (4 headlines, 2.4pt under its peers); QUIET is quiet.
+    # CALM is "medium" (2.4pt under its peers, two of its usual moves);
+    # QUIET is quiet.
     failures += not check("quiet names never make the ranked list",
-                          [e["ticker"] for e in out["ranked"]] == ["CRASH", "PEER2", "SOLO", "CALM"]
+                          [e["ticker"] for e in out["ranked"]] == ["SOLO", "CRASH", "PEER2", "CALM"]
                           and all(e["level"] in ("high", "medium") for e in out["ranked"]),
                           str([e["ticker"] for e in out["ranked"]]))
     failures += not check("a calm day lists nothing rather than padding with quiet or incomplete names",
@@ -412,51 +445,161 @@ def main() -> int:
     failures = 0
 
     print("\nAttention scoring")
-    crash = server.compute_attention(fake_price("CRASH"), fake_news("CRASH"),
-                                     fake_events("CRASH"), 0.2)
-    quiet = server.compute_attention(fake_price("QUIET"), fake_news("QUIET"),
-                                     fake_events("QUIET"), 0.2)
-    failures += not check("a 6% drop before earnings scores higher than a flat quiet name",
-                          crash["score"] > quiet["score"], f"{crash['score']} vs {quiet['score']}")
-    failures += not check("that name is flagged high attention", crash["level"] == "high", crash["level"])
-    failures += not check("the quiet name is flagged quiet", quiet["level"] == "quiet", quiet["level"])
-    failures += not check("relative-to-market factor is surfaced",
-                          any("vs market" in f["label"] for f in crash["factors"]),
-                          str(crash["factors"]))
-    failures += not check("earnings proximity is surfaced",
-                          any("earnings" in f["label"] for f in crash["factors"]),
-                          str(crash["factors"]))
+    # The rule from validation/attention-2026-11.md: the move and its gap to
+    # peers, each in the stock's own usual daily moves and capped at 5, plus
+    # 2 on a report's reaction session.
+    def score(pct, peers=None, sigma=2.0, reaction=False, events=None, market=0.2, missing=()):
+        return server.compute_attention({"change_percent": pct}, events or {}, market, peers,
+                                        sigma, reaction, missing)
 
-    print("\nAttention against peers")
-    vs_peers = server.compute_attention(fake_price("CRASH"), [], {}, 0.2, peer_pct=-6.0)
-    failures += not check("with peers, a move shared with them earns no relative-move points",
-                          not any("vs" in f["label"] for f in vs_peers["factors"]), str(vs_peers["factors"]))
-    alone = server.compute_attention(fake_price("SOLO"), [], {}, 0.2, peer_pct=-0.1)
-    failures += not check("a move its peers didn't make is flagged against peers, not the market",
-                          any(f["label"].endswith("vs peers") for f in alone["factors"]), str(alone["factors"]))
+    steady = score(-6.0, peers=-0.1, sigma=1.5)
+    jumpy = score(-6.0, peers=-0.1, sigma=6.0)
+    failures += not check("a 6% fall in a stock that moves 1.5% a day scores far higher than in one "
+                          "that moves 6% a day",
+                          steady["score"] >= 3 * jumpy["score"] and steady["level"] == "high"
+                          and jumpy["level"] != "high", f"{steady['score']} vs {jumpy['score']}")
+    shared = score(-6.0, peers=-6.0)
+    alone = score(-6.0, peers=-0.1)
+    failures += not check("a move shared with its peers scores lower than the same move alone",
+                          shared["score"] < alone["score"] and shared["parts"]["relative"] == 0,
+                          f"{shared['score']} vs {alone['score']}")
+    failures += not check("a shared move gets no gap chip; a lone one does, in its own units",
+                          not any("vs" in f["label"] for f in shared["factors"])
+                          and "-5.9pt vs peers, 3.0x usual" in [f["label"] for f in alone["factors"]],
+                          str(alone["factors"]))
+    reacting = score(-6.0, peers=-6.0, reaction=True)
+    failures += not check("a report's reaction session adds 2, and says so",
+                          abs(reacting["score"] - shared["score"] - 2) < 1e-9
+                          and reacting["parts"]["reaction"] == 2
+                          and {"label": "report reaction", "tone": "neutral"} in reacting["factors"],
+                          f"{reacting['score']} vs {shared['score']}")
+    due = score(-6.0, peers=-6.0, events=fake_events("CRASH"))
+    failures += not check("earnings in 3 days adds nothing but still shows, as information",
+                          due["score"] == shared["score"]
+                          and {"label": "earnings in 3d", "tone": "neutral"} in due["factors"]
+                          and due["earnings_days"] == 3, str(due))
+    failures += not check("each part is capped at 5 usual moves",
+                          score(-30.0, peers=0.0, sigma=1.0)["parts"] == {"move": 5.0, "relative": 5.0,
+                                                                          "reaction": 0.0})
+    failures += not check("the move chip gives its size in the stock's own units",
+                          {"label": "-4.4% move, 2.1x usual", "tone": "down"}
+                          in score(-4.4, peers=-3.0, sigma=2.1)["factors"])
+    failures += not check("the gap chip appears from one usual move",
+                          "-1.7pt vs peers, 1.0x usual" in [f["label"] for f in score(-2.0, peers=-0.3, sigma=1.7)["factors"]]
+                          and not any("vs peers" in f["label"] for f in score(-2.0, peers=-0.5, sigma=1.7)["factors"]))
+    failures += not check("headlines aren't scored, so there's no headline count chip",
+                          not any("headline" in f["label"] for f in server.fetch_row("CRASH", 0.2)["attention"]["factors"]))
 
-    print("\nAttention, explained")
-    parts = vs_peers["parts"]
-    failures += not check("the score is the sum of its parts, so the breakdown adds up",
-                          abs(sum(parts.values()) - vs_peers["score"]) < 0.11, str(parts))
-    failures += not check("the breakdown says what the relative move was measured against",
-                          vs_peers["reference"] == "peers" and crash["reference"] == "market")
-    failures += not check("a move is labelled as a move, not as today's",
-                          any(f["label"] == "-6.0% move" for f in crash["factors"]), str(crash["factors"]))
+    print("\nAttention levels")
+    # sigma 1 and no gap: the score is the move.
+    levels = {pct: score(pct, peers=pct, sigma=1.0)["level"] for pct in (3.13, 3.12, 1.71, 1.70)}
+    failures += not check("high from 3.13, medium from 1.71, quiet below",
+                          levels == {3.13: "high", 3.12: "medium", 1.71: "medium", 1.70: "quiet"}, str(levels))
+    cases = [steady, jumpy, shared, alone, reacting, score(-4.4, peers=-3.0, sigma=2.1),
+             score(1.234, peers=-0.567, sigma=0.789, reaction=True)]
+    failures += not check("the parts add up to the score, so the breakdown can be trusted",
+                          all(abs(sum(c["parts"].values()) - c["score"]) < 0.005 for c in cases),
+                          str([(c["parts"], c["score"]) for c in cases]))
+    failures += not check("the breakdown says what the gap was measured against, and the usual move",
+                          alone["reference"] == "peers" and alone["usual_move"] == 2.0)
+
+    print("\nAttention without peers")
+    market = score(-6.0, sigma=2.0, market=-1.0)
+    failures += not check("without a peer group the gap is to the market",
+                          market["reference"] == "market" and market["parts"]["relative"] == 2.5
+                          and "-5.0pt vs market, 2.5x usual" in [f["label"] for f in market["factors"]],
+                          str(market))
+
+    print("\nA stock's usual move")
+    import pandas as pd
+    import random
+    rng = random.Random(3)
+    closes = [100.0]
+    for _ in range(79):
+        closes.append(closes[-1] * (1 + rng.gauss(0, 0.02)))
+    path = [{"date": f"d{i:03d}", "close": c} for i, c in enumerate(closes)]
+    # The backtest's own formula, at the last session.
+    backtest = (pd.Series(closes).pct_change() * 100).rolling(60).std().shift(1).iloc[-1]
+    sigma = server.typical_move(path)
+    failures += not check("the usual move is the backtest's: std of the 60 daily moves before the last session",
+                          abs(sigma - backtest) < 1e-9, f"{sigma} vs {backtest}")
+    spiked = path[:-1] + [{"date": "d999", "close": 1.0}]
+    failures += not check("the session the move is from doesn't count towards its own usual move",
+                          server.typical_move(spiked) == sigma)
+    failures += not check("it needs 61 closes before the move's own: one fewer gives none",
+                          server.typical_move(path[-62:]) is not None and server.typical_move(path[-61:]) is None
+                          and server.typical_move([]) is None)
+    long = six_months("CRASH")
+    failures += not check("the fixtures' usual moves are what they say",
+                          abs(server.typical_move(long) - 1.5 * (60 / 59) ** 0.5) < 1e-6,
+                          str(server.typical_move(long)))
+
+    print("\nWhich session is a report's reaction")
+    week = [{"date": f"2026-09-{d:02d}", "close": 100.0} for d in (7, 8, 9, 10, 11)]
+    react = server.reaction_session
+    failures += not check("the report date itself (a before-open report)",
+                          react(week, {"next_earnings_date": "2026-09-11 08:00:00"}, None)
+                          and react(week, {}, {"date": "2026-09-11"}))
+    failures += not check("the first session after the latest report (an after-close one)",
+                          react(week, {}, {"date": "2026-09-10"}))
+    failures += not check("over a weekend, Monday is the first session after Friday's report",
+                          react([{"date": "2026-09-03", "close": 1}, {"date": "2026-09-04", "close": 1},
+                                 {"date": "2026-09-08", "close": 1}], {}, {"date": "2026-09-04"}))
+    failures += not check("not the session after that, nor the days before a report",
+                          not react(week, {}, {"date": "2026-09-09"})
+                          and not react(week, {"next_earnings_date": "2026-09-14"}, {"date": "2026-06-11"}))
+
+    print("\nThe app's rule is the backtest's")
+    # validation/attention_v2.py computed anomaly_er from the same inputs;
+    # the app must give the same number for the same move, peers, typical
+    # move and reaction flag.
+    sys.path.insert(0, str(PROJECT_ROOT / "validation"))
+    import pandas as pd
+    import attention_v2
+    synthetic = pd.DataFrame([
+        # move, peer median, typical move, days to report, sessions since report
+        {"move": -6.0, "peers": -0.1, "sigma": 1.5, "days_to_report": 30, "since_report": 40},
+        {"move": 2.3, "peers": 2.0, "sigma": 2.7, "days_to_report": 0, "since_report": 60},
+        {"move": -11.0, "peers": 1.0, "sigma": 1.1, "days_to_report": 80, "since_report": 1},
+        {"move": 0.4, "peers": -0.9, "sigma": 0.8, "days_to_report": 5, "since_report": 55},
+        {"move": 7.7, "peers": 7.5, "sigma": 4.2, "days_to_report": 3, "since_report": 2},
+    ])
+    synthetic = synthetic.assign(z_move=synthetic["move"].abs() / synthetic["sigma"],
+                                 gap=(synthetic["move"] - synthetic["peers"]).abs())
+    expected = attention_v2.with_candidates(synthetic)
+    pairs = []
+    for case, want in zip(synthetic.itertuples(), expected.itertuples()):
+        got = score(case.move, peers=case.peers, sigma=case.sigma, reaction=bool(want.reaction))
+        pairs.append((got["score"], round(want.anomaly_er, 2)))
+    failures += not check("compute_attention gives anomaly_er's score on the same inputs",
+                          all(abs(a - b) <= 0.011 for a, b in pairs), str(pairs))
 
     print("\nMissing data isn't a quiet day")
-    # compute_attention(None, [], {}, None) used to say "quiet": a failed
-    # lookup scored like a calm company.
-    blank = server.compute_attention(None, [], {}, None)
+    # compute_attention(None, ...) used to say "quiet": a failed lookup
+    # scored like a calm company.
+    blank = server.compute_attention(None, {}, None, sigma=2.0)
     failures += not check("no price at all is incomplete, not quiet",
                           blank["level"] == "incomplete" and blank["missing"] == ["price"], str(blank))
-    no_news = server.compute_attention(fake_price("QUIET"), [], fake_events("QUIET"), 0.2,
-                                       missing=["news"])
+    quiet = score(0.1, peers=0.0)
+    no_news = score(0.1, peers=0.0, missing=["news"])
     failures += not check("a flat name whose news failed is incomplete, and says which part",
                           no_news["level"] == "incomplete" and no_news["missing"] == ["news"]
                           and any(f["label"] == "news unavailable" for f in no_news["factors"]),
                           str(no_news))
-    loud = server.compute_attention(fake_price("CRASH"), [], {}, 0.2, missing=["news", "events"])
+    no_events = score(0.1, peers=0.0, missing=["events"])
+    failures += not check("so is one whose calendar failed",
+                          no_events["level"] == "incomplete" and no_events["missing"] == ["events"])
+    no_history = score(0.1, peers=0.0, sigma=None)
+    failures += not check("without a usual move nothing is scored, and the history is named as missing",
+                          no_history["level"] == "incomplete" and no_history["missing"] == ["history"]
+                          and no_history["score"] == 0
+                          and any(f["label"] == "history unavailable" for f in no_history["factors"]),
+                          str(no_history))
+    big_no_history = score(-6.0, peers=-0.1, sigma=None)
+    failures += not check("it still says what happened, on fixed cut-offs, with no units",
+                          [f["label"] for f in big_no_history["factors"]][:2]
+                          == ["-6.0% move", "-5.9pt vs peers"], str(big_no_history["factors"]))
+    loud = score(-6.0, peers=-0.1, sigma=1.5, missing=["news", "events"])
     failures += not check("a missing part can only have added points, so a high rank stands",
                           loud["level"] == "high", loud["level"])
     failures += not check("a complete quiet name is still quiet, with nothing missing",
@@ -490,6 +633,68 @@ def main() -> int:
                           row["missing"] == ["events"] and row["attention"]["level"] == "incomplete",
                           str(row.get("missing")))
     server.get_upcoming_events = fake_events
+    server._cache.clear()
+    server.get_price_history = broken
+    row = server.fetch_row("QUIET", 0.2)
+    failures += not check("and one whose price history failed, without raising",
+                          row["missing"] == ["history"] and row["attention"]["level"] == "incomplete"
+                          and row["history"] == [], str(row.get("missing")))
+    server.get_price_history = lambda ticker, period="1mo": six_months(ticker, sessions=40)
+    server._cache.clear()
+    row = server.fetch_row("QUIET", 0.2)
+    failures += not check("a history too short for a usual move counts as missing too",
+                          row["missing"] == ["history"] and row["attention"]["level"] == "incomplete",
+                          str(row.get("missing")))
+    server.get_price_history = fake_history
+    server._cache.clear()
+
+    print("\nWhat a row fetches")
+    row = server.fetch_row("CRASH", 0.2)
+    dates = [p["date"] for p in row["history"]]
+    failures += not check("the sparkline stays a month long, cut from the six months the score reads",
+                          dates and dates[-1] == "2026-09-10" and dates[0] > "2026-08-10"
+                          and len(dates) <= 23, f"{dates[:1]}..{dates[-1:]} ({len(dates)})")
+    failures += not check("the row's score uses the stock's own usual move",
+                          row["missing"] == [] and abs(row["sigma"] - 1.5 * (60 / 59) ** 0.5) < 1e-6
+                          and row["attention"]["factors"][0]["label"] == "-6.0% move, 4.0x usual",
+                          str(row["attention"]["factors"]))
+    calls = []
+
+    def counting_history(ticker, period="1mo"):
+        calls.append((ticker, period))
+        return fake_history(ticker, period)
+
+    server.get_price_history = counting_history
+    server._cache.clear()
+    client.get("/api/home")
+    client.get("/api/stock/CRASH")
+    calls = [c for c in calls if c[1] != "2y"]   # the stock page's earnings setup reads SPY's two years
+    failures += not check("one six-month history per company, shared by the home and stock pages",
+                          sorted(calls) == sorted({(t, "6mo") for t in KNOWN
+                                                   if t in ("CRASH", "PEER1", "PEER2", "QUIET", "SOLO", "CALM")}),
+                          str(sorted(calls)))
+    server.get_price_history = fake_history
+
+    def reported_yesterday(ticker):
+        schedule = fake_earnings(ticker)
+        if ticker == "CALM":
+            schedule["last_report"] = {"date": "2026-09-09"}
+        return schedule
+
+    server.get_earnings_schedule = reported_yesterday
+    server._cache.clear()
+    home = client.get("/api/home").get_json()
+    calm = next(r for b in home["themes"] for r in b["rows"] if r["ticker"] == "CALM")
+    failures += not check("the session after an after-close report is a reaction, from the schedule's last report",
+                          calm["attention"]["parts"]["reaction"] == 2
+                          and "report reaction" in [f["label"] for f in calm["attention"]["factors"]],
+                          str(calm["attention"]))
+    detail = client.get("/api/stock/CALM").get_json()
+    failures += not check("the stock page scores it the same way",
+                          detail["attention"]["parts"]["reaction"] == 2
+                          and detail["attention"]["score"] == calm["attention"]["score"],
+                          f"{detail['attention']['score']} vs {calm['attention']['score']}")
+    server.get_earnings_schedule = fake_earnings
     server._cache.clear()
 
     print("\nWhich session")
