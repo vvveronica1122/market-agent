@@ -63,6 +63,13 @@ def main() -> int:
     failures += not check("a stock page for every company in a theme and on Discover",
                           all((data / f"stock/{t}.json").exists()
                               for t in ["CRASH", "PEER1", "PEER2", "QUIET", "SOLO", "CALM", "SURGE"]))
+    stocks = sorted(p.stem for p in (data / "stock").glob("*.json"))
+    failures += not check("and its analysis, loaded separately, for every one of them",
+                          stocks and all(json.loads((data / f"stock/{t}/analysis.json").read_text())
+                                         .get("analysis") for t in stocks),
+                          str([t for t in stocks if not (data / f"stock/{t}/analysis.json").exists()]))
+    failures += not check("the stock page's own file carries no analysis",
+                          "analysis" not in json.loads((data / "stock/CRASH.json").read_text()))
     bad = []
     for path in data.rglob("*.json"):
         try:
@@ -110,6 +117,12 @@ def main() -> int:
     app_js = (out / "app.js").read_text()
     failures += not check("app.js maps requests to the captured files",
                           "window.MARKET_AGENT_DEMO" in app_js and "data/${path}.json" in app_js)
+    # The demo maps /api/<path> to data/<path>.json, so the analysis
+    # request the stock page makes lands on the file captured for it.
+    request = "/api/stock/${encodeURIComponent(ticker)}/analysis"
+    failures += not check("the stock page asks for its analysis where the demo captured it",
+                          f"`{request}`" in app_js
+                          and (data / "stock/CRASH/analysis.json").exists())
 
     print(f"\n{'All checks passed.' if not failures else str(failures) + ' check(s) FAILED.'}\n")
     return 1 if failures else 0

@@ -10,8 +10,8 @@ instead of calling a server. The result is a folder any static host can
 serve: no server, no key, nothing fetched at view time.
 
 What's captured: the overview, themes, home, brief, earnings calendar and
-Discover; each theme's four tabs; the stock page for every company in a
-theme or on Discover; search for those tickers; and the Ask panel's
+Discover; each theme's four tabs; the stock page and its analysis for every
+company in a theme or on Discover; search for those tickers; and the Ask panel's
 suggested questions, answered by the real agent with its tool calls.
 
     python3 demo/build.py                      # writes demo/site/
@@ -122,6 +122,7 @@ def _capture(client, out: Path, questions: list[str], repo_url: str | None,
     for ticker in tickers:
         log(f"capturing stock {ticker}...")
         get(f"/api/stock/{ticker}")
+        get(f"/api/stock/{ticker}/analysis")
         res = client.get(f"/api/search?q={ticker}")
         save(f"search/{ticker}", res.get_json())
 

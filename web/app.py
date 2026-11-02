@@ -968,9 +968,11 @@ def remove_stock_route(theme_id: str, ticker: str):
     return change_themes(lambda s: theme_store.remove_stock(s, theme_id, ticker))
 
 
-@app.route("/api/stock/<ticker>")
-def stock_detail(ticker: str):
-    ticker = ticker.strip().upper()
+def stock_data(ticker: str, state: dict) -> dict:
+    """Everything the stock page shows except the analysis, cached.
+
+    The analysis route reads the same cached dict, so the model writes
+    from exactly the numbers on the page and nothing is fetched twice."""
 
     def produce():
         # Seven independent network calls. Run sequentially this page took
@@ -1022,11 +1024,32 @@ def stock_detail(ticker: str):
             (data["theme"] or {}).get("peer_median"),
             [k for k in ("news", "events") if f"{k}_error" in data],
         )
-        data["analysis"] = analyze(ticker, data)
         return data
 
+    return cached(f"stock:{ticker}:{themes_key(state)}", 120, produce)
+
+
+# The analysis is a model call, seconds on its own, so it has its own
+# route: the price and chart come back without waiting for it, and a
+# failed analysis leaves the rest of the page alone.
+@app.route("/api/stock/<ticker>")
+def stock_detail(ticker: str):
+    ticker = ticker.strip().upper()
+    return jsonify(stock_data(ticker, load_themes()))
+
+
+@app.route("/api/stock/<ticker>/analysis")
+def stock_analysis(ticker: str):
+    ticker = ticker.strip().upper()
     state = load_themes()
-    return jsonify(cached(f"stock:{ticker}:{themes_key(state)}", 120, produce))
+    key = f"stock-analysis:{ticker}:{themes_key(state)}"
+    try:
+        # Its own key, so a reload is free; the same lifetime as the data
+        # it was written from.
+        text = cached(key, 120, lambda: analyze(ticker, stock_data(ticker, state)))
+    except Exception as exc:
+        return jsonify({"error": ai_unavailable("The analysis", exc)}), 502
+    return jsonify({"analysis": text})
 
 
 @app.route("/api/search")

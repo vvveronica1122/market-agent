@@ -1600,7 +1600,9 @@ async function showDetail(ticker, tab) {
     frag.appendChild(buildThemeContext(data));
     const chart = buildPriceChartPanel(data);
     frag.appendChild(chart.panel);
-    frag.appendChild(buildAnalysisNews(data));
+    const analysisNews = buildAnalysisNews(data);
+    frag.appendChild(analysisNews.grid);
+    after.push(() => loadStockAnalysis(analysisNews.analysisPanel, ticker, token));
     if (chart.history.length >= 2) after.push(() => setupChart(chart.canvas, chart.history));
   } else if (tab === "earnings") {
     frag.appendChild(buildEarningsFacts(data));
@@ -1635,6 +1637,25 @@ async function showDetail(ticker, tab) {
 
   viewEl.replaceChildren(frag);
   after.forEach((fn) => fn());
+}
+
+// The analysis has its own request, so a slow or failed model call holds
+// up only this panel. The request is kept with the page's data: switching
+// tabs and back reuses it instead of asking again while the first is
+// still out.
+async function loadStockAnalysis(panel, ticker, token) {
+  const held = state.detail && state.detail.ticker === ticker ? state.detail : null;
+  let pending = held && held.analysis;
+  if (!pending) {
+    pending = api("GET", `/api/stock/${encodeURIComponent(ticker)}/analysis`);
+    if (held) held.analysis = pending;
+  }
+  const res = await pending;
+  if (!res.ok && held && held.analysis === pending) held.analysis = null;  // ask again next time
+  if (!isCurrent(token)) return;
+  panel.replaceChildren(panel.firstChild, res.ok
+    ? el("p", "analysis", res.data.analysis || "No analysis available.")
+    : el("p", "empty-inline", "The analysis is unavailable right now."));
 }
 
 // Navigation tabs: plain links, so each tab has its own address.
@@ -1693,10 +1714,12 @@ function buildPriceChartPanel(data) {
 function buildAnalysisNews(data) {
   const grid = el("div", "grid-2");
 
+  // Filled in by loadStockAnalysis: the analysis is a model call, so the
+  // page is drawn without it.
   const analysisPanel = el("div", "panel");
   analysisPanel.style.marginTop = "16px";
   analysisPanel.appendChild(el("h2", null, "What's going on"));
-  analysisPanel.appendChild(el("p", "analysis", data.analysis || "No analysis available."));
+  analysisPanel.appendChild(el("p", "loading-text", "Analysis loading…"));
   grid.appendChild(analysisPanel);
 
   const newsPanel = el("div", "panel");
@@ -1741,7 +1764,7 @@ function buildAnalysisNews(data) {
       `No headlines came back from Yahoo for ${data.ticker}. That's the data source, not a quiet day.`));
   }
   grid.appendChild(newsPanel);
-  return grid;
+  return { grid, analysisPanel };
 }
 
 // The next report and how the last one went, above the history of
