@@ -81,3 +81,51 @@ and the median volume behind it.
 
 The author then picks; the pick, with `score` and `z_move` beside it, is run
 once on the held-out window, and that result is reported whatever it shows.
+
+## Selection-window results
+
+`python3 validation/attention_v2.py`: 311 sessions, 5,880 company-days, 2 January
+2025 to 31 March 2026. The held-out window has not been run.
+
+| Candidate | IC, volume_today | IC, next_gap_z | Top pick, volume_today (chance 22%) |
+|---|---|---|---|
+| `score` | +0.298 [+0.251, +0.344] | -0.000 [-0.028, +0.031] | 41.6% |
+| `abs_move` | +0.274 [+0.237, +0.316] | -0.015 [-0.038, +0.013] | 42.3% |
+| `z_move` | +0.304 [+0.274, +0.335] | +0.058 [+0.034, +0.088] | 42.8% |
+| `anomaly` | +0.311 [+0.267, +0.346] | +0.103 [+0.064, +0.140] | 43.4% |
+| `anomaly_er` | +0.343 [+0.301, +0.378] | +0.117 [+0.083, +0.156] | 46.1% |
+
+Paired differences in daily IC, volume_today: `anomaly` - `z_move` +0.007
+[-0.023, +0.028]; `anomaly_er` - `z_move` +0.038 [+0.007, +0.062];
+`anomaly_er` - `anomaly` +0.031 [+0.022, +0.043]; `anomaly_er` - `score`
++0.045 [+0.000, +0.084].
+
+**The plan's rules:** `anomaly` does not beat `z_move` on volume_today (rule
+1), so the rule-1 choice is `z_move`; `anomaly_er` beats it (rule 2); and it
+is not worse than `score` (rule 3). **The rules recommend `anomaly_er`.**
+
+What the numbers say, and don't:
+
+- **On today's attention, the gain is small.** Against the current score,
+  +0.045 in IC with an interval reaching 0, and the top pick right on 46%
+  of theme-days instead of 42%. All of it comes from the reaction-day
+  bonus: without it, `anomaly` is level with `z_move` and with `score`.
+- **On whether a flagged name stays the one moving, the gain is large.**
+  The current score has no relationship with the next session's gap (IC
+  -0.000); `anomaly_er` has +0.117. The peer gap in volatility units is
+  what adds it (`anomaly` - `z_move`: +0.045 on next_gap_z).
+- **The earnings points move to where the attention is.** Reaction
+  sessions ran at 1.89 times normal volume; the week before a report, where
+  the score gives 25 points, at 1.04 times, no different from other days.
+- **Volatile names stop dominating.** TSLA topped mega-cap tech on 43% of
+  days under the score, against 17% for an even split; 22% under
+  `anomaly_er`. SNDK 37% to 25%. The quiet names come up instead: MSFT 5%
+  to 16%, ETN 8% to 28%. ETN now tops AI power more often than an even split
+  (20%), which is worth watching: a low-volatility stock's ordinary move
+  scores high in its own units.
+- **"High" would mean more.** With thresholds set by frequency, high fires
+  on 7.5% of company-days with a median volume of 1.77 times normal; today's
+  high fires on 16.6% at 1.42 times.
+
+The pick is the author's. Whatever it is, it runs once on the held-out
+window, beside `score` and `z_move`.
