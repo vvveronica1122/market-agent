@@ -129,3 +129,40 @@ What the numbers say, and don't:
 
 The pick is the author's. Whatever it is, it runs once on the held-out
 window, beside `score` and `z_move`.
+
+## Held-out result: `anomaly_er`, run once
+
+The author picked `anomaly_er`, with the calendar moved out of the rank and
+the news count out of the score. `python3 validation/attention_v2.py
+--held-out anomaly_er`: 128 sessions, 2,432 company-days, 1 April to
+2 October 2026.
+
+| Candidate | IC, volume_today | IC, next_gap_z | Top pick, volume_today (chance 22%) |
+|---|---|---|---|
+| `anomaly_er` | +0.305 [+0.256, +0.364] | +0.080 [+0.003, +0.150] | 43.9% |
+| `z_move` | +0.282 [+0.249, +0.322] | +0.024 [-0.037, +0.091] | 43.2% |
+| `score` | +0.279 [+0.234, +0.319] | +0.013 [-0.040, +0.065] | 42.4% |
+
+Paired: `anomaly_er` - `score`, volume_today +0.026 [+0.005, +0.054],
+next_gap_z +0.066 [+0.025, +0.095]; `anomaly_er` - `z_move`, volume_today
++0.023 [-0.006, +0.051], next_gap_z +0.056 [+0.020, +0.081].
+
+Levels with the selection window's thresholds: high on 7.1% of company-days
+(median volume 1.56 times normal), medium 20.5% (1.12 times), quiet 72.5%
+(0.87 times).
+
+**It holds, smaller.** On the held-out months `anomaly_er` still beats the
+current score on same-day volume, now with an interval clear of 0 (+0.026),
+and on whether a flagged name stays the one moving (+0.066, against +0.118
+in the selection window). It is not distinguishable from the plain scaled
+move on same-day volume (+0.023, interval through 0). The top pick moves
+from 42% to 44%, a modest change a reader may not notice day to day. The
+levels keep their order and roughly their frequency, but "high" means less
+volume than in the window it was set on (1.56 against 1.77 times normal):
+thresholds set on one stretch of a market drift on the next.
+
+So the rework is worth making for what it fixes -- earnings points on the
+wrong days, volatile names topping their themes, a news count that is a
+constant, a "high" that fires on one company-day in six -- more than for a
+large gain in ranking. A clean measure of that needs sessions after this
+change ships: log the shipped ranks and the next day's volume.
