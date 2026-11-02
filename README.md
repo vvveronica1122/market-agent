@@ -129,7 +129,15 @@ and the same model acts as judge, so the two can share a blind spot.
   - It favours volatile stocks. TSLA tops its theme on 41% of days,
     against 17% for an even split.
 
-  The changes the backtest suggests have not been made.
+  A reworked score was tested in November
+  ([attention-2026-11.md](validation/attention-2026-11.md)): the move and
+  the peer gap in the stock's own volatility, plus a report's reaction
+  days, with the calendar and the news count taken out of the rank. On
+  six held-out months it beat the current score on same-day volume
+  (**+0.026 [+0.005, +0.054]**) and on whether a flagged name stays the
+  one moving (+0.066), and its top pick rose from 42% to 44% -- worth
+  making for what it fixes more than for the gain. It is not in the app
+  yet.
 - **The first batch of the outside review** ([batch1-2026-11.md](evals/tuning/batch1-2026-11.md)):
   - When a lookup fails, the analysis now says so. "No news" for a failed
     news lookup went from 24 of 24 runs to **0 of 24**, and "no report
@@ -139,8 +147,9 @@ and the same model acts as judge, so the two can share a blind spot.
   - The brief still claims that a name whose news failed had no news in
     **about 1 brief in 10** (5 of 48, down from 12 of 24). That missed
     its criterion of at most 2 of 48. The author merged the batch anyway
-    and deferred this item, along with a false match in the
-    forbidden-phrasing check ("buy these chips"), to the next batch.
+    and deferred this item to the next batch. A false match in the
+    forbidden-phrasing check ("buy these chips") found along the way has
+    since been fixed.
 
 ## Setup
 
