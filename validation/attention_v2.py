@@ -10,7 +10,9 @@ window is meant to be used once.
     python3 validation/attention_v2.py --held-out anomaly   # once, after the pick
 
 Reuses validation/attention.py's data (its cache) and measures, so the two
-scripts score the same days the same way.
+scripts score the same days the same way. "score" is the rule the app ran
+before this rework, frozen in validation/legacy_attention.py; `anomaly_er`
+is the one it runs now (compute_attention in web/app.py).
 """
 
 from __future__ import annotations
