@@ -34,10 +34,14 @@ here "TSM reports in 10 days".
 
 **Why it might matter.** On the theme page, the *Today* tab orders the
 companies by an attention score. Each row shows the chips that earned its
-rank, such as "+6.3% move", "+6.8pt vs peers" or "earnings in 3d", so you
-can see why a company sits where it does. WDC (+6.32%) and STX (+4.78%)
-*need attention*. SNDK and MU fell slightly and are *worth a look*: each
-was more than 5 points behind its peers. The page notes that SMH holds
+rank, so you can see why a company sits where it does: the move and its gap
+to peers, each sized against the stock's own usual day ("-4.4% move, 2.1x
+usual", "-1.7pt vs peers, 1.0x usual"), and "report reaction" on the
+session a report lands. "earnings in 3d" still shows, but adds nothing: a
+report coming up is in the calendar, not the rank. In the screenshot, taken
+under the earlier score, WDC (+6.32%) and STX (+4.78%) *need attention*.
+SNDK and MU fell slightly and are *worth a look*: each was more than 5
+points behind its peers. The page notes that SMH holds
 only MU, so for this theme the peer comparison is the one to read.
 
 "Peers" means the median move of the *other* companies in the theme. This
@@ -136,8 +140,8 @@ and the same model acts as judge, so the two can share a blind spot.
   six held-out months it beat the current score on same-day volume
   (**+0.026 [+0.005, +0.054]**) and on whether a flagged name stays the
   one moving (+0.066), and its top pick rose from 42% to 44% -- worth
-  making for what it fixes more than for the gain. It is not in the app
-  yet.
+  making for what it fixes more than for the gain. It is in the app now:
+  it ranks every row, and upcoming reports sit in the calendar instead.
 - **The first batch of the outside review** ([batch1-2026-11.md](evals/tuning/batch1-2026-11.md)):
   - When a lookup fails, the analysis now says so. "No news" for a failed
     news lookup went from 24 of 24 runs to **0 of 24**, and "no report
@@ -296,10 +300,11 @@ docs/MarketAgent_Review_and_Improvement_Plan.md   the outside review (Chinese)
   news feed is empty (as it was for every ticker in October 2026),
   headlines come from Yahoo's search endpoint. Those have no summaries,
   so the AI text works from headlines alone.
-- The news part of the attention score counts the latest headlines
-  whatever their age, so it barely varies. On 5 October every company
-  had the maximum.
-- The attention weights are hand-set. The attribution thresholds (40% /
+- The attention score's caps and reaction bonus were set by hand before its
+  backtest, and its thresholds come from one stretch of 2025–26; on the
+  next six months "high" meant less volume than on the stretch it was set
+  on. With no peer group (Discover, search) it measures the gap to the
+  market, which the backtest didn't cover. The attribution thresholds (40% /
   60% of the larger move, with a 1-point floor) haven't been validated.
 - A theme that splits in two (disk makers up, flash and DRAM down, as on
   5 October) labels every company *Own move*. That's true, but it hides

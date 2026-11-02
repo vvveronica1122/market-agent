@@ -42,16 +42,17 @@ the session from `/api/overview`. Nothing on the server changed.
 attention score, level and reason chips the server already computes for
 each company against its own peers (`compute_attention` in `web/app.py`).
 
-1. Candidates are companies at level **high** or **medium** -- a score of 20
-   or more, "worth a look" on the existing scale. Quiet and incomplete
+1. Candidates are companies at level **high** or **medium** -- a score of
+   1.71 or more, "worth a look" on the existing scale. Quiet and incomplete
    names never qualify, so a calm day shows fewer than three (or a line
-   saying nothing scored 20) rather than padding with names that didn't
-   move.
+   saying nothing was worth a look) rather than padding with names that
+   didn't move.
 2. A company in two themes counts once, at its higher score.
 3. Highest score first; a tie goes to the larger gap to its peers, then the
    ticker, so the order doesn't change between loads.
 4. A company that **moved with its theme** (attribution "With theme") and
-   has **no report coming** is the theme's story, not its own. It becomes
+   has **no report coming** within two weeks, and isn't on a report's
+   reaction day, is the theme's story, not its own. It becomes
    one entry for the theme, ranked at that company's score, and the theme's
    other such companies are skipped. Without this, three chip companies
    falling 6% together would take all three places with one story. A
@@ -59,9 +60,9 @@ each company against its own peers (`compute_attention` in `web/app.py`).
    theme, because the report is its own.
 5. The first three (B shows up to ten).
 
-A company entry shows the server's own reason chips (`-6.0% move`,
-`earnings in 3d`, `+4.1pt vs peers`, `4 headlines`, `news unavailable`) and
-its With theme / Own move tag, and links to the stock page (chart, news,
+A company entry shows the server's own reason chips (`-6.0% move, 4.0x
+usual`, `earnings in 3d`, `+4.1pt vs peers, 2.0x usual`, `report reaction`,
+`news unavailable`) and its With theme / Own move tag, and links to the stock page (chart, news,
 analysis, report). A theme entry shows the theme card's own figures --
 average move, gap to its benchmark, how many companies moved together, and
 the company that led -- and links to the theme page. Hovering a company

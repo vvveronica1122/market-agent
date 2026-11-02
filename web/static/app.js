@@ -220,13 +220,19 @@ function sessionNote() {
 
 /* ---------------- attention score, explained ---------------- */
 
+// Moves are counted in the stock's usual daily moves (usual_move, the
+// typical size of one day's move over the last 60 sessions), so a 3% day
+// counts for more in a stock that usually moves 1% than in one that moves 4%.
 function attentionTitle(att) {
   if (!att || !att.parts) return "";
   const p = att.parts;
-  return `Attention score ${num(att.score, 0)} = size of move ${num(p.move, 0)} (8 a point, up to 45)` +
-    ` + gap vs ${att.reference === "peers" ? "peers" : "the market"} ${num(p.relative, 0)} (12 if 1.5pt or more)` +
-    ` + earnings ${num(p.earnings, 0)} (25 within a week, 12 within two)` +
-    ` + news ${num(p.news, 0)} (3 a headline, up to 12). 45 or more needs attention; 20 or more is worth a look.` +
+  const usual = att.usual_move === null || att.usual_move === undefined
+    ? "" : ` (a usual day for it is ${num(att.usual_move, 1)}%)`;
+  return `Attention score ${num(att.score, 1)} = size of the move ${num(p.move, 1)}, in usual days' moves${usual}` +
+    ` + gap to ${att.reference === "peers" ? "its peers" : "the market"} ${num(p.relative, 1)}, in the same units` +
+    ` + report reaction ${num(p.reaction, 0)} (2 on the day after a report, or on the report day).` +
+    " Each move part counts up to 5. 3.1 or more needs attention; 1.7 or more is worth a look." +
+    " A report coming up is shown but adds nothing; it's in the earnings calendar." +
     (att.missing && att.missing.length
       ? ` Not loaded: ${att.missing.join(", ")}. Those parts scored nothing, so the rank may be too low.`
       : "");
@@ -433,10 +439,12 @@ function buildReadingGuide() {
     ["Beat", "How many companies did better than the benchmark today. Breadth: is the theme's move broad or carried by one or two names?"],
     ["Spread", "Standard deviation of the companies' moves. Low means they moved together; high means they went their own ways."],
     ["vs peers", "A company's move minus the median move of the other companies in its theme -- the typical peer. Cap-weighted ETFs are dominated by their largest holdings, and in a small group one extreme name would decide an average, so this is the cleaner comparison."],
-    ["Attention", "Each company's rank within its theme: points for the size of the move (8 a point, " +
-      "up to 45), 12 if it moved 1.5 points or more away from its peers, 25 if it reports within a " +
-      "week (12 within two), and 3 a headline up to 12. 45 or more needs attention; 20 or more is " +
-      "worth a look. Hover a company's tag for its breakdown."],
+    ["Attention", "Each company's rank within its theme, measured against its own usual day: the size " +
+      "of the move in usual daily moves (\"2.1x usual\" is twice its typical day), plus how far it moved " +
+      "away from its peers in the same units -- each counted up to 5 -- plus 2 on a report's reaction " +
+      "day. A 3% move counts for more in a stock that usually moves 1% than in one that moves 4%. A " +
+      "report coming up is shown but adds nothing: it's in the earnings calendar. 3.1 or more needs " +
+      "attention; 1.7 or more is worth a look. Hover a company's tag for its breakdown."],
     ["With theme / Partly shared / Own move", "Compares a company's move with its peers' median. The gap " +
       "between them, as a share of the larger move, decides: up to 40% (or under a point) it tracked its theme; " +
       "60% or more it diverged -- moved alone, against its peers, or held up while they fell; in between is " +
@@ -3190,15 +3198,16 @@ const protoTone = (value) => (value === null || value === undefined ? "neutral" 
 // (compute_attention and theme_block in web/app.py).
 //
 //   1. Candidates are the companies whose level is "high" or "medium" --
-//      a score of 20 or more, "worth a look" on the existing scale. Quiet
+//      a score of 1.71 or more, "worth a look" on the existing scale. Quiet
 //      and incomplete names never qualify, so a calm day lists fewer than
 //      three rather than padding the list with names that didn't move.
 //   2. A company in two themes counts once, at its higher score.
 //   3. Highest score first; a tie goes to the larger gap to its peers
 //      (|vs_peers|), then the ticker, so the order is stable across loads.
 //   4. A company that moved with its theme (attribution "theme") and has
-//      no report coming (no earnings points) is the theme's story, not its
-//      own: it becomes one entry for the theme, ranked at that company's
+//      no report within two weeks (earnings_days) and isn't reacting to one
+//      (no reaction points) is the theme's story, not its own: it becomes
+//      one entry for the theme, ranked at that company's
 //      score, and the theme's other such companies are skipped. Otherwise
 //      three chip names falling together would fill all three places with
 //      one story. A company with a report due stays a company entry.
@@ -3228,7 +3237,9 @@ function protoTopThree(blocks, limit) {
     const att = row.attention;
     const rel = row.relative || {};
     const change = row.price ? row.price.change_percent : null;
-    const shared = rel.attribution === "theme" && !((att.parts || {}).earnings > 0);
+    const reportDue = att.earnings_days !== null && att.earnings_days !== undefined &&
+      att.earnings_days >= 0 && att.earnings_days <= 14;
+    const shared = rel.attribution === "theme" && !reportDue && !((att.parts || {}).reaction > 0);
     if (shared) {
       if (themesTaken.has(block.id)) continue;
       themesTaken.add(block.id);
@@ -3348,7 +3359,7 @@ function buildProtoReasons(entry) {
 
 function protoNoneWorthALook() {
   return el("p", "empty-inline",
-    `Nothing in your themes scored 20 or more ("worth a look") in the ${sessionShort()} session. ` +
+    `Nothing in your themes scored 1.7 or more ("worth a look") in the ${sessionShort()} session. ` +
     "Every company is still on its theme page.");
 }
 

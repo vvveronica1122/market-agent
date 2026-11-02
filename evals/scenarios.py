@@ -120,11 +120,22 @@ def _score_failed(block, ticker, market_pct):
     compute_attention() had no way to hear otherwise: quiet, no reasons.
     After it, the row says what's missing. Scoring with whichever version
     is checked out lets one fixture give each side what its app would send.
+
+    The second review batch changed the rule (validation/attention-2026-11.md):
+    no news argument, and the move measured in the stock's typical daily
+    move. Only the news and calendar lookups failed here, so the row has a
+    history; a typical move of 2% stands in for it.
     """
     import app
     row = next(r for r in block["rows"] if r["ticker"] == ticker)
+    params = inspect.signature(app.compute_attention).parameters
+    if "sigma" in params:
+        row["attention"] = app.compute_attention(row["price"], {}, market_pct,
+                                                 row["relative"]["peer_median"], sigma=2.0,
+                                                 missing=["news", "events"])
+        return block
     args = (row["price"], [], {}, market_pct, row["relative"]["peer_median"])
-    if "missing" in inspect.signature(app.compute_attention).parameters:
+    if "missing" in params:
         row["attention"] = app.compute_attention(*args, missing=["news", "events"])
     else:
         row["attention"] = app.compute_attention(*args)

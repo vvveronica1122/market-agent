@@ -28,6 +28,7 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 from datetime import date, datetime
 from pathlib import Path
+from statistics import stdev
 from zoneinfo import ZoneInfo
 
 from flask import Flask, jsonify, request, send_from_directory
@@ -151,6 +152,27 @@ def revisions_of(ticker: str) -> dict:
     return cached(f"revisions:{ticker}", SLOW_TTL, lambda: get_estimate_revisions(ticker))
 
 
+def schedule_of(ticker: str) -> dict:
+    """The earnings schedule: the next date and, in `last_report`, the most
+    recent one, which the attention score needs to spot a reaction session."""
+    return cached(f"schedule:{ticker}", SLOW_TTL, lambda: get_earnings_schedule(ticker))
+
+
+# The history a row's attention score reads: six months is about 125
+# sessions, comfortably more than the 62 closes typical_move() needs. The
+# sparkline is cut from it (last_month()) rather than fetched again.
+SCORE_PERIOD = "6mo"
+
+
+def last_month(points: list | None) -> list:
+    """The sessions within a calendar month of a history's last one: about
+    what period="1mo" gave the sparklines before."""
+    if not points:
+        return []
+    start = (pd.Timestamp(points[-1]["date"]) - pd.DateOffset(months=1)).strftime("%Y-%m-%d")
+    return [p for p in points if p["date"] > start]
+
+
 # --- themes -----------------------------------------------------------
 # The watchlist is a set of themes (see themes.py). These wrappers are what
 # the routes call, so tests can swap the storage out in one place.
@@ -204,11 +226,30 @@ def market_status() -> dict:
 # alphabetically (which makes the reader do the work of finding what
 # matters), each name is scored on how much it deserves attention today
 # and the list is sorted by that score.
+#
+# The rule is `anomaly_er` from validation/attention-2026-11.md: the day's
+# move and its gap to peers, each measured in the stock's own typical daily
+# moves, plus a fixed amount on a report's reaction session. It replaced a
+# hand-written points scheme that favoured volatile stocks, gave earnings
+# points in the week before a report (when volume is ordinary) instead of on
+# the reaction (when it's highest), and counted headlines whatever their age.
+# Upcoming reports now sit in the calendar, outside the rank.
 def local_today() -> date:
     """The app's "today": the local date, read in one place so the evals can
     pin it for a whole run. Read per call, an eval run that crossed midnight
     moved its fixtures' reports a day nearer than written."""
     return datetime.now().date()
+
+
+def as_date(raw) -> date | None:
+    """A report date as the sources give it ("2026-11-19" or
+    "2026-11-19 16:00:00"), or None."""
+    if not raw:
+        return None
+    try:
+        return datetime.strptime(str(raw)[:10], "%Y-%m-%d").date()
+    except ValueError:
+        return None
 
 
 def days_until_earnings(events: dict | None) -> int | None:
@@ -225,65 +266,125 @@ def days_until_earnings(events: dict | None) -> int | None:
     return None
 
 
-def compute_attention(price, news, events, market_pct, peer_pct=None, missing=()) -> dict:
-    """The rank and its reasons. `missing` names the inputs that failed to
-    load ("news", "events"); a price without a change counts as missing
-    too. Those parts score nothing, so the level can be too low but never
-    too high: high and medium stand, and quiet becomes "incomplete" --
+# All three set in the plan before the backtest ran, not fitted; the
+# thresholds are the selection window's 92.5th and 72.5th percentiles of
+# the score (validation/attention-2026-11.md).
+SIGMA_WINDOW = 60         # sessions behind a stock's typical daily move
+CAP = 5.0                 # in typical daily moves, per part
+REACTION_BONUS = 2.0      # on a report's reaction session
+HIGH, MEDIUM = 3.13, 1.71
+
+
+def typical_move(points: list | None) -> float | None:
+    """The stock's typical daily move, in percent: the standard deviation of
+    its daily returns over the SIGMA_WINDOW sessions ending the day before
+    the last point (the session the move is from), as the backtest's
+    `returns.rolling(60).std().shift(1)`. That takes SIGMA_WINDOW + 1 closes
+    before the move's own. None when there aren't enough."""
+    closes = [p["close"] for p in points or [] if p.get("close")]
+    if len(closes) < SIGMA_WINDOW + 2:
+        return None
+    window = closes[-(SIGMA_WINDOW + 2):-1]
+    returns = [(b / a - 1) * 100 for a, b in zip(window, window[1:])]
+    sigma = stdev(returns)
+    return sigma if sigma > 0 else None
+
+
+def reaction_session(points: list | None, events: dict | None, last_report: dict | None) -> bool:
+    """Is the move's session a report's reaction: the report date itself (a
+    before-open report) or the first session after the most recent report
+    (an after-close one)? The sources give dates, not report times, so both
+    count, as in the backtest. The move's session is the history's last
+    point; without a history, today's date, and only the first case can be
+    told."""
+    sessions = [d for d in (as_date(p.get("date")) for p in points or []) if d]
+    session = sessions[-1] if sessions else local_today()
+    reports = {d for d in (as_date((events or {}).get("next_earnings_date")),
+                           as_date((last_report or {}).get("date"))) if d}
+    if session in reports:
+        return True
+    past = [d for d in reports if d < session]
+    if not past or not sessions:
+        return False
+    latest = max(past)
+    return sum(1 for d in sessions if latest < d <= session) == 1
+
+
+def compute_attention(price, events, market_pct, peer_pct=None, sigma=None, reaction=False,
+                      missing=()) -> dict:
+    """The rank and its reasons.
+
+    `sigma` is the stock's typical daily move (typical_move()); `reaction`
+    says the move's session is a report's reaction (reaction_session()).
+    `missing` names the inputs that failed to load ("news", "events"); a
+    price without a change counts as missing, and so does a history too short
+    for `sigma`. Those parts score nothing, so the level can be too low but
+    never too high: high and medium stand, and quiet becomes "incomplete" --
     otherwise a broken source reads as a calm company."""
     factors: list[dict] = []
     # Each part kept separately, so the page can show how a company got its
     # rank instead of asking the reader to trust a number.
-    parts = {"move": 0.0, "relative": 0.0, "earnings": 0.0, "news": 0.0}
+    parts = {"move": 0.0, "relative": 0.0, "reaction": REACTION_BONUS if reaction else 0.0}
+    usual = sigma if sigma is not None and sigma > 0 else None
 
     pct = (price or {}).get("change_percent")
     if pct is not None:
-        parts["move"] = min(abs(pct) * 8, 45)
-        if abs(pct) >= 2:
+        # In the stock's own units: 3% is a big day for a stock that moves 1%
+        # a day and an ordinary one for a stock that moves 4%. Without them
+        # (too little history) nothing is scored, but the chips still say
+        # what happened, on the old fixed cut-offs.
+        z_move = abs(pct) / usual if usual else None
+        if z_move is not None:
+            parts["move"] = min(z_move, CAP)
+        if (z_move is not None and z_move >= 1) or (z_move is None and abs(pct) >= 2):
             # "move", not "today": outside market hours this is the last
             # session's move, and the page says which session that was.
-            factors.append({"label": f"{pct:+.1f}% move", "tone": "up" if pct > 0 else "down"})
+            label = f"{pct:+.1f}% move" + (f", {z_move:.1f}x usual" if z_move is not None else "")
+            factors.append({"label": label, "tone": "up" if pct > 0 else "down"})
 
         # A move only means something relative to what it should be measured
         # against. Inside a theme that's the company's peers: -6% when its
         # peers are -6% is the theme's story, told once on the theme card;
         # -6% when they're flat is this company's. With no peer group to
-        # hand, fall back to the market: -3% on a day SPY is -3% isn't news.
+        # hand (Discover, search, a stock in no theme), fall back to the
+        # market: -3% on a day SPY is -3% isn't news. That fallback was not
+        # in the backtest, which scored companies inside their themes only.
         reference, label = (peer_pct, "vs peers") if peer_pct is not None else (market_pct, "vs market")
         if reference is not None:
             relative = pct - reference
-            if abs(relative) >= 1.5:
-                parts["relative"] = 12
-                factors.append(
-                    {
-                        "label": f"{relative:+.1f}pt {label}",
-                        "tone": "up" if relative > 0 else "down",
-                    }
-                )
+            z_gap = abs(relative) / usual if usual else None
+            if z_gap is not None:
+                parts["relative"] = min(z_gap, CAP)
+            if (z_gap is not None and z_gap >= 1) or (z_gap is None and abs(relative) >= 1.5):
+                factors.append({
+                    "label": f"{relative:+.1f}pt {label}" + (f", {z_gap:.1f}x usual" if z_gap is not None else ""),
+                    "tone": "up" if relative > 0 else "down",
+                })
 
+    if reaction:
+        factors.append({"label": "report reaction", "tone": "neutral"})
+    # Shown, not scored: the week before a report is an ordinary week for
+    # volume. The calendar is where upcoming reports are read.
     days = days_until_earnings(events)
-    if days is not None and 0 <= days <= 14:
-        parts["earnings"] = 25 if days <= 7 else 12
-        label = "earnings today" if days == 0 else f"earnings in {days}d"
-        factors.append({"label": label, "tone": "neutral"})
+    if days is not None and 0 <= days <= 14 and not (reaction and days == 0):
+        factors.append({"label": "earnings today" if days == 0 else f"earnings in {days}d",
+                        "tone": "neutral"})
 
-    count = len(news or [])
-    if count:
-        parts["news"] = min(count * 3, 12)
-        if count >= 3:
-            factors.append({"label": f"{count} headlines", "tone": "neutral"})
-
-    missing = sorted(set(missing) | ({"price"} if pct is None else set()))
+    missing = sorted(set(missing) | ({"price"} if pct is None else set())
+                     | ({"history"} if usual is None else set()))
     for name in missing:
         factors.append({"label": f"{name} unavailable", "tone": "neutral"})
 
-    score = sum(parts.values())
-    level = "high" if score >= 45 else "medium" if score >= 20 else "quiet"
+    # The score is the sum of the rounded parts, so the breakdown the page
+    # shows adds up to it exactly.
+    parts = {k: round(v, 2) for k, v in parts.items()}
+    score = round(sum(parts.values()), 2)
+    level = "high" if score >= HIGH else "medium" if score >= MEDIUM else "quiet"
     if missing and level == "quiet":
         level = "incomplete"
-    return {"score": round(score, 1), "level": level, "factors": factors,
-            "parts": {k: round(v, 1) for k, v in parts.items()},
+    return {"score": score, "level": level, "factors": factors, "parts": parts,
             "reference": "peers" if peer_pct is not None else "market",
+            "usual_move": rounded(usual), "earnings_days": days,
             "missing": missing}
 
 
@@ -295,7 +396,8 @@ def fetch_row(ticker: str, market_pct, peer_pct=None) -> dict:
         row["price"] = price_of(ticker)
     except Exception as exc:
         row["error"] = str(exc)
-    row["history"] = safe(history_of, ticker, default=[])
+    history = safe(history_of, ticker, SCORE_PERIOD, default=[])
+    row["history"] = last_month(history)
     # A failed lookup is recorded, not defaulted to "none": no headlines
     # because the source broke isn't a company with no news.
     missing = []
@@ -305,13 +407,23 @@ def fetch_row(ticker: str, market_pct, peer_pct=None) -> dict:
     events = safe(events_of, ticker)
     if events is None:
         events, missing = {}, missing + ["events"]
+    # The last report date only adds the session after an after-close
+    # report; without it (the schedule's rich source is often down) the
+    # report date itself still counts, from the calendar above.
+    last_report = (safe(schedule_of, ticker) or {}).get("last_report")
 
+    # Kept on the row so theme_block can re-score against peers without
+    # fetching anything again.
+    row["sigma"] = typical_move(history)
+    row["reaction"] = reaction_session(history, events, last_report)
+    if row["sigma"] is None:
+        missing = missing + ["history"]
     row["news_count"] = len(news)
     row["top_headline"] = news[0]["title"] if news else None
     row["events"] = events
     row["missing"] = missing
-    row["attention"] = compute_attention(row.get("price"), news, events, market_pct, peer_pct,
-                                         missing)
+    row["attention"] = compute_attention(row.get("price"), events, market_pct, peer_pct,
+                                         row["sigma"], row["reaction"], missing)
     return row
 
 
@@ -339,12 +451,11 @@ def theme_block(theme: dict, rows_by_ticker: dict, quotes: dict, market_pct) -> 
         row = dict(base, role=stock.get("role", ""), note=stock.get("note", ""),
                    relative={k: rounded(v) if isinstance(v, float) else v
                              for k, v in relative[t].items()})
-        # Re-scored against peers now that the theme is known. The news is
-        # cached, so this costs nothing.
-        missing = base.get("missing", [])
-        news = [] if "news" in missing else safe(news_of, t, default=[])
-        row["attention"] = compute_attention(base.get("price"), news, base.get("events"),
-                                             market_pct, relative[t]["peer_median"], missing)
+        # Re-scored against peers now that the theme is known, from what
+        # fetch_row already has: nothing is fetched again.
+        row["attention"] = compute_attention(base.get("price"), base.get("events"), market_pct,
+                                             relative[t]["peer_median"], base.get("sigma"),
+                                             base.get("reaction", False), base.get("missing", []))
         rows.append(row)
     rows.sort(key=lambda r: r["attention"]["score"], reverse=True)
 
@@ -980,10 +1091,11 @@ def stock_data(ticker: str, state: dict) -> dict:
         # slowest one.
         jobs = {
             "price": lambda: get_stock_price(ticker),
-            "history": lambda: get_price_history(ticker, period="6mo"),
+            # The same six months a row scores from, from the same cache.
+            "history": lambda: history_of(ticker, SCORE_PERIOD),
             "news": lambda: get_recent_news(ticker, limit=6),
             "events": lambda: get_upcoming_events(ticker),
-            "earnings": lambda: get_earnings_schedule(ticker),
+            "earnings": lambda: schedule_of(ticker),
             "quarters": lambda: get_quarterly_results(ticker),
             "stats": lambda: stats_of(ticker),
             "setup": lambda: setup_of(ticker),
@@ -1019,9 +1131,12 @@ def stock_data(ticker: str, state: dict) -> dict:
         own = (data.get("price") or {}).get("change_percent")
         data["theme"] = safe(theme_context, state, ticker, own)
         data["flags"] = peer_flags(data.get("stats") or {})
+        history = data.get("history")
         data["attention"] = compute_attention(
-            data.get("price"), data.get("news"), data.get("events"), market_pct,
+            data.get("price"), data.get("events"), market_pct,
             (data["theme"] or {}).get("peer_median"),
+            typical_move(history),
+            reaction_session(history, data.get("events"), (data.get("earnings") or {}).get("last_report")),
             [k for k in ("news", "events") if f"{k}_error" in data],
         )
         return data
@@ -1207,10 +1322,11 @@ def enrich_mover(mover: dict, market_pct: float) -> dict:
         events = get_upcoming_events(ticker)
     except Exception:
         events, missing = {}, missing + ["events"]
-    try:
-        history = get_price_history(ticker, period="1mo")
-    except Exception:
-        history = []
+    history = safe(history_of, ticker, SCORE_PERIOD, default=[])
+    last_report = (safe(schedule_of, ticker) or {}).get("last_report")
+    sigma = typical_move(history)
+    if sigma is None:
+        missing = missing + ["history"]
 
     price = {
         "ticker": ticker,
@@ -1222,13 +1338,16 @@ def enrich_mover(mover: dict, market_pct: float) -> dict:
         "ticker": ticker,
         "name": mover.get("name"),
         "price": price,
-        "history": history,
+        "history": last_month(history),
         "news_count": len(news),
         "top_headline": news[0]["title"] if news else None,
         "events": events,
         "screens": mover.get("screens", []),
         "missing": missing,
-        "attention": compute_attention(price, news, events, market_pct, missing=missing),
+        # No peer group here, so the gap is measured against the market.
+        "attention": compute_attention(price, events, market_pct, sigma=sigma,
+                                       reaction=reaction_session(history, events, last_report),
+                                       missing=missing),
     }
 
 

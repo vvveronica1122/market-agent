@@ -49,10 +49,11 @@ A local dashboard at `web/app.py`. The organising idea: a watchlist sorted
 show fifty numbers at equal visual weight and leave you to work out which
 two matter; this one does that ranking for you.
 
-Each name is scored in plain Python on four factors -- size of today's
-move, how that move compares to the market (SPY), how close earnings are,
-and how much news there is -- then the list is sorted by that score and
-the reasons are shown as chips on the row. Clicking a row opens a detail
+Each name is scored in plain Python -- at first on four hand-weighted
+factors (size of today's move, how that move compares to the market, how
+close earnings are, and how much news there is), since November on the
+tested rule below -- then the list is sorted by that score and the reasons
+are shown as chips on the row. Clicking a row opens a detail
 view with a six-month chart, the AI analysis, headlines and the next
 earnings date. Search resolves any ticker, on your list or not.
 
@@ -87,6 +88,35 @@ Scaling the move by the stock's own volatility fixed the first and matched
 the volume record better. The fixes are written up but not applied: they
 came from the same sample, so they need checking on data they weren't
 designed on before they replace the current weights.
+
+### The rule that replaced them
+
+They were checked, and they replaced the weights in November 2026
+([validation/attention-2026-11.md](../validation/attention-2026-11.md)).
+The plan, candidates and decision rules were written before anything ran;
+the pick was then run once on six months held out from the choice. The
+score is now `compute_attention`'s:
+
+- the move in the stock's own typical daily moves (the standard deviation
+  of its last 60 daily returns, ending the day before), capped at 5;
+- plus its gap to the peer median in the same units, capped at 5 (to the
+  market where there's no peer group -- Discover, search -- a case the
+  backtest didn't cover);
+- plus 2 on a report's reaction session: the report date, or the first
+  session after the latest report.
+
+High is 3.13 or more and medium 1.71, the selection window's 92.5th and
+72.5th percentiles. The other two jobs left the score: an upcoming report
+is shown as a chip but adds nothing, because the week before a report is
+an ordinary week for volume and the calendar is where it's read; and the
+headline count is gone, because it was a constant. On the held-out months
+the new rule beat the old on same-day volume (+0.026 in rank correlation,
+interval clear of zero) and on whether a flagged company stays the one
+moving (+0.066); on the months it was chosen on, volatile names stopped
+topping their themes (TSLA first on 22% of days, from 43%). The gain
+in ranking is modest; the case for it is what it fixes. The old rule is
+frozen in `validation/legacy_attention.py`, so the October and November
+numbers can still be reproduced.
 
 ## Themes: measuring a move against its peers
 
