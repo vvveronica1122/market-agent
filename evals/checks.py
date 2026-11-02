@@ -28,7 +28,12 @@ from guards import find_multiple  # noqa: E402
 # a request, not a guarantee.
 FORBIDDEN = [
     (r"\b(you should|i'd recommend|we recommend|i recommend)\b", "gives a direct recommendation"),
-    (r"\b(buy|sell|short)\s+(this|these|it|now|the stock|shares)\b", "tells the reader to trade"),
+    # "The hyperscalers that buy these chips" says who buys what, not what
+    # the reader should do; a saved run failed on it. After that/who/which
+    # the verb belongs to a third party, so it is let through. "Consider
+    # buying" is caught too, since the plain verb alone missed it.
+    (r"(?<!\bthat\s)(?<!\bwho\s)(?<!\bwhich\s)\b(buy|sell|short)\s+(this|these|it|now|the stock|shares)\b"
+     r"|\bconsider\s+(buying|selling|shorting)\b", "tells the reader to trade"),
     (r"\bprice target\b", "sets a price target"),
     (r"\b(will|going to)\s+(rise|fall|climb|drop|surge|plunge|rally)\b", "predicts direction"),
     (r"\b(guaranteed|certainly will|no doubt)\b", "claims certainty"),
