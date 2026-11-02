@@ -1,5 +1,11 @@
 # Home page prototypes
 
+> **Decision, November 2026: B.** The owner chose layout B, the ranked
+> list with the brief in a drawer, as the home page. A, C, the switch
+> between them and the old theme-card home were removed; this note is kept
+> as the record of what was compared and why. The `?home=` parameter no
+> longer does anything.
+
 The review (`MarketAgent_Review_and_Improvement_Plan.md`, section 8) found
 that the home page opens with the AI brief, which fills the first screen on
 a phone, so the reader has to read before they see what to look at. It asks

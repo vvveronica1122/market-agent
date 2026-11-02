@@ -300,13 +300,11 @@ STYLE_CSS = PROJECT_ROOT / "web" / "static" / "style.css"
 
 PROTO_HARNESS = r"""
 const input = JSON.parse(require("fs").readFileSync(0, "utf8"));
-const lib = new Function(input.source + "\nreturn { homeVariantFrom, protoTopThree, briefFirstSentence, protoUpcoming };")();
+const lib = new Function(input.source + "\nreturn { protoTopThree, protoUpcoming };")();
 const out = {
-  variants: input.searches.map((s) => lib.homeVariantFrom(s)),
   top: lib.protoTopThree(input.home.themes),
   ranked: lib.protoTopThree(input.home.themes, 10),
   calm: lib.protoTopThree(input.calm),
-  sentences: input.briefs.map((b) => lib.briefFirstSentence(b)),
   week: lib.protoUpcoming(input.earnings.items, 7, 5),
   fortnight: lib.protoUpcoming(input.earnings.items, 14, 1),
 };
@@ -331,33 +329,28 @@ def run_prototype_slice(payload: dict):
 
 def check_home_prototypes(client) -> int:
     failures = 0
-    print("\nHome prototypes")
+    # Layout B of three prototypes, chosen in November 2026; A, C, the switch
+    # between them and the old theme-card home were removed.
+    print("\nHome: the ranked list")
     source = APP_JS.read_text()
     css = STYLE_CSS.read_text()
 
-    # The default page: the switch is the first thing showHome does, and
-    # past it the function is the current home page, word for word.
     show_home = source[source.index("async function showHome()"):source.index("function buildReadingGuide()")]
-    guard = ("  const variant = homeVariantFrom(location.search);\n"
-             "  if (variant) return HOME_PROTOTYPES[variant]();\n\n"
-             "  const token = beginView(\"home\");")
-    failures += not check("showHome checks the prototype switch before anything else",
-                          guard in show_home and show_home.index(guard) < show_home.index("beginView"))
-    default_body = show_home[show_home.index('  const token = beginView("home");'):]
-    failures += not check("past the switch, the current home page is drawn as before",
-                          all(part in default_body for part in (
-                              'api("GET", "/api/home")', "buildBriefPanel()", "loadBrief(briefPanel, false)",
-                              '"tblock-grid"', "buildThemeBlock(block)", "buildReadingGuide()",
-                              "buildNewThemeForm()"))
-                          and "proto" not in default_body.lower())
-    failures += not check("each prototype is wired to its own page function",
-                          "const HOME_PROTOTYPES = { a: showHomePrototypeA, b: showHomePrototypeB, "
-                          "c: showHomePrototypeC };" in source
-                          and all(f"async function showHomePrototype{k}()" in source for k in "ABC"))
-    failures += not check("each prototype has its own section in app.js and style.css",
-                          all(f"/* ---------------- home prototype {k}:" in source
-                              and f"/* ---------- home prototype {k}:" in css for k in "ABC")
-                          and all(f".proto{k}-" in css for k in "ABC"))
+    failures += not check("home leads with the ranked list, reports and themes beside it",
+                          all(part in show_home for part in (
+                              "protoTopThree(blocks, 10)", "buildProtoUpcoming(", "buildProtoThemeList(blocks)",
+                              "buildProtoBriefDrawer()", "buildReadingGuide()", "buildNewThemeForm()")))
+    failures += not check("the brief is fetched only from its drawer, not on opening the page",
+                          "loadBrief(" not in show_home and "buildBriefPanel()" not in show_home)
+    failures += not check("an empty watchlist says so, rather than that nothing scored",
+                          "No companies yet." in show_home)
+    gone = ("homeVariantFrom", "HOME_PROTOTYPES", "showHomePrototype", "buildProtoSwitcher",
+            "buildThemeBlock", "buildCompactRow", "briefFirstSentence", "buildProtoBriefTeaser")
+    failures += not check("the other prototypes, their switch and the old home are gone",
+                          not [g for g in gone if g in source], str([g for g in gone if g in source]))
+    failures += not check("and so are their styles",
+                          not any(c in css for c in (".protoA", ".protoC", ".tblock", ".crow", ".proto-switch",
+                                                     ".proto-brief")))
 
     node = shutil.which("node")
     if node is None:
@@ -375,14 +368,8 @@ def check_home_prototypes(client) -> int:
                        "attention": {"score": 1.0, "level": "quiet", "factors": []}},
                       {"ticker": "GAP", "relative": {},
                        "attention": {"score": 12.0, "level": "incomplete", "factors": []}}]}]
-    briefs = ["NVDA fell 4.2% vs. its peers, the most in the theme. Memory names followed.\n\nMore.",
-              "One sentence only",
-              "Chips sold off. \"Export rules\" were the headline."]
-    out = run_prototype_slice({"home": home, "earnings": earnings, "calm": calm, "briefs": briefs,
-                               "searches": ["", "?home=a", "?home=B", "?home=c&x=1", "?home=z", "?x=1"]})
+    out = run_prototype_slice({"home": home, "earnings": earnings, "calm": calm})
 
-    failures += not check("no ?home parameter (or an unknown one) means the current page",
-                          out["variants"] == [None, "a", "b", "c", None, None], str(out["variants"]))
     top = out["top"]
     shape = [(e["kind"], e["title"]) for e in top]
     # CRASH -6% with a report in 3 days (82), PEER2 -6.5% with its theme
@@ -412,9 +399,6 @@ def check_home_prototypes(client) -> int:
                           str([e["ticker"] for e in out["ranked"]]))
     failures += not check("a calm day lists nothing rather than padding with quiet or incomplete names",
                           out["calm"] == [], str(out["calm"]))
-    failures += not check("the collapsed brief shows its first sentence",
-                          out["sentences"] == ["NVDA fell 4.2% vs. its peers, the most in the theme.",
-                                               "One sentence only", "Chips sold off."], str(out["sentences"]))
     failures += not check("upcoming reports are cut to the window, soonest first",
                           [i["ticker"] for i in out["week"]["shown"]] == ["CRASH"]
                           and [i["ticker"] for i in out["fortnight"]["shown"]] == ["CRASH"]
