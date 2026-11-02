@@ -21,8 +21,11 @@ seasons and volatile stretches cluster -- so the uncertainty comes from a
 moving-block bootstrap over days. Each part of the score is also tested on
 its own, alongside two alternatives, to see which parts carry the signal.
 
-It calls the production compute_attention, not a copy, so it measures the
-rule the app actually runs.
+It measured the production compute_attention until the app moved to the
+rule picked in attention-2026-11.md. The old rule is now frozen, unchanged,
+in validation/legacy_attention.py, and "score" here (and in attention_v2.py,
+which takes its observations from this script) calls that copy, so both
+still print the numbers in their records.
 
 What it can't check: news (Yahoo keeps no history of it, so that part is
 zero throughout), and whether the ranked list is useful to a reader, which
@@ -45,9 +48,9 @@ import pandas as pd
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
-sys.path.insert(0, str(ROOT / "web"))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-import app as server  # noqa: E402  -- compute_attention, the rule under test
+import legacy_attention as legacy  # noqa: E402  -- the rule "score" measures
 from themes import DEFAULT_THEMES  # noqa: E402
 from tools.relative import peer_median  # noqa: E402
 
@@ -136,7 +139,7 @@ def observations(themes, closes, volumes, reports) -> pd.DataFrame:
     normal_volume = volumes.rolling(VOLUME_WINDOW, min_periods=VOLUME_WINDOW).median().shift(1)
     abnormal_volume = np.log(volumes / normal_volume)
 
-    # compute_attention counts days from the real today, so a historical
+    # legacy.compute_attention counts days from the real today, so a historical
     # report date is passed as the same distance from now.
     real_today = date.today()
     rows = []
@@ -155,7 +158,7 @@ def observations(themes, closes, volumes, reports) -> pd.DataFrame:
                 days = days_to_report(reports.get(ticker, []), day.date())
                 events = {"next_earnings_date": (real_today + timedelta(days=days)).isoformat()
                           if days is not None else None}
-                attention = server.compute_attention({"change_percent": move}, [], events, market, peers)
+                attention = legacy.compute_attention({"change_percent": move}, [], events, market, peers)
                 next_peers = peer_median(tomorrow, ticker) if ticker in tomorrow else None
                 next_gap = (abs(tomorrow[ticker] - next_peers)
                             if next_peers is not None else np.nan)
