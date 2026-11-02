@@ -378,6 +378,11 @@ const BENCHMARK_SUGGESTIONS = [
 ];
 
 async function showHome() {
+  // Prototype layouts behind /?home=a|b|c (see "home prototypes" below);
+  // without the parameter this page is drawn exactly as before.
+  const variant = homeVariantFrom(location.search);
+  if (variant) return HOME_PROTOTYPES[variant]();
+
   const token = beginView("home");
   setTitle("Home");
   viewEl.replaceChildren(el("p", "loading-text", "Loading your themes..."));
@@ -3146,6 +3151,587 @@ async function showSearch(query) {
   frag.appendChild(list);
   viewEl.replaceChildren(frag);
 }
+
+/* ---------------- home prototypes: shared ----------------
+
+   Three alternative home layouts for the owner to choose from, behind a
+   query parameter: /?home=a, /?home=b, /?home=c. It's a real query string,
+   not part of the hash, so it stays put while the reader clicks into a
+   stock or theme and comes back. Without it, showHome() draws the current
+   page unchanged. docs/home-prototypes.md describes each one.
+
+   All three read the same data the current page does (/api/home,
+   /api/brief, /api/earnings, and the session from /api/overview) and
+   change nothing on the server. To keep one: keep this shared section,
+   that variant's section here and in style.css, and delete the other two
+   sections, HOME_PROTOTYPES' other entries and buildProtoSwitcher. */
+
+/* home-prototypes:pure:begin -- no DOM or page state in here: web/test_app.py
+   runs this slice in node against the stubbed /api/home. */
+
+const HOME_VARIANT_KEYS = ["a", "b", "c"];
+
+// "?home=b" -> "b"; anything else, or nothing, -> null (the current page).
+function homeVariantFrom(search) {
+  const value = new URLSearchParams(search || "").get("home");
+  const key = value ? value.trim().toLowerCase() : "";
+  return HOME_VARIANT_KEYS.includes(key) ? key : null;
+}
+
+function protoSigned(value, unit) {
+  return (value >= 0 ? "+" : "") + Number(value).toFixed(1) + unit;
+}
+
+const protoTone = (value) => (value === null || value === undefined ? "neutral" : value >= 0 ? "up" : "down");
+
+// The changes most worth checking first, across every theme. Nothing is
+// re-scored: this only reads the attention score, level and factors the
+// server already computed for each company against its own peers
+// (compute_attention and theme_block in web/app.py).
+//
+//   1. Candidates are the companies whose level is "high" or "medium" --
+//      a score of 20 or more, "worth a look" on the existing scale. Quiet
+//      and incomplete names never qualify, so a calm day lists fewer than
+//      three rather than padding the list with names that didn't move.
+//   2. A company in two themes counts once, at its higher score.
+//   3. Highest score first; a tie goes to the larger gap to its peers
+//      (|vs_peers|), then the ticker, so the order is stable across loads.
+//   4. A company that moved with its theme (attribution "theme") and has
+//      no report coming (no earnings points) is the theme's story, not its
+//      own: it becomes one entry for the theme, ranked at that company's
+//      score, and the theme's other such companies are skipped. Otherwise
+//      three chip names falling together would fill all three places with
+//      one story. A company with a report due stays a company entry.
+//   5. The first `limit` entries.
+function protoTopThree(blocks, limit) {
+  const max = limit === undefined ? 3 : limit;
+  const best = new Map();
+  (blocks || []).forEach((block) => {
+    (block.rows || []).forEach((row) => {
+      const att = row.attention || {};
+      if (att.level !== "high" && att.level !== "medium") return;
+      const held = best.get(row.ticker);
+      if (!held || att.score > held.row.attention.score) best.set(row.ticker, { row, block });
+    });
+  });
+
+  const gap = (row) => Math.abs((row.relative || {}).vs_peers || 0);
+  const ranked = [...best.values()].sort((x, y) =>
+    y.row.attention.score - x.row.attention.score ||
+    gap(y.row) - gap(x.row) ||
+    (x.row.ticker < y.row.ticker ? -1 : x.row.ticker > y.row.ticker ? 1 : 0));
+
+  const entries = [];
+  const themesTaken = new Set();
+  for (const { row, block } of ranked) {
+    if (entries.length >= max) break;
+    const att = row.attention;
+    const rel = row.relative || {};
+    const change = row.price ? row.price.change_percent : null;
+    const shared = rel.attribution === "theme" && !((att.parts || {}).earnings > 0);
+    if (shared) {
+      if (themesTaken.has(block.id)) continue;
+      themesTaken.add(block.id);
+      entries.push(protoThemeEntry(block, row, change));
+      continue;
+    }
+    entries.push({
+      kind: "company",
+      ticker: row.ticker,
+      title: row.ticker,
+      subtitle: [block.name, row.role].filter(Boolean).join(" · "),
+      themeId: block.id,
+      change,
+      score: att.score,
+      level: att.level,
+      attribution: rel.attribution || null,
+      factors: (att.factors || []).map((f) => ({ label: f.label, tone: f.tone })),
+      attention: att,
+    });
+  }
+  return entries;
+}
+
+// A theme's entry: its reasons are the theme's own figures from the card
+// it already has -- the average move, the gap to its benchmark, how many
+// of its companies moved with it -- and the company that led it.
+function protoThemeEntry(block, lead, leadChange) {
+  const s = block.summary || {};
+  const bench = block.benchmark || {};
+  const rows = block.rows || [];
+  const together = rows.filter((r) => (r.relative || {}).attribution === "theme").length;
+  const factors = [];
+  if (s.average !== null && s.average !== undefined) {
+    factors.push({ label: `theme avg ${protoSigned(s.average, "%")}`, tone: protoTone(s.average) });
+  }
+  if (s.vs_benchmark !== null && s.vs_benchmark !== undefined) {
+    factors.push({ label: `${protoSigned(s.vs_benchmark, "pt")} vs ${bench.ticker}`, tone: protoTone(s.vs_benchmark) });
+  }
+  factors.push({ label: `${together} of ${rows.length} moved together`, tone: "neutral" });
+  if (leadChange !== null && leadChange !== undefined) {
+    factors.push({ label: `led by ${lead.ticker} ${protoSigned(leadChange, "%")}`, tone: protoTone(leadChange) });
+  }
+  return {
+    kind: "theme",
+    ticker: lead.ticker,
+    title: block.name,
+    subtitle: `Theme · ${rows.length} compan${rows.length === 1 ? "y" : "ies"} · vs ${bench.ticker}`,
+    themeId: block.id,
+    change: s.average === undefined ? null : s.average,
+    score: lead.attention.score,
+    level: lead.attention.level,
+    attribution: "theme",
+    factors,
+    attention: lead.attention,
+  };
+}
+
+// The brief's opening sentence, for a collapsed brief. A sentence ends at
+// . ! or ? followed by a space and a capital (or a quote or bracket before
+// one), so "4.2%" and "vs. its peers" don't end it. "U.S. Steel" would;
+// the full brief is one click away.
+function briefFirstSentence(text) {
+  const first = String(text || "").trim().split(/\n\s*\n/)[0].trim();
+  const match = first.match(/^[\s\S]*?[.!?](?=\s+["“'(]?[A-Z])/);
+  return (match ? match[0] : first).trim();
+}
+
+// Reports from /api/earnings within `days`, soonest first, at most `limit`.
+function protoUpcoming(items, days, limit) {
+  const soon = (items || [])
+    .filter((i) => i.days_away !== null && i.days_away !== undefined && i.days_away >= 0 && i.days_away <= days)
+    .sort((x, y) => x.days_away - y.days_away || (x.ticker < y.ticker ? -1 : 1));
+  return { shown: soon.slice(0, limit), more: Math.max(0, soon.length - limit) };
+}
+
+/* home-prototypes:pure:end */
+
+const HOME_PROTOTYPE_NAMES = { a: "A · top three cards", b: "B · ranked list + brief drawer", c: "C · phone-first" };
+
+// A strip at the top of each prototype for flipping between them.
+function buildProtoSwitcher(active) {
+  const bar = el("nav", "proto-switcher");
+  bar.setAttribute("aria-label", "Home page prototypes");
+  bar.appendChild(el("span", "proto-switcher-label", "Home prototype"));
+  [[null, "Current"], ...HOME_VARIANT_KEYS.map((k) => [k, HOME_PROTOTYPE_NAMES[k]])].forEach(([key, label]) => {
+    const link = el("a", "proto-switch" + (key === active ? " is-active" : ""), label);
+    link.href = location.pathname + (key ? "?home=" + key : "") + "#/";
+    if (key === active) link.setAttribute("aria-current", "page");
+    bar.appendChild(link);
+  });
+  return bar;
+}
+
+// When the prices are from, in the words the strip and session note use.
+function protoDataTime() {
+  const session = state.lastSession ? formatSession(state.lastSession) : null;
+  if (DEMO) return session ? `Snapshot of the ${session} session` : "Snapshot";
+  if (sessionIsToday() && state.market && state.market.state === "open") {
+    return `Today's session, as of ${state.market.time} (delayed)`;
+  }
+  if (sessionIsToday()) return session ? `${session} session` : "Latest session";
+  return `${session} session -- market ${state.market ? state.market.state : "closed"} now`;
+}
+
+const protoHref = (entry) => (entry.kind === "theme" ? themeHash(entry.themeId) : stockHash(entry.ticker));
+
+function protoEvidenceLabel(entry) {
+  return entry.kind === "theme" ? "Open the theme →" : `Open ${entry.ticker}: chart, news, report →`;
+}
+
+function buildProtoReasons(entry) {
+  const wrap = el("div", "factors proto-reasons");
+  entry.factors.forEach((f) => wrap.appendChild(el("span", "chip " + (f.tone === "neutral" ? "" : f.tone), f.label)));
+  if (entry.kind === "company") wrap.appendChild(attributionTag(entry.attribution));
+  return wrap;
+}
+
+function protoNoneWorthALook() {
+  return el("p", "empty-inline",
+    `Nothing in your themes scored 20 or more ("worth a look") in the ${sessionShort()} session. ` +
+    "Every company is still on its theme page.");
+}
+
+// Loads /api/home for a prototype; null (with the error drawn) if it failed
+// or the reader has moved on.
+async function protoLoadHome(token, variant) {
+  viewEl.replaceChildren(el("p", "loading-text", "Loading your themes..."));
+  const { ok, data } = await api("GET", "/api/home");
+  if (!isCurrent(token)) return null;
+  if (!ok) {
+    viewEl.replaceChildren(buildProtoSwitcher(variant),
+                           el("p", "empty", "Could not load your themes: " + (data.error || "")));
+    return null;
+  }
+  return data.themes || [];
+}
+
+// Upcoming reports in a compact block of their own. A failed lookup says
+// so rather than "no reports", as the calendar page does.
+function buildProtoUpcoming(days, limit) {
+  const box = el("section", "proto-upcoming");
+  const head = el("div", "proto-block-head");
+  head.appendChild(el("h2", null, days <= 7 ? "Reporting this week" : `Reporting in the next ${days} days`));
+  const all = el("a", "proto-more", "Calendar →");
+  all.href = "#/earnings";
+  head.appendChild(all);
+  box.appendChild(head);
+  const list = el("div", "proto-upcoming-list");
+  list.appendChild(el("p", "empty-inline", "Loading report dates..."));
+  box.appendChild(list);
+
+  api("GET", "/api/earnings").then(({ ok, data }) => {
+    if (!ok) {
+      list.replaceChildren(el("p", "empty-inline", "Report dates couldn't be loaded."));
+      return;
+    }
+    if (!(data.items || []).length) {
+      list.replaceChildren(el("p", "empty-inline",
+        "No report dates came back -- usually the source didn't answer, not that nothing is scheduled."));
+      return;
+    }
+    const { shown, more } = protoUpcoming(data.items, days, limit);
+    if (!shown.length) {
+      list.replaceChildren(el("p", "empty-inline", `None of your companies reports in the next ${days} days.`));
+      return;
+    }
+    list.replaceChildren();
+    shown.forEach((item) => {
+      const line = el("a", "proto-upcoming-line");
+      line.href = stockHash(item.ticker);
+      line.appendChild(el("span", "proto-upcoming-when", item.days_away === 0 ? "today" : `in ${item.days_away}d`));
+      line.appendChild(el("span", "proto-upcoming-ticker", item.ticker));
+      line.appendChild(el("span", "proto-upcoming-theme", item.theme || ""));
+      line.appendChild(el("span", "proto-upcoming-date", formatDate(item.next_date)));
+      list.appendChild(line);
+    });
+    if (more) list.appendChild(el("p", "empty-inline", `+${more} more on the calendar`));
+  });
+  return box;
+}
+
+// Every theme as one line: how it did against its benchmark, and a link.
+function buildProtoThemeList(blocks) {
+  const box = el("section", "proto-themes");
+  const head = el("div", "proto-block-head");
+  head.appendChild(el("h2", null, "Themes"));
+  box.appendChild(head);
+  blocks.forEach((block) => {
+    const s = block.summary || {};
+    const bench = block.benchmark || {};
+    const line = el("a", "proto-theme-line");
+    line.href = themeHash(block.id);
+    const who = el("span", "proto-theme-name", block.name);
+    line.appendChild(who);
+    line.appendChild(el("span", "proto-theme-avg " + toneClass(s.average), pct(s.average)));
+    line.appendChild(el("span", "proto-theme-vs " + toneClass(s.vs_benchmark), `${pts(s.vs_benchmark)} vs ${bench.ticker}`));
+    box.appendChild(line);
+  });
+  if (!blocks.length) box.appendChild(el("p", "empty-inline", "No themes yet."));
+  return box;
+}
+
+// The brief collapsed to its first sentence, with a toggle for the rest.
+function buildProtoBriefTeaser() {
+  const panel = el("section", "brief proto-brief");
+  const head = el("div", "brief-head");
+  head.appendChild(el("h2", null, "AI brief"));
+  const toggle = el("button", "brief-refresh", "Read the brief");
+  toggle.type = "button";
+  toggle.hidden = true;
+  toggle.setAttribute("aria-expanded", "false");
+  head.appendChild(toggle);
+  panel.appendChild(head);
+
+  const teaser = el("p", "proto-brief-teaser", "Reading your themes...");
+  const body = el("div", "brief-body");
+  body.hidden = true;
+  panel.appendChild(teaser);
+  panel.appendChild(body);
+
+  toggle.addEventListener("click", () => {
+    const open = body.hidden;
+    body.hidden = !open;
+    teaser.hidden = open;
+    toggle.textContent = open ? "Show less" : "Read the brief";
+    toggle.setAttribute("aria-expanded", String(open));
+  });
+
+  api("GET", "/api/brief").then(({ ok, data }) => {
+    if (!ok) {
+      teaser.textContent = "Brief unavailable: " + (data.error || "");
+      return;
+    }
+    const text = String(data.brief || "");
+    teaser.textContent = briefFirstSentence(text);
+    text.split(/\n\s*\n/).filter((p) => p.trim()).forEach((p) => body.appendChild(el("p", null, p.trim())));
+    toggle.hidden = text.trim() === teaser.textContent;
+    if (data.generated_at) {
+      body.appendChild(el("p", "brief-meta", `Written ${data.generated_at} from the data on this page. Not financial advice.`));
+    }
+  });
+  return panel;
+}
+
+/* ---------------- home prototype A: top three cards ----------------
+
+   The three changes as cards across the top, then the brief collapsed to
+   its first sentence, then upcoming reports, then the current theme cards
+   unchanged. The closest to today's page: it adds a first screen and
+   keeps everything below it. */
+
+async function showHomePrototypeA() {
+  const token = beginView("home");
+  setTitle("Home");
+  const blocks = await protoLoadHome(token, "a");
+  if (!blocks) return;
+
+  const frag = document.createDocumentFragment();
+  frag.appendChild(buildProtoSwitcher("a"));
+  const head = el("div", "view-head");
+  head.appendChild(el("h1", null, "Home"));
+  frag.appendChild(head);
+
+  const top = protoTopThree(blocks, 3);
+  const section = el("section", "protoA-top");
+  const sectionHead = el("div", "proto-block-head");
+  sectionHead.appendChild(el("h2", null, "Worth checking first"));
+  sectionHead.appendChild(el("span", "proto-time", protoDataTime()));
+  section.appendChild(sectionHead);
+  if (!top.length) {
+    section.appendChild(protoNoneWorthALook());
+  } else {
+    const cards = el("ol", "protoA-cards");
+    top.forEach((entry, i) => {
+      const item = el("li");
+      const card = el("a", `protoA-card level-${entry.level}`);
+      card.href = protoHref(entry);
+      card.title = attentionTitle(entry.attention);
+      const cardTop = el("div", "protoA-card-top");
+      cardTop.appendChild(el("span", "protoA-rank", String(i + 1)));
+      const who = el("div", "protoA-who");
+      who.appendChild(el("span", "protoA-name", entry.title));
+      if (entry.subtitle) who.appendChild(el("span", "protoA-sub", entry.subtitle));
+      cardTop.appendChild(who);
+      cardTop.appendChild(el("span", "protoA-move " + toneClass(entry.change), pct(entry.change)));
+      card.appendChild(cardTop);
+      card.appendChild(buildProtoReasons(entry));
+      card.appendChild(el("span", "protoA-evidence", protoEvidenceLabel(entry)));
+      item.appendChild(card);
+      cards.appendChild(item);
+    });
+    section.appendChild(cards);
+  }
+  frag.appendChild(section);
+
+  if (blocks.some((b) => b.rows.length)) frag.appendChild(buildProtoBriefTeaser());
+  frag.appendChild(buildProtoUpcoming(14, 6));
+
+  frag.appendChild(el("p", "section-heading", "Themes"));
+  const grid = el("div", "tblock-grid");
+  blocks.forEach((block) => grid.appendChild(buildThemeBlock(block)));
+  frag.appendChild(grid);
+  frag.appendChild(buildReadingGuide());
+  if (!DEMO) frag.appendChild(buildNewThemeForm());
+  viewEl.replaceChildren(frag);
+}
+
+/* ---------------- home prototype B: ranked list + brief drawer ----------------
+
+   One ranked list of everything worth a look, the top three set apart, with
+   upcoming reports and the themes in a side column. The brief isn't on the
+   page: a button opens it in a drawer, and it's only fetched then. */
+
+async function showHomePrototypeB() {
+  const token = beginView("home");
+  setTitle("Home");
+  const blocks = await protoLoadHome(token, "b");
+  if (!blocks) return;
+
+  const frag = document.createDocumentFragment();
+  frag.appendChild(buildProtoSwitcher("b"));
+  const head = el("div", "view-head");
+  head.appendChild(el("h1", null, "Home"));
+  const drawer = buildProtoBriefDrawer();
+  if (blocks.some((b) => b.rows.length)) {
+    const open = el("button", "protoB-brief-button", "AI brief");
+    open.type = "button";
+    open.setAttribute("aria-haspopup", "dialog");
+    open.addEventListener("click", () => drawer.open(open));
+    head.appendChild(open);
+  }
+  frag.appendChild(head);
+  frag.appendChild(el("p", "view-sub", `Ranked by attention across all your themes · ${protoDataTime()}`));
+
+  const layout = el("div", "protoB-layout");
+  const main = el("section", "protoB-main");
+  main.setAttribute("aria-label", "Ranked changes");
+  // Everything at "worth a look" or above, up to ten; the top three first.
+  const ranked = protoTopThree(blocks, 10);
+  if (!ranked.length) {
+    main.appendChild(protoNoneWorthALook());
+  } else {
+    const list = el("ol", "protoB-list");
+    ranked.forEach((entry, i) => {
+      if (i === 3) list.appendChild(el("li", "protoB-divider", "Also worth a look"));
+      const item = el("li");
+      const row = el("a", `protoB-row level-${entry.level}` + (i < 3 ? " is-top" : ""));
+      row.href = protoHref(entry);
+      row.title = attentionTitle(entry.attention);
+      row.appendChild(el("span", "protoB-rank", String(i + 1)));
+      const body = el("div", "protoB-body");
+      const line = el("div", "protoB-line");
+      line.appendChild(el("span", "protoB-name", entry.title));
+      if (entry.subtitle) line.appendChild(el("span", "protoB-sub", entry.subtitle));
+      body.appendChild(line);
+      body.appendChild(buildProtoReasons(entry));
+      row.appendChild(body);
+      row.appendChild(el("span", "protoB-move " + toneClass(entry.change), pct(entry.change)));
+      item.appendChild(row);
+      list.appendChild(item);
+    });
+    main.appendChild(list);
+  }
+  const quiet = blocks.reduce((n, b) => n + b.rows.length, 0) - ranked.length;
+  if (quiet > 0) {
+    main.appendChild(el("p", "empty-inline protoB-rest",
+      "The rest of your companies scored under 20 or share a theme entry above; each theme page lists them all."));
+  }
+  layout.appendChild(main);
+
+  const side = el("aside", "protoB-side");
+  side.appendChild(buildProtoUpcoming(14, 8));
+  side.appendChild(buildProtoThemeList(blocks));
+  layout.appendChild(side);
+  frag.appendChild(layout);
+
+  frag.appendChild(drawer.node);
+  if (!DEMO) frag.appendChild(buildNewThemeForm());
+  viewEl.replaceChildren(frag);
+}
+
+// The current brief panel, in a drawer from the right (full width on a
+// phone). Lives inside the view, so moving to another page removes it.
+function buildProtoBriefDrawer() {
+  const node = el("div", "protoB-drawer");
+  node.hidden = true;
+  const backdrop = el("div", "protoB-backdrop");
+  const sheet = el("div", "protoB-sheet");
+  sheet.setAttribute("role", "dialog");
+  sheet.setAttribute("aria-modal", "true");
+  sheet.setAttribute("aria-label", "AI brief");
+  const close = el("button", "protoB-close", "Close");
+  close.type = "button";
+  sheet.appendChild(close);
+  const panel = buildBriefPanel();
+  sheet.appendChild(panel);
+  node.appendChild(backdrop);
+  node.appendChild(sheet);
+
+  let loaded = false;
+  let opener = null;
+  const shut = () => {
+    node.hidden = true;
+    if (opener) opener.focus();
+  };
+  close.addEventListener("click", shut);
+  backdrop.addEventListener("click", shut);
+  node.addEventListener("keydown", (e) => { if (e.key === "Escape") shut(); });
+  return {
+    node,
+    open(from) {
+      opener = from;
+      node.hidden = false;
+      close.focus();
+      if (!loaded) {
+        loaded = true;
+        loadBrief(panel, false);
+      }
+    },
+  };
+}
+
+/* ---------------- home prototype C: phone-first stacked ----------------
+
+   One narrow column, even on a wide screen, read top to bottom with a
+   thumb: a one-line status, the three changes as large tap rows, this
+   week's reports, the brief folded into one line, and the themes as a
+   list. No theme cards and no tables. */
+
+async function showHomePrototypeC() {
+  const token = beginView("home");
+  setTitle("Home");
+  const blocks = await protoLoadHome(token, "c");
+  if (!blocks) return;
+
+  const frag = document.createDocumentFragment();
+  frag.appendChild(buildProtoSwitcher("c"));
+  const column = el("div", "protoC");
+
+  const top = protoTopThree(blocks, 3);
+  const status = el("div", "protoC-status");
+  status.appendChild(el("h1", null, top.length
+    ? `${top.length} change${top.length === 1 ? "" : "s"} to check`
+    : "Nothing stands out"));
+  status.appendChild(el("p", "proto-time", protoDataTime()));
+  column.appendChild(status);
+
+  if (!top.length) {
+    column.appendChild(protoNoneWorthALook());
+  } else {
+    const list = el("ol", "protoC-list");
+    top.forEach((entry) => {
+      const item = el("li");
+      const row = el("a", `protoC-item level-${entry.level}`);
+      row.href = protoHref(entry);
+      const line = el("div", "protoC-line");
+      line.appendChild(el("span", "protoC-name", entry.title));
+      line.appendChild(el("span", "protoC-move " + toneClass(entry.change), pct(entry.change)));
+      row.appendChild(line);
+      if (entry.subtitle) row.appendChild(el("span", "protoC-sub", entry.subtitle));
+      row.appendChild(buildProtoReasons(entry));
+      row.appendChild(el("span", "protoC-evidence", protoEvidenceLabel(entry)));
+      item.appendChild(row);
+      list.appendChild(item);
+    });
+    column.appendChild(list);
+  }
+
+  column.appendChild(buildProtoUpcoming(7, 5));
+  if (blocks.some((b) => b.rows.length)) column.appendChild(buildProtoBriefFold());
+  column.appendChild(buildProtoThemeList(blocks));
+  frag.appendChild(column);
+  viewEl.replaceChildren(frag);
+}
+
+// The brief as a <details>: closed, it's one line -- "AI brief" and the
+// start of its first sentence; open, the whole brief.
+function buildProtoBriefFold() {
+  const fold = el("details", "protoC-brief");
+  const summary = el("summary");
+  summary.appendChild(el("span", "protoC-brief-label", "AI brief"));
+  const teaser = el("span", "protoC-brief-teaser", "Reading your themes...");
+  summary.appendChild(teaser);
+  fold.appendChild(summary);
+  const body = el("div", "brief-body");
+  fold.appendChild(body);
+  api("GET", "/api/brief").then(({ ok, data }) => {
+    if (!ok) {
+      teaser.textContent = "unavailable";
+      body.appendChild(el("p", null, "Brief unavailable: " + (data.error || "")));
+      return;
+    }
+    const text = String(data.brief || "");
+    teaser.textContent = briefFirstSentence(text);
+    text.split(/\n\s*\n/).filter((p) => p.trim()).forEach((p) => body.appendChild(el("p", null, p.trim())));
+    if (data.generated_at) {
+      body.appendChild(el("p", "brief-meta", `Written ${data.generated_at} from the data on this page. Not financial advice.`));
+    }
+  });
+  return fold;
+}
+
+const HOME_PROTOTYPES = { a: showHomePrototypeA, b: showHomePrototypeB, c: showHomePrototypeC };
 
 /* ---------------- wiring ---------------- */
 

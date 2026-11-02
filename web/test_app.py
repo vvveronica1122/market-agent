@@ -17,6 +17,8 @@ Nothing here calls Anthropic or the network. Run it with:
 from __future__ import annotations
 
 import json
+import shutil
+import subprocess
 import sys
 from pathlib import Path
 
@@ -288,6 +290,138 @@ def check(label, condition, detail=""):
     return condition
 
 
+# --- home prototypes (app.js) ------------------------------------------
+# There's no browser here, so the prototypes' logic lives in a slice of
+# app.js with no DOM in it, between two markers; node runs that slice
+# against the stubbed /api/home. Without node these checks are skipped,
+# not failed -- the rest of the suite needs only Python.
+APP_JS = PROJECT_ROOT / "web" / "static" / "app.js"
+STYLE_CSS = PROJECT_ROOT / "web" / "static" / "style.css"
+
+PROTO_HARNESS = r"""
+const input = JSON.parse(require("fs").readFileSync(0, "utf8"));
+const lib = new Function(input.source + "\nreturn { homeVariantFrom, protoTopThree, briefFirstSentence, protoUpcoming };")();
+const out = {
+  variants: input.searches.map((s) => lib.homeVariantFrom(s)),
+  top: lib.protoTopThree(input.home.themes),
+  ranked: lib.protoTopThree(input.home.themes, 10),
+  calm: lib.protoTopThree(input.calm),
+  sentences: input.briefs.map((b) => lib.briefFirstSentence(b)),
+  week: lib.protoUpcoming(input.earnings.items, 7, 5),
+  fortnight: lib.protoUpcoming(input.earnings.items, 14, 1),
+};
+process.stdout.write(JSON.stringify(out));
+"""
+
+
+def run_prototype_slice(payload: dict):
+    node = shutil.which("node")
+    if node is None:
+        return None
+    source = APP_JS.read_text()
+    begin = source.index("/* home-prototypes:pure:begin")
+    end = source.index("/* home-prototypes:pure:end */")
+    payload = dict(payload, source=source[begin:end])
+    done = subprocess.run([node, "-e", PROTO_HARNESS], input=json.dumps(payload),
+                          capture_output=True, text=True, timeout=30)
+    if done.returncode != 0:
+        raise RuntimeError(done.stderr)
+    return json.loads(done.stdout)
+
+
+def check_home_prototypes(client) -> int:
+    failures = 0
+    print("\nHome prototypes")
+    source = APP_JS.read_text()
+    css = STYLE_CSS.read_text()
+
+    # The default page: the switch is the first thing showHome does, and
+    # past it the function is the current home page, word for word.
+    show_home = source[source.index("async function showHome()"):source.index("function buildReadingGuide()")]
+    guard = ("  const variant = homeVariantFrom(location.search);\n"
+             "  if (variant) return HOME_PROTOTYPES[variant]();\n\n"
+             "  const token = beginView(\"home\");")
+    failures += not check("showHome checks the prototype switch before anything else",
+                          guard in show_home and show_home.index(guard) < show_home.index("beginView"))
+    default_body = show_home[show_home.index('  const token = beginView("home");'):]
+    failures += not check("past the switch, the current home page is drawn as before",
+                          all(part in default_body for part in (
+                              'api("GET", "/api/home")', "buildBriefPanel()", "loadBrief(briefPanel, false)",
+                              '"tblock-grid"', "buildThemeBlock(block)", "buildReadingGuide()",
+                              "buildNewThemeForm()"))
+                          and "proto" not in default_body.lower())
+    failures += not check("each prototype is wired to its own page function",
+                          "const HOME_PROTOTYPES = { a: showHomePrototypeA, b: showHomePrototypeB, "
+                          "c: showHomePrototypeC };" in source
+                          and all(f"async function showHomePrototype{k}()" in source for k in "ABC"))
+    failures += not check("each prototype has its own section in app.js and style.css",
+                          all(f"/* ---------------- home prototype {k}:" in source
+                              and f"/* ---------- home prototype {k}:" in css for k in "ABC")
+                          and all(f".proto{k}-" in css for k in "ABC"))
+
+    node = shutil.which("node")
+    if node is None:
+        print("  [SKIP] node isn't installed: app.js parsing and the top-three checks didn't run")
+        return failures
+    parsed = subprocess.run([node, "--check", str(APP_JS)], capture_output=True, text=True)
+    failures += not check("app.js parses", parsed.returncode == 0, parsed.stderr)
+
+    STORE["state"] = fake_themes()
+    server._cache.clear()
+    home = client.get("/api/home").get_json()
+    earnings = client.get("/api/earnings").get_json()
+    calm = [{"id": "calm", "name": "Calm", "summary": {}, "benchmark": {"ticker": "SPY"},
+             "rows": [{"ticker": "QUIET", "relative": {"attribution": "quiet"},
+                       "attention": {"score": 1.0, "level": "quiet", "factors": []}},
+                      {"ticker": "GAP", "relative": {},
+                       "attention": {"score": 12.0, "level": "incomplete", "factors": []}}]}]
+    briefs = ["NVDA fell 4.2% vs. its peers, the most in the theme. Memory names followed.\n\nMore.",
+              "One sentence only",
+              "Chips sold off. \"Export rules\" were the headline."]
+    out = run_prototype_slice({"home": home, "earnings": earnings, "calm": calm, "briefs": briefs,
+                               "searches": ["", "?home=a", "?home=B", "?home=c&x=1", "?home=z", "?x=1"]})
+
+    failures += not check("no ?home parameter (or an unknown one) means the current page",
+                          out["variants"] == [None, "a", "b", "c", None, None], str(out["variants"]))
+    top = out["top"]
+    shape = [(e["kind"], e["title"]) for e in top]
+    # CRASH -6% with a report in 3 days (82), PEER2 -6.5% with its theme
+    # (57), PEER1 -5.5% with its theme (56), SOLO +4% on its own (56).
+    failures += not check("the top three are the highest attention scores across themes",
+                          shape == [("company", "CRASH"), ("theme", "Chips"), ("company", "SOLO")], str(shape))
+    failures += not check("names that moved with their theme become one theme entry, led by the biggest",
+                          top[1]["ticker"] == "PEER2" and "PEER1" not in [e["ticker"] for e in out["ranked"]],
+                          str(top[1]))
+    failures += not check("a company with a report due stays its own entry, even moving with its theme",
+                          top[0]["attribution"] == "theme" and "earnings in 3d" in [f["label"] for f in top[0]["factors"]],
+                          str(top[0]))
+    failures += not check("company entries carry the server's own reason chips",
+                          [f["label"] for f in top[2]["factors"]] ==
+                          [f["label"] for r in home["themes"][1]["rows"] if r["ticker"] == "SOLO"
+                           for f in r["attention"]["factors"]], str(top[2]["factors"]))
+    failures += not check("the theme entry's reasons are its card's figures",
+                          any(f["label"].endswith("vs CHIPETF") for f in top[1]["factors"])
+                          and "3 of 3 moved together" in [f["label"] for f in top[1]["factors"]],
+                          str(top[1]["factors"]))
+    failures += not check("each entry links to a page and states its level",
+                          all(e["themeId"] and e["level"] in ("high", "medium") for e in top), str(top))
+    # CALM is "medium" (4 headlines, 2.4pt under its peers); QUIET is quiet.
+    failures += not check("quiet names never make the ranked list",
+                          [e["ticker"] for e in out["ranked"]] == ["CRASH", "PEER2", "SOLO", "CALM"]
+                          and all(e["level"] in ("high", "medium") for e in out["ranked"]),
+                          str([e["ticker"] for e in out["ranked"]]))
+    failures += not check("a calm day lists nothing rather than padding with quiet or incomplete names",
+                          out["calm"] == [], str(out["calm"]))
+    failures += not check("the collapsed brief shows its first sentence",
+                          out["sentences"] == ["NVDA fell 4.2% vs. its peers, the most in the theme.",
+                                               "One sentence only", "Chips sold off."], str(out["sentences"]))
+    failures += not check("upcoming reports are cut to the window, soonest first",
+                          [i["ticker"] for i in out["week"]["shown"]] == ["CRASH"]
+                          and [i["ticker"] for i in out["fortnight"]["shown"]] == ["CRASH"]
+                          and out["fortnight"]["more"] == 1, str(out["week"]) + str(out["fortnight"]))
+    return failures
+
+
 def main() -> int:
     install_stubs()
     client = server.app.test_client()
@@ -514,6 +648,8 @@ def main() -> int:
     for path in ["/", "/static/style.css", "/static/app.js", "/api/overview", "/api/themes"]:
         res = client.get(path)
         failures += not check(f"GET {path} returns 200", res.status_code == 200, str(res.status_code))
+
+    failures += check_home_prototypes(client)
 
     server._cache.clear()
     detail = client.get("/api/stock/CRASH").get_json()
