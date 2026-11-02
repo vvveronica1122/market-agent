@@ -2832,16 +2832,29 @@ function renderChat() {
     const wrap = el("div", "assistant-turn");
     // The tool calls stay visible on purpose: the whole point of an agent
     // is that it decided what to look up, and hiding that turns a
-    // legible chain of reasoning into a black box.
+    // legible chain of reasoning into a black box. Collapsed by default;
+    // opened, each step says whether it worked, how long it took, how old
+    // its data is and what came back, so the answer can be checked.
+    // Snapshots recorded before steps carried that detail show the call alone.
     if (turn.trace && turn.trace.length) {
       const steps = el("details", "trace");
+      const failed = turn.trace.filter((call) => call.status === "error").length;
       const summary = el("summary", null,
-        `${turn.trace.length} lookup${turn.trace.length === 1 ? "" : "s"}`);
+        `${turn.trace.length} lookup${turn.trace.length === 1 ? "" : "s"}` +
+        (failed ? `, ${failed} failed` : ""));
       steps.appendChild(summary);
       turn.trace.forEach((call) => {
         const args = Object.entries(call.input || {})
           .map(([k, v]) => `${k}=${JSON.stringify(v)}`).join(", ");
-        steps.appendChild(el("div", "trace-call", `${call.tool}(${args})`));
+        const step = el("div", "trace-step" + (call.status === "error" ? " is-error" : ""));
+        step.appendChild(el("div", "trace-call", `${call.tool}(${args})`));
+        const meta = [];
+        if (call.status) meta.push(call.status === "error" ? "failed" : "ok");
+        if (typeof call.elapsed_ms === "number") meta.push(`${call.elapsed_ms} ms`);
+        if (call.as_of) meta.push(`as of ${call.as_of}`);
+        if (meta.length) step.appendChild(el("div", "trace-meta", meta.join(" \u00b7 ")));
+        if (call.summary) step.appendChild(el("div", "trace-summary", call.summary));
+        steps.appendChild(step);
       });
       wrap.appendChild(steps);
     }

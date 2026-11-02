@@ -791,9 +791,12 @@ def main() -> int:
             seen["message"] = message
             seen["history"] = history
             if trace is not None:
-                trace.append({"step": 1, "tool": "get_watchlist", "input": {}})
+                trace.append({"step": 1, "tool": "get_watchlist", "input": {},
+                              "status": "ok", "elapsed_ms": 2,
+                              "summary": "themes=[1 items], all_tickers=[2 items]"})
                 trace.append({"step": 2, "tool": "get_earnings_schedule",
-                              "input": {"ticker": "NVDA"}})
+                              "input": {"ticker": "NVDA"}, "status": "error",
+                              "elapsed_ms": 410, "summary": "ValueError: Yahoo is down"})
             return "NVDA reports soonest, in three days."
 
     real_agent = server.conversational_agent
@@ -806,6 +809,11 @@ def main() -> int:
                               len(body.get("trace", [])) == 2, str(body.get("trace")))
         failures += not check("the trace names the tools that ran",
                               body["trace"][0]["tool"] == "get_watchlist")
+        failures += not check("each step's status, time and summary reach the page",
+                              [(c.get("status"), c.get("elapsed_ms"), c.get("summary"))
+                               for c in body["trace"]] ==
+                              [("ok", 2, "themes=[1 items], all_tickers=[2 items]"),
+                               ("error", 410, "ValueError: Yahoo is down")], str(body["trace"]))
 
         blank = client.post("/api/chat", json={"message": "   "})
         failures += not check("an empty question is rejected", blank.status_code == 400)
@@ -853,6 +861,32 @@ def main() -> int:
         failures += not check("a failing agent returns an error, not a stack trace",
                               broke.status_code == 500
                               and "model unavailable" in broke.get_json()["error"])
+
+        # The fakes above only show the route passes steps through. This runs
+        # the real loop with a scripted model, so what the page gets is what
+        # agent.py records. calculate is pure, so nothing reaches the network.
+        from types import SimpleNamespace as NS
+
+        replies = [
+            NS(stop_reason="tool_use", content=[
+                NS(type="tool_use", name="calculate", input={"expression": "(44 - 40) / 40 * 100"},
+                   id="a"),
+                NS(type="tool_use", name="no_such_tool", input={}, id="b")]),
+            NS(stop_reason="end_turn", content=[NS(type="text", text="Up 10 percent.")]),
+        ]
+        server.conversational_agent = real_agent
+        real_client = server.client
+        server.client = NS(messages=NS(create=lambda **kw: replies.pop(0)))
+        try:
+            steps = client.post("/api/chat", json={"message": "how much?"}).get_json().get("trace", [])
+        finally:
+            server.client = real_client
+        failures += not check("the real agent's step detail reaches the Ask response",
+                              [(s.get("tool"), s.get("status")) for s in steps] ==
+                              [("calculate", "ok"), ("no_such_tool", "error")]
+                              and "result=10.0" in steps[0].get("summary", "")
+                              and "Unknown tool" in steps[1].get("summary", "")
+                              and all(s.get("elapsed_ms", -1) >= 0 for s in steps), str(steps))
     finally:
         server.conversational_agent = real_agent
 
