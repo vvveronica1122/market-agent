@@ -33,7 +33,9 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import sys
+import time
 from pathlib import Path
 
 from anthropic import Anthropic
@@ -61,6 +63,11 @@ from tools.calc import calculate
 # A runaway tool loop is a real failure mode: the model keeps calling
 # tools and never answers, burning tokens until you kill it. Cap it.
 MAX_STEPS = 12
+
+# A trace step's summary is a digest for a person checking the answer, not
+# the payload: the full result can be tens of kilobytes of price history.
+SUMMARY_CHARS = 300
+_VALUE_CHARS = 60
 
 
 SYSTEM_PROMPT = """You are a market research assistant with tools for live prices, news,
@@ -339,6 +346,80 @@ def run_tool(name: str, tool_input: dict) -> str:
         return json.dumps({"error": f"{type(exc).__name__}: {exc}"})
 
 
+def _digest_value(value) -> str:
+    if isinstance(value, dict):
+        return "{...}"
+    if isinstance(value, list):
+        return f"[{len(value)} items]"
+    text = str(value)
+    return text if len(text) <= _VALUE_CHARS else text[:_VALUE_CHARS - 1] + "\u2026"
+
+
+def _digest_entry(data) -> str:
+    if isinstance(data, dict):
+        return ", ".join(f"{k}={_digest_value(v)}" for k, v in data.items())
+    return _digest_value(data)
+
+
+def _digest(data) -> str:
+    """One line a person can read: fields of a dict, or a list's size and its
+    first and last entries -- the ends are where a period starts and stops."""
+    if not isinstance(data, list):
+        return _digest_entry(data)
+    if not data:
+        return "no items"
+    if len(data) == 1:
+        return f"1 item; {_digest_entry(data[0])}"
+    return f"{len(data)} items; first {_digest_entry(data[0])}; last {_digest_entry(data[-1])}"
+
+
+_ISO_DATE = re.compile(r"^\d{4}-\d{2}-\d{2}")
+
+
+def _as_of(data) -> str | None:
+    """The result's own date, when it plainly carries one, else None.
+
+    Only ISO-formatted strings count: a top-level `as_of`, or the latest
+    `date`, `period` or `published` across a list's entries (a price
+    history's last close, a quarter's end, the newest headline). A future
+    date such as `next_date` is what the data is about, not when it is
+    from, so it is left alone; guessing a time would defeat the point.
+    """
+    if isinstance(data, dict):
+        value = data.get("as_of")
+        return value if isinstance(value, str) and _ISO_DATE.match(value) else None
+    if isinstance(data, list):
+        found = [item[key] for item in data if isinstance(item, dict)
+                 for key in ("date", "period", "published")
+                 if isinstance(item.get(key), str) and _ISO_DATE.match(item[key])]
+        return max(found) if found else None
+    return None
+
+
+def describe_result(content: str) -> dict:
+    """Status, summary and (when known) as_of for one tool result.
+
+    Reads the JSON text run_tool produced, so the trace describes exactly
+    what the model was handed. Errors come back from run_tool as data, so
+    an `error` key is what marks a failed step.
+    """
+    try:
+        data = json.loads(content)
+    except (TypeError, ValueError):
+        data = content
+    if isinstance(data, dict) and "error" in data:
+        status, summary = "error", str(data["error"])
+    else:
+        status, summary = "ok", _digest(data)
+    if len(summary) > SUMMARY_CHARS:
+        summary = summary[:SUMMARY_CHARS - 1] + "\u2026"
+    detail = {"status": status, "summary": summary}
+    when = _as_of(data) if status == "ok" else None
+    if when:
+        detail["as_of"] = when
+    return detail
+
+
 def ask_agent(client: Anthropic, user_message: str, verbose: bool = True,
               history: list[dict] | None = None, trace: list[dict] | None = None) -> str:
     """Run the agentic loop for one request and return the final answer.
@@ -346,7 +427,10 @@ def ask_agent(client: Anthropic, user_message: str, verbose: bool = True,
     `history` seeds earlier turns so follow-up questions work in a chat.
     `trace`, if given, is filled with the tool calls made -- the web UI
     shows these, because hiding them would turn a visible chain of
-    reasoning into a black box.
+    reasoning into a black box. Each step carries `step`, `tool` and
+    `input`, plus what came back -- `status` ("ok" or "error"), `elapsed_ms`,
+    a short `summary`, and `as_of` when the result is dated -- so an answer
+    can be checked against the data it was built from.
     """
     messages: list[dict] = list(history or [])
     messages.append({"role": "user", "content": user_message})
@@ -372,13 +456,17 @@ def ask_agent(client: Anthropic, user_message: str, verbose: bool = True,
             if verbose:
                 args = ", ".join(f"{k}={v!r}" for k, v in use.input.items())
                 print(f"  [{step + 1}] {use.name}({args})")
+            started = time.perf_counter()
+            content = run_tool(use.name, use.input)
+            elapsed_ms = round((time.perf_counter() - started) * 1000)
             if trace is not None:
-                trace.append({"step": step + 1, "tool": use.name, "input": dict(use.input)})
+                trace.append({"step": step + 1, "tool": use.name, "input": dict(use.input),
+                              "elapsed_ms": elapsed_ms, **describe_result(content)})
             results.append(
                 {
                     "type": "tool_result",
                     "tool_use_id": use.id,
-                    "content": run_tool(use.name, use.input),
+                    "content": content,
                 }
             )
 

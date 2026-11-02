@@ -120,6 +120,62 @@ def main() -> int:
     out = agent.run_tool("get_watchlist", {"bogus": 1})
     failures += not check("bad arguments are caught too", "error" in json.loads(out), out)
 
+    print("\nA trace an answer can be checked against")
+    # The trace used to keep only which tool ran with what input. To check
+    # an answer against its data, each step also says whether the lookup
+    # worked, how long it took, what came back and how old that data is.
+    agent.HANDLERS["get_price_history"] = lambda ticker, period="1mo": [
+        {"date": f"2026-08-{day:02d}", "close": 100.0 + day} for day in range(1, 31)]
+    agent.HANDLERS["get_key_stats"] = lambda ticker: {"ticker": ticker, "sector": "x" * 2000}
+    client = ScriptedClient([
+        _Reply([_ToolUse("get_price_history", {"ticker": "AAPL"}, "a"),
+                _ToolUse("get_stock_price", {"ticker": "AAPL"}, "b"),
+                _ToolUse("get_key_stats", {"ticker": "AAPL"}, "c")], "tool_use"),
+        _Reply([_Text("AAPL rose over August.")], "end_turn"),
+    ])
+    trace = []
+    agent.ask_agent(client, "how did AAPL do?", verbose=False, trace=trace)
+    by_tool = {s["tool"]: s for s in trace}
+    history, price, stats = (by_tool.get(n, {}) for n in
+                             ("get_price_history", "get_stock_price", "get_key_stats"))
+    failures += not check("the step, tool and input keep their meaning",
+                          [(s["step"], s["tool"], s["input"]) for s in trace] ==
+                          [(1, "get_price_history", {"ticker": "AAPL"}),
+                           (1, "get_stock_price", {"ticker": "AAPL"}),
+                           (1, "get_key_stats", {"ticker": "AAPL"})], str(trace))
+    failures += not check("a successful lookup records status ok", history.get("status") == "ok",
+                          str(history))
+    failures += not check("every step records a non-negative elapsed_ms",
+                          all(isinstance(s.get("elapsed_ms"), int) and s["elapsed_ms"] >= 0
+                              for s in trace), str([s.get("elapsed_ms") for s in trace]))
+    failures += not check("the summary is a digest of the result, not the payload",
+                          history.get("summary", "").startswith("30 items; first date=2026-08-01")
+                          and "last date=2026-08-30, close=130.0" in history["summary"]
+                          and "2026-08-15" not in history["summary"], history.get("summary"))
+    failures += not check("a dated result records as_of, from its latest date",
+                          history.get("as_of") == "2026-08-30", str(history.get("as_of")))
+    failures += not check("a raising tool records status error with its message",
+                          price.get("status") == "error"
+                          and "Yahoo is down" in price.get("summary", ""), str(price))
+    failures += not check("an undated or failed result has no invented as_of",
+                          "as_of" not in price and "as_of" not in stats, str([price, stats]))
+    failures += not check("summaries are capped in length",
+                          stats.get("status") == "ok"
+                          and len(stats.get("summary", "")) <= agent.SUMMARY_CHARS
+                          and all(len(s["summary"]) <= agent.SUMMARY_CHARS for s in trace),
+                          str(len(stats.get("summary", ""))))
+    long_error = agent.describe_result(json.dumps({"error": "E" * 5000}))
+    failures += not check("a long error is capped too",
+                          long_error["status"] == "error"
+                          and len(long_error["summary"]) <= agent.SUMMARY_CHARS, str(long_error)[:80])
+    unknown = agent.describe_result(agent.run_tool("no_such_tool", {}))
+    failures += not check("an unknown tool is an error step",
+                          unknown["status"] == "error" and "Unknown tool" in unknown["summary"],
+                          str(unknown))
+    failures += not check("a step's detail never changes what the model is handed",
+                          json.loads(client.messages.calls[-1]["messages"][-1]["content"][0]
+                                     ["content"])[-1] == {"date": "2026-08-30", "close": 130.0})
+
     print("\nCommand-line shorthand")
     one = agent.question_from_args(["AAPL"])
     failures += not check("a bare ticker becomes a briefing request",

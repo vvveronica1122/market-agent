@@ -27,13 +27,19 @@ import build  # noqa: E402
 server = fixtures.server
 
 
+# One lookup as agent.py records it, with what came back and when.
+_STEP = {"step": 1, "tool": "get_price_history", "input": {"ticker": "CRASH"},
+         "status": "ok", "elapsed_ms": 120, "as_of": "2026-09-10",
+         "summary": "21 items; first date=2026-08-11, close=50.0; last date=2026-09-10, close=40.0"}
+
+
 class _FakeAgent:
     """Stands in for agent.py: answers and records one lookup."""
 
     @staticmethod
     def ask_agent(client, question, verbose=False, history=None, trace=None):
         if trace is not None:
-            trace.append({"step": 1, "tool": "get_watchlist", "input": {}})
+            trace.append(dict(_STEP))
         return f"Recorded answer to: {question}"
 
 
@@ -90,7 +96,7 @@ def main() -> int:
     failures += not check("Ask's recorded conversations keep the answer and the lookups",
                           config["chat"] == [{"question": "Which reports soonest?",
                                               "answer": "Recorded answer to: Which reports soonest?",
-                                              "trace": [{"step": 1, "tool": "get_watchlist", "input": {}}]}],
+                                              "trace": [_STEP]}],
                           str(config["chat"]))
     failures += not check("it says which model wrote the AI text", bool(config.get("model")))
     failures += not check("it records the time and whether the market was open",
