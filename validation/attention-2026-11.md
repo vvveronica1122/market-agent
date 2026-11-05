@@ -166,3 +166,25 @@ wrong days, volatile names topping their themes, a news count that is a
 constant, a "high" that fires on one company-day in six -- more than for a
 large gain in ranking. A clean measure of that needs sessions after this
 change ships: log the shipped ranks and the next day's volume.
+
+## Forward log, from 5 November 2026
+
+The rule shipped on 5 November (f048ab9). `validation/forward_log.py`
+records what the home page ranked at each session's close, live data and
+failed lookups included, which a backtest can't reproduce. Once the
+history exists, it fills in each company's same-day volume, the next
+session's volume and its next-session gap from peers, with the backtest's
+definitions; an offline test checks them against `observations()`. From
+20 logged sessions on, `report` gives the score's daily IC on each outcome
+with the backtest's block-bootstrap interval, and its top-pick rate. Those
+sessions are the first in which nothing about the rule was chosen.
+
+    python3 validation/forward_log.py record      # after each close
+    python3 validation/forward_log.py outcomes    # any later day
+    python3 validation/forward_log.py report
+
+The log (`validation/forward/ranks.csv`) is gitignored like the cache,
+since it holds Yahoo's figures; results go here as they come. The first
+session, 5 November, was a broad chip selloff (memory names down 14.4-21.7%,
+AI compute 9.7-16.8%), and four names carried a report date already 7 or 8
+days past: Yahoo's calendar hadn't moved on to the next report.

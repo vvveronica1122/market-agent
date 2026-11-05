@@ -26,3 +26,5 @@ demo/media/
 
 # validation/attention.py caches Yahoo data here: re-fetchable, not ours to republish
 validation/cache/
+# validation/forward_log.py's record of the shipped ranks: Yahoo's figures again
+validation/forward/
