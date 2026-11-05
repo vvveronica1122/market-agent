@@ -979,7 +979,7 @@ def main() -> int:
     server.client = FakeClient(themes_text="I'm afraid I can't do that.")
     failures += not check("malformed theme JSON degrades to no themes, not a crash",
                           server.extract_themes([{"ticker": "MU"}], []) == [])
-    server.client = FakeClient(themes_text='```json\n[{"theme":"Fenced","what":"x","tickers":[]}]\n```')
+    server.client = FakeClient(themes_text='```json\n[{"theme":"Fenced","what":"x","tickers":["MU"]}]\n```')
     fenced = server.extract_themes([{"ticker": "MU"}], [])
     failures += not check("code-fenced JSON is still parsed",
                           fenced and fenced[0]["theme"] == "Fenced", str(fenced))
@@ -999,10 +999,17 @@ def main() -> int:
             odd = f"raised {type(exc).__name__}"
         failures += not check(f"tickers given as {bad_tickers} don't crash or spell a symbol out",
                               isinstance(odd, list) and [t["theme"] for t in odd] == ["Fine"], str(odd))
-    server.client = FakeClient(themes_text='[{"theme": 7, "tickers": ["MU"]}, {"theme": "Ok", "what": null}]')
+    server.client = FakeClient(themes_text='[{"theme": 7, "tickers": ["MU"]}, '
+                                           '{"theme": "Ok", "what": null, "tickers": ["MU"]}]')
     odd = server.extract_themes([{"ticker": "MU"}], [])
     failures += not check("a theme that isn't text is skipped; a missing 'what' is empty, not 'None'",
-                          odd == [{"theme": "Ok", "what": "", "tickers": []}], str(odd))
+                          odd == [{"theme": "Ok", "what": "", "tickers": ["MU"]}], str(odd))
+    server.client = FakeClient(themes_text='[{"theme": "Broader Market AI Selloff", "what": "x"}, '
+                                           '{"theme": "Empty", "what": "x", "tickers": []}, '
+                                           '{"theme": "Fine", "what": "x", "tickers": ["MU"]}]')
+    odd = server.extract_themes([{"ticker": "MU"}], [])
+    failures += not check("a theme that names none of the movers is dropped, as the snapshot's was",
+                          [t["theme"] for t in odd] == ["Fine"], str(odd))
 
     print("\nDegradation")
     server._cache.clear()

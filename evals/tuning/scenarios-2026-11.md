@@ -101,8 +101,10 @@ new checks add the cases it didn't cover:
 Two production behaviours are pinned and should be read as findings.
 Prose before the JSON ("Here are the themes: [...]"), a common way for a
 model to answer, gives no themes at all, and nothing is logged. A theme
-with no `tickers` field is kept with an empty list. That second case was
-already pinned in `web/test_app.py`.
+with no `tickers` field used to be kept with an empty list, and the
+5 November demo snapshot showed one ("Broader Market AI Selloff", no
+companies). Since then a theme that names none of the movers is dropped,
+and `web/test_app.py` checks it.
 
 Each check was confirmed to fail when its fixture or the code it guards
 was broken (eight such edits, each caught, then reverted).

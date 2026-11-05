@@ -1298,7 +1298,10 @@ def extract_themes(movers: list[dict], news: list[dict]) -> list[dict]:
         if unknown:
             app.logger.warning("theme %r: tickers not among the movers dropped: %r",
                                item["theme"], unknown)
-        if named and not tickers:
+        # A theme is a group of movers, so one that names none of them is
+        # commentary: the 5 November snapshot showed "Broader Market AI
+        # Selloff" as a card with no companies and a reason no headline gave.
+        if not tickers:
             continue
         what = item.get("what")
         themes.append(
