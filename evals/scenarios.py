@@ -69,8 +69,26 @@ from tools.relative import relative_rows, theme_summary
 TODAY = date.today()
 
 
+# Each stock's typical daily move, in percent: the standard deviation of its
+# daily returns over the last 250 sessions in validation/cache (fetched
+# 2026-10-05). The app's attention score is measured in these units. Names
+# not in the cache carry rough figures for their kind of stock, marked est.
+TYPICAL_MOVE = {
+    "AAPL": 1.6, "AMD": 4.4, "AMZN": 2.2, "AVGO": 2.9, "CEG": 3.0, "ETN": 2.5, "GEV": 3.3,
+    "GOOGL": 2.0, "META": 2.6, "MSFT": 2.1, "MU": 5.1, "NVDA": 2.4, "SNDK": 7.3, "STX": 4.8,
+    "TSLA": 2.9, "TSM": 2.5, "VRT": 4.1, "VST": 3.1, "WDC": 5.1,
+    "KO": 1.0, "V": 1.3, "MA": 1.4, "PYPL": 2.4, "CRM": 2.3, "NOW": 2.6, "ADBE": 2.3,  # est.
+}
+
+
 def _row(ticker, pct, level, reasons, headline, earnings_in=30):
     """A watchlist row as fetch_row() builds it.
+
+    `level` and `reasons` are the hand-written attention of the scenarios
+    as first written. Since the November attention rule, every row is
+    scored by the app under test instead (_score_by_app, at the end of this
+    module), so the brief sees the level and reason chips production would
+    send; the hand-written ones stand only for a checkout older than that.
 
     Every row carries a next report date, as production rows do; it
     defaults to a month out -- far enough not to be this week's news.
@@ -101,16 +119,32 @@ def _theme(name, benchmark, bench_pct, rows):
             "summary": summary, "rows": rows}
 
 
-def _failed_row(ticker, pct):
-    """A row whose news and calendar lookups both failed, as fetch_row()
-    builds it. Its rank is filled in by _score_failed() once the theme's
-    peer median is known."""
+def _failed_row(ticker, pct, missing=("news", "events"), earnings_in=None):
+    """A row whose lookups failed, as fetch_row() builds it: by default both
+    news and calendar; with `missing=("news",)` and a report date, only the
+    news. Its rank is filled in by the app once the theme's peer median is
+    known."""
+    when = None if earnings_in is None else (TODAY + timedelta(days=earnings_in)).isoformat()
     return {
         "ticker": ticker,
         "price": {"ticker": ticker, "price": 100.0, "change_percent": pct},
         "top_headline": None,
-        "events": {"ticker": ticker, "next_earnings_date": None, "ex_dividend_date": None},
+        "events": {"ticker": ticker, "next_earnings_date": when, "ex_dividend_date": None},
+        "_missing": list(missing),
     }
+
+
+def _app_attention(row, market_pct):
+    """The attention the app under test gives a row: its move against its
+    peers (a theme row) or the market, in its typical daily move. None for
+    a checkout older than the November rule, whose signature differs."""
+    import app
+    if "sigma" not in inspect.signature(app.compute_attention).parameters:
+        return None
+    peer = (row.get("relative") or {}).get("peer_median")
+    return app.compute_attention(row["price"], row.get("events") or {}, market_pct, peer,
+                                 sigma=TYPICAL_MOVE.get(row["ticker"], 2.0),
+                                 missing=row.get("_missing", []))
 
 
 def _score_failed(block, ticker, market_pct):
@@ -130,9 +164,7 @@ def _score_failed(block, ticker, market_pct):
     row = next(r for r in block["rows"] if r["ticker"] == ticker)
     params = inspect.signature(app.compute_attention).parameters
     if "sigma" in params:
-        row["attention"] = app.compute_attention(row["price"], {}, market_pct,
-                                                 row["relative"]["peer_median"], sigma=2.0,
-                                                 missing=["news", "events"])
+        row["attention"] = _app_attention(row, market_pct)
         return block
     args = (row["price"], [], {}, market_pct, row["relative"]["peer_median"])
     if "missing" in params:
@@ -556,7 +588,21 @@ TEST_SCENARIOS = {"single_crash", "quiet_themes_one_mover", "quiet_themes_no_eve
                   "single_mover_with_headline", "theme_rally_policy_headline",
                   "payments_name_data_failed"}
 
+def _score_by_app(spec):
+    """Every row's attention as the app under test computes it, so the
+    brief's input -- each name's level and reason chips -- is what
+    production sends. Rows are scored where they sit: theme rows against
+    their peers, the flat watchlists against the market."""
+    blocks = spec.get("themes")
+    rows = [r for b in blocks for r in b["rows"]] if blocks else spec["rows"]
+    for row in rows:
+        attention = _app_attention(row, spec["market_pct"])
+        if attention is not None:
+            row["attention"] = attention
+
+
 for _name, _spec in SCENARIOS.items():
+    _score_by_app(_spec)
     _spec["rubric"] = _spec["rubric"] + COMMON_RUBRIC
     _spec["split"] = "test" if _name in TEST_SCENARIOS else "train"
     # Theme scenarios also carry the flat list build_brief takes as `rows`,
