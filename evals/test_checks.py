@@ -500,6 +500,27 @@ def main() -> int:
     finally:
         server.client = saved_client
 
+    print("\nThe news check isn't a rewrite")
+    # A brief with a failed name makes one extra call, the news check: one
+    # message, no text handed back. Only calls that hand text back count.
+    clean = "SNDK fell 1%.\n\nNo known report falls this week; STX's date couldn't be loaded."
+    flagged = "SNDK fell 1%.\n\nNothing reports in the next week. STX's date couldn't be loaded."
+    try:
+        server.client = Recorder(_BriefStub(clean, '{"sentences": []}', '{"pass": true, "reason": "ok"}'))
+        with contextlib.redirect_stdout(io.StringIO()):
+            outcome = run_evals.run_scenario("theme_name_data_failed", _BRIEFS["theme_name_data_failed"], 1)
+        failures += not check("a brief that only had its news checked records no rewrite",
+                              outcome["record"]["rewrites"] == [], str(outcome["record"]["rewrites"]))
+        server.client = Recorder(_BriefStub(flagged, '{"sentences": []}', clean, '{"pass": true, "reason": "ok"}'))
+        with contextlib.redirect_stdout(io.StringIO()):
+            outcome = run_evals.run_scenario("theme_name_data_failed", _BRIEFS["theme_name_data_failed"], 1)
+        got = outcome["record"]["rewrites"]
+        failures += not check("one the guard rewrote records the rewrite, not the check",
+                              len(got) == 1 and got[0]["original"] == flagged and got[0]["final"] == clean
+                              and len(got[0]["asked"]) == 1 and "didn't load" in got[0]["asked"][0], str(got))
+    finally:
+        server.client = saved_client
+
     print("\nAn eval run holds one date")
     # Read per call, a run that crossed midnight put a report "today" that
     # the fixtures had written as tomorrow.

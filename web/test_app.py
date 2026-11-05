@@ -1585,46 +1585,84 @@ def main() -> int:
                   "attention": {"level": "incomplete", "factors": [], "missing": ["events", "news"]}}
     cal_bad = "CRASH fell 6%.\n\nSTX barely moved.\n\nNothing reports in the next week. STX's date couldn't be loaded."
     cal_ok = "CRASH fell 6%.\n\nSTX barely moved.\n\nNo known report falls this week; STX's date couldn't be loaded."
+    # STX's news failed too, so its brief costs a news check (the second
+    # call) before any rewrite; NO is a check that finds nothing.
+    NO = '{"sentences": []}'
     server.client = _Scripted(cal_bad)
     out = server.build_brief([known_row], -0.4, spx, [], [])
     failures += not check("with every lookup answered, the guard makes no call, whatever the brief says",
                           out == cal_bad and len(server.client.calls) == 1, out)
-    server.client = _Scripted(cal_bad, cal_ok)
+    server.client = _Scripted(cal_bad, NO, cal_ok)
     out = server.build_brief([known_row, failed_row], -0.4, spx, [], [])
-    ask = server.client.calls[-1]["messages"][2]["content"] if len(server.client.calls) == 2 else ""
+    ask = server.client.calls[-1]["messages"][2]["content"] if len(server.client.calls) == 3 else ""
     failures += not check("a calendar claim over an unknown date is rewritten, and the rewrite shown",
-                          out == cal_ok and len(server.client.calls) == 2, out)
+                          out == cal_ok and len(server.client.calls) == 3, out)
     failures += not check("the request quotes the sentence, says what failed, and asks for known dates",
                           '"Nothing reports in the next week."' in ask
                           and "STX (headlines couldn't be loaded, report date couldn't be loaded)" in ask
                           and '"no known report falls this week"' in ask, ask[:300])
-    server.client = _Scripted(cal_ok)
+    server.client = _Scripted(cal_ok, NO)
     out = server.build_brief([known_row, failed_row], -0.4, spx, [], [])
-    failures += not check("a brief limited to known dates is left alone",
-                          out == cal_ok and len(server.client.calls) == 1, out)
+    failures += not check("a brief limited to known dates is left alone (after its news check)",
+                          out == cal_ok and len(server.client.calls) == 2, out)
     news_bad = ("CRASH fell 6%.\n\nMU, WDC and STX held up. All three were quiet, with no headlines to note.\n\n"
                 "No known report falls this week; STX's date couldn't be loaded.")
-    server.client = _Scripted(news_bad, cal_ok)
+    server.client = _Scripted(news_bad, NO, cal_ok)
     server.build_brief([known_row, failed_row], -0.4, spx, [], [])
-    ask = server.client.calls[-1]["messages"][2]["content"] if len(server.client.calls) == 2 else ""
+    ask = server.client.calls[-1]["messages"][2]["content"] if len(server.client.calls) == 3 else ""
     failures += not check("a group's 'no headlines' beside a failed name is flagged too",
                           '"All three were quiet, with no headlines to note."' in ask, ask[:300])
-    server.client = _Scripted(cal_bad, RuntimeError("overloaded"))
+    server.client = _Scripted(cal_bad, NO, RuntimeError("overloaded"))
     out = server.build_brief([known_row, failed_row], -0.4, spx, [], [])
     failures += not check("a failed rewrite drops the flagged sentence when two are left",
                           out == "CRASH fell 6%.\n\nSTX barely moved.\n\nSTX's date couldn't be loaded.", repr(out))
     short_bad = "Nothing reports in the next week. STX's date couldn't be loaded."
-    server.client = _Scripted(short_bad, RuntimeError("overloaded"))
+    server.client = _Scripted(short_bad, NO, RuntimeError("overloaded"))
     out = server.build_brief([known_row, failed_row], -0.4, spx, [], [])
     failures += not check("and keeps the brief when dropping would leave one sentence", out == short_bad, out)
     both = cal_bad.replace("CRASH fell 6%.", "CRASH fell 6%, more than triple the S&P's 0.4% decline.")
-    server.client = _Scripted(both, both.replace("Nothing reports in the next week.", "No known report falls this week."),
+    server.client = _Scripted(both, NO, both.replace("Nothing reports in the next week.", "No known report falls this week."),
                               cal_ok)
     out = server.build_brief([known_row, failed_row], -0.4, spx, [], [])
-    asks = [c["messages"][2]["content"] for c in server.client.calls[1:]]
+    asks = [c["messages"][2]["content"] for c in server.client.calls[1:] if len(c["messages"]) == 3]
     failures += not check("it runs before the multiples guard, which still catches a multiple after it",
                           len(asks) == 2 and "didn't load" in asks[0] and "multiple" in asks[1] and out == cal_ok,
                           str([a[:60] for a in asks]))
+
+    print("\nThe brief's news check")
+    # A pattern list missed "Nothing newsworthy emerged on those three" and
+    # its like; a model reading for meaning didn't.
+    para = "CRASH fell 6%.\n\nMU, WDC and STX held up. Nothing newsworthy emerged on those three.\n\nNo known report falls this week; STX's date couldn't be loaded."
+    fixed_para = "CRASH fell 6%.\n\nMU, WDC and STX held up; STX's headlines couldn't be loaded.\n\nNo known report falls this week; STX's date couldn't be loaded."
+    from guards import find_failed_data_claims as _patterns
+    failures += not check("the paraphrase is one the patterns miss", not _patterns(para, ["STX"], ["STX"]))
+    server.client = _Scripted(para, '{"sentences": ["Nothing newsworthy emerged on those three."]}', fixed_para)
+    out = server.build_brief([known_row, failed_row], -0.4, spx, [], [])
+    calls = server.client.calls
+    failures += not check("the news check catches it, and the rewrite is shown",
+                          out == fixed_para and len(calls) == 3
+                          and '"Nothing newsworthy emerged on those three."' in calls[2]["messages"][2]["content"], out)
+    failures += not check("the check is its own short call, told which names failed",
+                          calls[1]["system"] == server.NEWS_CHECK_SYSTEM and len(calls[1]["messages"]) == 1
+                          and '"STX"' in calls[1]["messages"][0]["content"])
+    server.client = _Scripted(cal_ok, '```json\n{"sentences": ["STX had no news at all."]}\n```')
+    out = server.build_brief([known_row, failed_row], -0.4, spx, [], [])
+    failures += not check("a sentence the check quotes but the brief doesn't hold sends no rewrite",
+                          out == cal_ok and len(server.client.calls) == 2, out)
+    for label, reply in (("fails", RuntimeError("overloaded")), ("answers in prose", "Looks fine to me.")):
+        server.client = _Scripted(para, reply)
+        out = server.build_brief([known_row, failed_row], -0.4, spx, [], [])
+        failures += not check(f"a check that {label} leaves the patterns alone: nothing they catch, no rewrite",
+                              out == para and len(server.client.calls) == 2, out)
+        server.client = _Scripted(news_bad, reply, cal_ok)
+        out = server.build_brief([known_row, failed_row], -0.4, spx, [], [])
+        failures += not check(f"and what the patterns do catch is still rewritten when it {label}",
+                              out == cal_ok and len(server.client.calls) == 3, out)
+    date_only = dict(failed_row, attention={"level": "incomplete", "factors": [], "missing": ["events"]})
+    server.client = _Scripted(cal_ok)
+    out = server.build_brief([known_row, date_only], -0.4, spx, [], [])
+    failures += not check("with only a date unknown there's no news check: the calendar patterns hold",
+                          out == cal_ok and len(server.client.calls) == 1, out)
 
     print("\nSummary text")
     from tools.market_data import _plain_text

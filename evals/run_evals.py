@@ -185,11 +185,14 @@ def _rewrite_record(calls_before: int, attempt: int, final: str) -> dict | None:
     """When the app's guard found a multiple it made a second call, asking
     for a rewrite. Keep the first text beside the final one, so what the
     guard changed can be read rather than taken on trust."""
-    if server.client.calls - calls_before > 1:
-        log = server.client.log
-        asks = [log[i][2]["content"] for i in range(calls_before + 1, server.client.calls)]
-        return {"run": attempt + 1, "original": log[calls_before + 1][1]["content"],
-                "final": final, "asked": asks}
+    # A rewrite is a call that hands the model its own text back
+    # (user, assistant, user); the brief's news checker is a one-message
+    # call and asks for no rewrite.
+    log = server.client.log
+    rewrites = [log[i] for i in range(calls_before + 1, server.client.calls) if len(log[i]) == 3]
+    if rewrites:
+        return {"run": attempt + 1, "original": rewrites[0][1]["content"],
+                "final": final, "asked": [m[2]["content"] for m in rewrites]}
     return None
 
 

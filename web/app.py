@@ -1650,6 +1650,50 @@ REWRITE_FAILED_DATA = (
 )
 
 
+# The news half of the failed-data guard reads for meaning. Its pattern list
+# caught the wordings it was written from and the brief kept finding others
+# ("Nothing newsworthy emerged on those three", "None generated headlines"),
+# which the eval judge, a model, caught every time
+# (evals/tuning/batch2-news-check-2026-11.md).
+NEWS_CHECK_SYSTEM = """You check one market brief for a single kind of claim. Some names' \
+headlines failed to load, so whether they had news that day is unknown. List every sentence \
+that says or implies one of those names had no news, headlines, stories, catalysts or \
+developments -- by name, or as part of a group that includes it ("all three", "the group", \
+"them", "these names", "the memory names"). Do not list sentences only about other, named \
+names; sentences saying the name's headlines couldn't be loaded or are unavailable; sentences \
+about prices alone ("quiet", "barely moved", "held up"); or sentences about the earnings \
+calendar. Reply with JSON only: {"sentences": ["<each sentence, copied exactly>"]}, with an \
+empty list if there are none."""
+
+
+def news_claim_sentences(text: str, news_failed: list[str]) -> list[str] | None:
+    """The brief's sentences that call a failed name newsless, as the
+    checker reads them, or None when the check couldn't run (the call
+    failed, or its reply wasn't the JSON asked for). Only sentences found
+    word for word in the brief are kept, so a quote the checker made up
+    can't send a rewrite after nothing."""
+    try:
+        response = client.messages.create(
+            model=MODEL,
+            max_tokens=400,
+            system=NEWS_CHECK_SYSTEM,
+            messages=[{"role": "user", "content": json.dumps(
+                {"names_whose_headlines_failed": news_failed, "brief": text}, indent=2)}],
+        )
+        reply = "".join(b.text for b in response.content if b.type == "text")
+    except Exception:
+        return None
+    start, end = reply.find("{"), reply.rfind("}")
+    try:
+        parsed = json.loads(reply[start:end + 1]) if start >= 0 and end > start else None
+    except json.JSONDecodeError:
+        parsed = None
+    if not isinstance(parsed, dict) or not isinstance(parsed.get("sentences"), list):
+        return None
+    return [q.strip() for q in parsed["sentences"]
+            if isinstance(q, str) and q.strip() and q.strip() in text]
+
+
 def without_failed_data_claims(content: str, text: str, news_failed: list[str],
                                dates_unknown: list[dict]) -> str:
     """The brief, with claims a failed lookup can't support rewritten once.
@@ -1662,10 +1706,21 @@ def without_failed_data_claims(content: str, text: str, news_failed: list[str],
     a flag can be wrong, as a multiple can't, so the model's second look is
     trusted. If the call fails, the flagged sentences are dropped when two
     are left; otherwise the brief stands. No failed name, no call.
+
+    When a name's news failed, a checker (news_claim_sentences) reads the
+    brief too, one extra call; its sentences join the pattern flags. If it
+    can't run, the patterns stand alone. A date that is only unknown needs
+    no checker: the calendar patterns hold.
     """
     if not news_failed and not dates_unknown:
         return text
     flagged = find_failed_data_claims(text, news_failed, [d["ticker"] for d in dates_unknown])
+    if news_failed:
+        checked = news_claim_sentences(text, news_failed)
+        if checked is None:
+            app.logger.warning("news check unavailable; pattern flags only")
+        else:
+            flagged += [q for q in checked if q not in flagged]
     if not flagged:
         return text
     why = {t: ["headlines couldn't be loaded"] for t in news_failed}
