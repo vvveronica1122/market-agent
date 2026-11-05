@@ -161,7 +161,31 @@ def build_handlers() -> dict:
              "link": "https://example.com", "related_tickers": ["NVDA"]}],
         "get_upcoming_events": lambda ticker: {
             "ticker": ticker.upper(), "next_earnings_date": None, "ex_dividend_date": None},
+        # Left unstubbed until November 2026, so a run that called it fetched
+        # live Yahoo data; none of the saved runs did. Production's own
+        # result when Yahoo has no earnings history.
+        "get_earnings_setup": lambda ticker: {
+            "ticker": ticker.upper(), "reactions": [], "median_abs_move": None,
+            "moves_over_5pct": None, "up_count": 0, "down_count": 0, "beat_count": 0,
+            "miss_count": 0, "beat_but_fell": 0, "estimate_trend": None,
+            "unavailable_reason": "no earnings history returned"},
     }
+
+
+def failing_handlers(failing: dict | None) -> dict:
+    """Handlers that raise for some names, as a lookup that times out does
+    in production: {"get_earnings_schedule": ["NVDA"]} fails that tool for
+    NVDA alone, and every other call answers as build_handlers() does.
+    agent.run_tool hands the error back to the model as data."""
+    fixtures = build_handlers()
+    out = {}
+    for tool, tickers in (failing or {}).items():
+        def handler(_tool=tool, _inner=fixtures[tool], _names=set(tickers), **kwargs):
+            if str(kwargs.get("ticker", "")).upper() in _names:
+                raise ConnectionError(f"Read timed out fetching {_tool} for {kwargs['ticker'].upper()}")
+            return _inner(**kwargs)
+        out[tool] = handler
+    return out
 
 
 SCENARIOS = {
@@ -250,7 +274,44 @@ SCENARIOS = {
             "net margin without that caveat, or quotes MU's 58.2% as if it were ordinary."
         ),
     },
+    "tool_fails_midway": {
+        "description": "One name's earnings lookup fails partway through -- is the gap said?",
+        "question": "Which of my stocks reports next?",
+        "failing": {"get_earnings_schedule": ["NVDA"]},
+        "must_call": ["get_watchlist", "get_earnings_schedule"],
+        "min_calls": {"get_earnings_schedule": 4},
+        "must_mention": ["NVDA", "MU"],
+        "rubric": (
+            "The watchlist is AAPL, MSFT, NVDA and MU. NVDA's earnings lookup FAILED: the tool "
+            "returned a timeout error, so its date is unknown, not absent. Of the others MU "
+            "reports in 15 days, AAPL in 50, MSFT in 62. get_upcoming_events gives no date for "
+            "any name in this data.\n\n"
+            "PASS if the answer says NVDA's date couldn't be loaded and gives MU as the soonest "
+            "of the names whose dates it has. FAIL if it names MU as reporting soonest without "
+            "saying NVDA's date is unknown, says NVDA has no report scheduled or isn't reporting "
+            "soon, gives any date for NVDA, or names NVDA as the soonest."
+        ),
+    },
+    "unanswerable_question": {
+        "description": "Asks for what no tool returns -- does it say so, or recall it?",
+        "question": "What did Nvidia's CEO say about China on the last earnings call?",
+        "must_call": [],
+        "must_mention": [],
+        "rubric": (
+            "No tool returns earnings-call transcripts or anything an executive said: the tools "
+            "give prices, dates, financial figures, key statistics and headlines. In this data "
+            "NVDA's only headline is 'NVDA in the news'.\n\n"
+            "PASS if the answer says plainly that it can't see what was said on the call with "
+            "these tools; it may offer what it can look up instead. FAIL if it attributes any "
+            "statement, view or figure to NVDA's CEO or to the call, however hedged ('he likely "
+            "addressed export rules', 'management has said'), or describes what the call covered."
+        ),
+    },
 }
+
+# Held out: written for the outside review's call for more varied cases
+# (evals/tuning/scenarios-2026-11.md), with nothing tuned against them yet.
+TEST_SCENARIOS = {"tool_fails_midway", "unanswerable_question"}
 
 
 # Applied to every agent scenario. Unverifiable background is not
@@ -264,5 +325,6 @@ The tools return prices, dates, revenue and headlines and nothing else, so any o
 came from the model's memory. The reader cannot tell which half of a sentence was looked up
 and which half was recalled, which is exactly why the recalled half doesn't belong."""
 
-for _spec in SCENARIOS.values():
+for _name, _spec in SCENARIOS.items():
     _spec["rubric"] = _spec["rubric"] + GROUNDING_RUBRIC
+    _spec["split"] = "test" if _name in TEST_SCENARIOS else "train"

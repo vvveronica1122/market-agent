@@ -294,7 +294,9 @@ def main() -> int:
     held_out = {n for n, sp in SCENARIOS.items() if sp["split"] == "test"}
     failures += not check("the scenarios written to be held out are in the test split",
                           {"quiet_themes_no_events", "single_mover_with_headline",
-                           "theme_rally_policy_headline"} <= held_out, str(held_out))
+                           "theme_rally_policy_headline", "broad_rally_one_falls",
+                           "market_moved_watchlist_flat", "two_reports_this_week",
+                           "stale_headline"} <= held_out, str(held_out))
 
     from analysis_scenarios import ANALYSIS_SCENARIOS as _AS
     failures += not check("every analysis scenario is explicitly train or test",
@@ -302,7 +304,15 @@ def main() -> int:
     failures += not check("the analysis scenarios written to be held out are in the test split",
                           {n for n, sp in _AS.items() if sp["split"] == "test"} ==
                           {"theme_rally_with_upgrade_headline", "mixed_move_report_tomorrow",
-                           "company_rise_no_news"})
+                           "company_rise_no_news", "contradictory_headline",
+                           "no_theme_comparison", "thin_earnings_record"})
+
+    from agent_scenarios import SCENARIOS as _AG
+    failures += not check("every agent scenario is explicitly train or test",
+                          all(sp.get("split") in ("train", "test") for sp in _AG.values()))
+    failures += not check("the agent scenarios written to be held out are in the test split",
+                          {n for n, sp in _AG.items() if sp["split"] == "test"} ==
+                          {"tool_fails_midway", "unanswerable_question"})
 
     print("\nAnalysis fixtures name the weekday their report date falls on")
     # The report dates are offsets from date.today(), so a weekday written
@@ -417,9 +427,14 @@ def main() -> int:
         for name, spec in ANALYSIS_SCENARIOS.items():
             out = server.analyze(spec["ticker"], copy.deepcopy(spec["data"]))
             sent = server.client.last_input or ""
-            failures += not check(f"analysis scenario '{name}' runs and its theme comparison reaches the model",
-                                  out == "Stub analysis." and '"theme_comparison"' in sent
-                                  and '"peer_median_change_percent"' in sent
+            # A stock in no theme gets no comparison at all, as analyze()
+            # sends it: the model must not be handed an empty one.
+            themed = spec["data"].get("theme") is not None
+            failures += not check(f"analysis scenario '{name}' runs and its theme comparison "
+                                  f"{'reaches' if themed else 'is absent from'} the model",
+                                  out == "Stub analysis."
+                                  and ('"theme_comparison"' in sent) == themed
+                                  and ('"peer_median_change_percent"' in sent) == themed
                                   and f'"ticker": "{spec["ticker"]}"' in sent, out[:60])
             own = spec["data"]["price"]["change_percent"]
             gap = round(own - spec["data"]["market"]["change_percent"], 2)
@@ -657,6 +672,201 @@ def main() -> int:
                           "2026-10-07" in cap.messages.prompts[2])
     failures += not check("without it, the prompt claims no date",
                           "TODAY'S DATE" not in cap.messages.prompts[0])
+
+    print("\nThe held-out scenarios of November 2026 (evals/tuning/scenarios-2026-11.md)")
+    # Each targets one failure mode; these check the fixture sets it up the
+    # way the rubric says, through the code production runs.
+    import json
+    import statistics
+
+    class _Capture:
+        def __init__(self, reply):
+            self.messages, self.reply, self.sent = self, reply, []
+        def create(self, **kw):
+            self.sent.append(kw["messages"][0]["content"])
+            return _R(self.reply)
+
+    def _brief_payload(name):
+        spec = _BRIEFS[name]
+        capture = _Capture("stub brief")
+        server.client = capture
+        try:
+            server.build_brief(spec["rows"], spec["market_pct"], spec["indices"], spec["movers"],
+                               spec["headlines"], themes=spec.get("themes"))
+        finally:
+            server.client = saved_client
+        return capture.sent[0]
+
+    def _names(sent):
+        return {n["ticker"]: n for t in json.loads(sent)["watchlist_themes"] for n in t["names"]}
+
+    names = _names(_brief_payload("broad_rally_one_falls"))
+    failures += not check("on the broad rally META alone moves against its theme, and ranks high",
+                          names["META"]["move_type"] == "company" and names["META"]["attention"] == "high"
+                          and all(n["move_type"] == "theme" for t, n in names.items() if t != "META"),
+                          str({t: n["move_type"] for t, n in names.items()}))
+    sent = _brief_payload("market_moved_watchlist_flat")
+    names = _names(sent)
+    failures += not check("when the market falls 2.3%, every watchlist name is quiet and under 0.6%",
+                          json.loads(sent)["market"]["spy_change_percent"] == -2.3
+                          and all(abs(n["change_percent"]) < 0.6 and n["attention"] == "quiet"
+                                  for n in names.values()),
+                          str({t: (n["change_percent"], n["attention"]) for t, n in names.items()}))
+    sent = _brief_payload("two_reports_this_week")
+    names = _names(sent)
+    first, second = json.loads(sent)["upcoming_reports"][:2]
+    failures += not check("this week's reports reach the brief in order, the later one ranked higher",
+                          (first["ticker"], first["days"], second["ticker"], second["days"]) == ("CRM", 2, "ADBE", 5)
+                          and first["date"] != second["date"]
+                          and names["ADBE"]["attention"] == "high" and names["CRM"]["attention"] == "quiet",
+                          f"{first} {second}")
+    sent = _brief_payload("stale_headline")
+    failures += not check("the stale headline reaches the brief as production sends it: a title, no time",
+                          _names(sent)["MU"]["top_headline"].startswith("Micron shares sink 9%")
+                          and '"published"' not in sent and _names(sent)["MU"]["change_percent"] == 0.4)
+
+    setup = ANALYSIS_SCENARIOS["thin_earnings_record"]["data"]["setup"]
+    reactions = setup["reactions"]
+    modelled = [r for r in reactions if r["abnormal_move"] is not None]
+    failures += not check("the thin record's figures are what get_earnings_setup computes from its two reactions",
+                          setup["modelled_count"] == len(modelled) == 1
+                          and setup["median_abs_move"]
+                          == round(statistics.median(abs(r["next_session_move"]) for r in reactions), 1)
+                          and setup["median_abs_abnormal"]
+                          == round(statistics.median(abs(r["abnormal_move"]) for r in modelled), 1)
+                          and setup["beat_count"] == sum(r["surprise_percent"] >= 0 for r in reactions)
+                          and setup["beat_but_fell"] == sum(r["surprise_percent"] >= 0
+                                                            and r["next_session_move"] < 0 for r in reactions)
+                          and setup["beat_but_lagged"] == sum(r["surprise_percent"] > 0
+                                                              and r["abnormal_move"] < 0 for r in modelled)
+                          and setup["unusual_count"] == sum(abs(r["standardized"]) >= 2 for r in modelled))
+    lone = {"themes": [{"id": "chips", "name": "Chips", "benchmark": "SMH", "stocks": [{"ticker": "MU"}]}]}
+    failures += not check("a stock in no theme gets theme None from the stock page, as its fixture has",
+                          server.theme_context(lone, "COST", 2.9) is None
+                          and ANALYSIS_SCENARIOS["no_theme_comparison"]["data"]["theme"] is None)
+
+    import agent
+    import run_agent_evals as rae
+    from agent_scenarios import build_handlers
+
+    class _Use:
+        type = "tool_use"
+        def __init__(self, name, tool_input, id_):
+            self.name, self.input, self.id = name, tool_input, id_
+
+    class _Turn:
+        def __init__(self, content, stop_reason):
+            self.content, self.stop_reason = content, stop_reason
+
+    class _AgentScript:
+        """The agent's side, scripted: these tool calls one per step, then
+        the answer. A call without tools is the judge's."""
+        def __init__(self, uses, answer):
+            self.messages, self.uses, self.answer = self, list(uses), answer
+        def create(self, **kw):
+            if "tools" not in kw:
+                return _R('{"pass": true, "reason": "stub"}')
+            if self.uses:
+                return _Turn([_Use(*self.uses.pop(0))], "tool_use")
+            return _Turn([_B2(self.answer)], "end_turn")
+
+    saved_handlers, saved_eval = dict(agent.HANDLERS), getattr(agent, "_eval_client", None)
+    try:
+        # As run_agent_evals.main() sets them up: fixtures, every call recorded.
+        agent.HANDLERS.update(build_handlers())
+        for tool, handler in list(agent.HANDLERS.items()):
+            agent.HANDLERS[tool] = rae._recording(tool, handler)
+        spec = _AG["tool_fails_midway"]
+        agent._eval_client = _AgentScript(
+            [("get_watchlist", {}, "w")]
+            + [("get_earnings_schedule", {"ticker": t}, f"e{t}") for t in ("AAPL", "MSFT", "NVDA", "MU")],
+            "MU reports soonest of the names I could check, in 15 days; NVDA's date couldn't be loaded.")
+        with contextlib.redirect_stdout(io.StringIO()):
+            with rae.tools_failing(spec["failing"]):
+                outcome = rae.run_scenario("tool_fails_midway", spec, 1)
+        calls = outcome["record"]["first_output"]["tool_calls"]
+        by_name = {c["input"].get("ticker"): c for c in calls if c["tool"] == "get_earnings_schedule"}
+        failures += not check("in tool_fails_midway NVDA's lookup fails partway, and the error is the evidence",
+                              "timed out" in by_name["NVDA"].get("error", "")
+                              and by_name["MU"]["result"]["days_away"] == 15
+                              and by_name["MSFT"]["result"]["days_away"] == 62,
+                              str(by_name.get("NVDA")))
+        failures += not check("and every check runs over that trace",
+                              outcome["failed"] == 0
+                              and outcome["record"]["checks"]["calls get_earnings_schedule at least 4 times"]
+                              ["passed"] == 1, str(outcome["record"]["checks"]))
+        restored = json.loads(agent.run_tool("get_earnings_schedule", {"ticker": "NVDA"}))
+        failures += not check("the failure ends with its scenario: NVDA's date comes back after it",
+                              restored.get("days_away") == 3, str(restored))
+        setup_reply = json.loads(agent.run_tool("get_earnings_setup", {"ticker": "NVDA"}))
+        failures += not check("the earnings setup is a fixture too, never a live lookup",
+                              setup_reply.get("reactions") == [] and setup_reply.get("unavailable_reason"),
+                              str(setup_reply)[:80])
+
+        agent._eval_client = _AgentScript([], "These tools don't return what was said on earnings calls.")
+        with contextlib.redirect_stdout(io.StringIO()):
+            with rae.tools_failing(_AG["unanswerable_question"].get("failing")):
+                outcome = rae.run_scenario("unanswerable_question", _AG["unanswerable_question"], 1)
+        failures += not check("unanswerable_question runs through the agent loop with no tool required",
+                              outcome["failed"] == 0, str(outcome["record"]["checks"]))
+    finally:
+        agent.HANDLERS.clear()
+        agent.HANDLERS.update(saved_handlers)
+        agent._eval_client = saved_eval
+
+    print("\nDiscover's themes from malformed model output")
+    # web/test_app.py already covers prose instead of JSON, code fences,
+    # tickers not among the movers (with case and repeats), a theme whose
+    # tickers are all invented, tickers given as a string, a number, an
+    # object or non-strings, a theme that isn't text and a missing 'what'.
+    # These are the shapes it doesn't.
+    class _Themes:
+        def __init__(self, text):
+            self.messages, self.text, self.calls = self, text, 0
+        def create(self, **kw):
+            self.calls += 1
+            return _R(self.text)
+
+    movers = [{"ticker": t} for t in ("MU", "WDC", "STX", "NVDA", "AMD", "AVGO", "TSM", "SNDK", "LLY")]
+
+    def themes_from(text, given=movers):
+        server.client = _Themes(text)
+        try:
+            return server.extract_themes(given, [])
+        except Exception as exc:
+            return f"raised {type(exc).__name__}"
+        finally:
+            server.client = saved_client
+
+    for root in ('{"themes": [{"theme": "Chips", "what": "x", "tickers": ["MU"]}]}', "null", '"Chips"', "42"):
+        failures += not check(f"a root of {root[:12]}... instead of a list gives no themes, not a crash",
+                              themes_from(root) == [], str(themes_from(root)))
+    odd = themes_from('["Chips", null, ["MU"], {"theme": "Fine", "what": "x", "tickers": ["MU"]}]')
+    failures += not check("an item that isn't an object is skipped, the rest kept",
+                          isinstance(odd, list) and [t["theme"] for t in odd] == ["Fine"], str(odd))
+    odd = themes_from('[{"what": "x", "tickers": ["MU"]}, {"theme": "   ", "tickers": ["MU"]},'
+                      ' {"theme": "Fine", "tickers": ["MU"]}]')
+    failures += not check("a theme with no name, or a blank one, is skipped",
+                          isinstance(odd, list) and [t["theme"] for t in odd] == ["Fine"], str(odd))
+    many = themes_from(json.dumps([{"theme": f"T{i}", "tickers": ["MU"]} for i in range(6)]))
+    failures += not check("only the first four themes are kept",
+                          isinstance(many, list) and [t["theme"] for t in many] == ["T0", "T1", "T2", "T3"],
+                          str(many))
+    wide = themes_from(json.dumps([{"theme": "All", "tickers": [m["ticker"] for m in movers]}]))
+    failures += not check("a theme keeps at most eight tickers",
+                          isinstance(wide, list) and wide[0]["tickers"] == [m["ticker"] for m in movers][:8],
+                          str(wide))
+    long = themes_from(json.dumps([{"theme": "x" * 200, "what": "y" * 1000, "tickers": ["MU"]}]))
+    failures += not check("a long name and description are cut to 80 and 400 characters",
+                          isinstance(long, list) and len(long[0]["theme"]) == 80 and len(long[0]["what"]) == 400)
+    failures += not check("prose before the JSON gives no themes, not a crash",
+                          themes_from('Here are the themes:\n[{"theme": "Chips", "tickers": ["MU"]}]') == [])
+    server.client = _Themes('[{"theme": "Chips", "tickers": ["MU"]}]')
+    try:
+        failures += not check("with no movers there is nothing to group and no model call",
+                              server.extract_themes([], []) == [] and server.client.calls == 0)
+    finally:
+        server.client = saved_client
 
     import agent_scenarios
     handlers = agent_scenarios.build_handlers()
