@@ -183,6 +183,15 @@ sessions are the first in which nothing about the rule was chosen.
     python3 validation/forward_log.py outcomes    # any later day
     python3 validation/forward_log.py report
 
+On the author's Mac a launchd agent runs `record` and then `outcomes` at
+16:30 local (Eastern) time on weekdays. A run missed while the Mac sleeps
+happens when it wakes; a day it is off is lost to `record`, though
+`outcomes` catches up. The agent is
+`~/Library/LaunchAgents/com.market-agent.forward-log.plist`, and its
+output goes to `~/Library/Logs/market-agent-forward-log.log`. Its first
+run, on 5 November, found the session already recorded and filled in
+that session's volume for all 19 companies.
+
 The log (`validation/forward/ranks.csv`) is gitignored like the cache,
 since it holds Yahoo's figures; results go here as they come. The first
 session, 5 November, was a broad chip selloff (memory names down 14.4-21.7%,
