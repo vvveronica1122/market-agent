@@ -552,6 +552,12 @@ def main() -> int:
                           and pypl["attention"].get("missing", []) == (["events", "news"] if after else [])
                           and _BRIEFS["payments_name_data_failed"]["split"] == "test",
                           str(pypl["attention"]))
+    amgn = next(r for r in _BRIEFS["news_only_failed"]["rows"] if r["ticker"] == "AMGN")
+    failures += not check("in the news-only scenario only the news failed, the report date is known",
+                          amgn["attention"].get("missing") == ["news"]
+                          and amgn["events"]["next_earnings_date"] is not None
+                          and "earnings in 9d" in [f["label"] for f in amgn["attention"]["factors"]]
+                          and _BRIEFS["news_only_failed"]["split"] == "test", str(amgn["attention"]))
     failures += not check("the abnormal-move rule is graded where the data has abnormal moves",
                           all("(e) Presenting the abnormal move" in ANALYSIS_SCENARIOS[n]["rubric"]
                               for n in ("theme_drop_before_earnings", "mixed_move_report_tomorrow",
