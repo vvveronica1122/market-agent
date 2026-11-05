@@ -5,7 +5,9 @@ with their group and which moved on their own, and a tool-using Claude
 agent that answers questions from live market data instead of from memory.
 Plain Python rules do the ranking; Claude only explains.
 
-<!-- TODO: link to the hosted static demo once it's published -->
+**[Live demo](https://vvveronica1122.github.io/market-agent/)**: the dashboard as it stood at
+the close on 5 November 2026, served as static files. Prices don't update,
+and Ask replays answers the agent gave when the snapshot was taken.
 
 > Not financial advice. Data comes from free, delayed Yahoo Finance endpoints
 > and can be incomplete or wrong. The prompts forbid buy/sell/hold opinions,
@@ -16,33 +18,36 @@ Plain Python rules do the ranking; Claude only explains.
 You follow four themes: AI compute, memory & storage, mega-cap tech, and AI
 power. You open the dashboard to answer three questions: what changed, why
 it might matter, and what to check next. The screenshots are from the
-static snapshot of the Monday 5 October 2026 close, and every page says
-which session its prices are from.
+static snapshot of the Thursday 5 November 2026 close, a day the Nasdaq 100
+fell 6.4% and chip stocks 9.7-21.7%, and every page says which session its
+prices are from.
 
-![Home: an AI brief over four themes, each measured against its ETF and its peers](docs/images/home.png)
+![Home: companies and themes ranked by attention, each with the reasons for its place](docs/images/home.png)
 
-**What changed.** Home has one card per theme. Each shows the theme's
-equal-weighted move against its ETF, how many companies beat the ETF, and
-the spread between them. AI compute was up 1.65% against SMH's 0.50%, and
-each company is tagged *With theme*: the group moved together. Memory &
-storage was up 2.46% on average, but every company is tagged *Own move*.
-Above the cards, an AI brief tells each theme's story once and names the
-companies that broke from their group. It ends with the coming reports,
-here "TSM reports in 10 days".
+**What changed.** Home is one list, ranked across all your themes. A theme
+whose companies moved together takes one line: AI compute fell 11.75%,
+"4 of 4 moved together, led by AMD -16.8%", and memory & storage 17.55%.
+A company that broke from its group gets a line of its own. TSLA, first,
+fell 10.1% while its mega-cap peers' median fell 2.9%, and is tagged *Own
+move*. CEG, further down, fell 2.4% against its peers' 7.7% and reports in
+four days. Beside the list are the reports due in the next two weeks and
+each theme against its ETF. The AI brief opens from a button instead of
+greeting you. It tells each theme's story once, names the companies that
+broke from their group, and ends with the coming reports. The snapshot
+keeps what the model wrote that evening, unedited.
 
 ![Memory & storage, Today tab: companies ordered by what needs attention](docs/images/theme-today.png)
 
 **Why it might matter.** On the theme page, the *Today* tab orders the
 companies by an attention score. Each row shows the chips that earned its
 rank, so you can see why a company sits where it does: the move and its gap
-to peers, each sized against the stock's own usual day ("-4.4% move, 2.1x
-usual", "-1.7pt vs peers, 1.0x usual"), and "report reaction" on the
-session a report lands. "earnings in 3d" still shows, but adds nothing: a
-report coming up is in the calendar, not the rank. In the screenshot, taken
-under the earlier score, WDC (+6.32%) and STX (+4.78%) *need attention*.
-SNDK and MU fell slightly and are *worth a look*: each was more than 5
-points behind its peers. The page notes that SMH holds
-only MU, so for this theme the peer comparison is the one to read.
+to peers, each sized against the stock's own usual day ("-21.7% move, 4.1x
+usual", "-7.2pt vs peers, 2.8x usual"), and "report reaction" on the session a report
+lands. "earnings in 3d" still shows, but adds nothing: a report coming up
+is in the calendar, not the rank. In the screenshot all four memory names
+*need attention* and all are tagged *With theme*: they fell 14-22%
+together, against SMH's 10.8%. The page notes that SMH holds only MU, so
+for this theme the peer comparison is the one to read.
 
 "Peers" means the median move of the *other* companies in the theme. This
 matters because cap-weighted ETFs are dominated by the names being
@@ -51,8 +56,9 @@ would decide an average.
 
 ![MU's stock page: its move against its peer median and SMH](docs/images/stock-overview.png)
 
-**What to check.** MU's page puts its −0.49% beside its peers' median of
-+4.78% (−5.27pt) and SMH (−0.99pt). Below that come a six-month chart, an
+**What to check.** MU's page puts its −16.98% beside its peers' median of
+−17.14% (+0.16pt) and SMH (−6.17pt): a fall it shared with its group, far
+beyond its ETF. Below that come a six-month chart, an
 AI analysis (told to report the headlines beside the move, not to claim
 they caused it), and the headlines themselves. The *Earnings* tab measures
 the last eight reports with a market model: the move beyond what beta and
@@ -255,6 +261,10 @@ governed by Yahoo's terms.
 <td width="50%"><img src="docs/images/theme-peers.png" alt="Peer table with the theme median and flags where a figure would mislead"></td>
 </tr>
 <tr>
+<td><img src="docs/images/home-brief.png" alt="The AI brief, opened from the home page"></td>
+<td><img src="docs/images/stock-earnings.png" alt="MU's Earnings tab: each report's move beyond what the market predicted"></td>
+</tr>
+<tr>
 <td><img src="docs/images/discover.png" alt="Discover: market-wide movers grouped into themes"></td>
 <td><img src="docs/images/ask.png" alt="The Ask panel showing every tool call the agent made before answering"></td>
 </tr>
@@ -299,7 +309,8 @@ docs/MarketAgent_Review_and_Improvement_Plan.md   the outside review (Chinese)
   streaming, options flow or dark pool data. When a ticker's own Yahoo
   news feed is empty (as it was for every ticker in October 2026),
   headlines come from Yahoo's search endpoint. Those have no summaries,
-  so the AI text works from headlines alone.
+  so the AI text works from headlines alone, and many are about another
+  company (on 5 November AAPL's row showed a story about dYdX).
 - The attention score's caps and reaction bonus were set by hand before its
   backtest, and its thresholds come from one stretch of 2025–26; on the
   next six months "high" meant less volume than on the stretch it was set
@@ -318,6 +329,9 @@ docs/MarketAgent_Review_and_Improvement_Plan.md   the outside review (Chinese)
   months; the pages label it. Market hours ignore holidays. Discover falls
   back to a fixed large-cap list, and says so, if Yahoo's screener fails.
 - Notes and alerts aren't built; real alerts need a background scheduler.
+- Every open problem found so far, with where it was found and how it
+  might be fixed, is listed in [docs/ISSUES.md](docs/ISSUES.md) (in
+  Chinese).
 
 ## License
 

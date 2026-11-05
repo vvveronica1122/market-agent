@@ -49,6 +49,7 @@ MOBILE = {"width": 390, "height": 844}
 # (file name, hash route, what to do before the shot)
 SHOTS = [
     ("home", "#/", None),
+    ("home-brief", "#/", "brief"),
     ("theme-today", "#/theme/memory-storage", None),
     ("theme-performance", "#/theme/memory-storage/performance", None),
     ("theme-earnings", "#/theme/ai-compute/earnings", None),
@@ -117,6 +118,12 @@ def ask_first_question(page) -> None:
     page.wait_for_timeout(300)
 
 
+def open_brief(page) -> None:
+    """The home page's brief, opened from its button the way a reader would."""
+    page.click(".protoB-brief-button")
+    settle(page)
+
+
 def screenshots(browser, base: str, out: Path) -> list[Path]:
     out.mkdir(parents=True, exist_ok=True)
     written = []
@@ -127,6 +134,8 @@ def screenshots(browser, base: str, out: Path) -> list[Path]:
         settle(page)
         if action == "ask":
             ask_first_question(page)
+        elif action == "brief":
+            open_brief(page)
         path = out / f"{name}.png"
         page.screenshot(path=str(path))
         shrink(path)
@@ -243,7 +252,8 @@ def encode(frames: Path, out: Path) -> list[Path]:
 
 
 def walkthrough(browser, base: str, out: Path) -> list[Path]:
-    """About a minute: home and the brief, a theme's tabs, a company, Ask."""
+    """About a minute: the ranked home page and its brief, a theme's tabs, a
+    company, Ask."""
     out.mkdir(parents=True, exist_ok=True)
     context = browser.new_context(viewport=DESKTOP)
     context.add_init_script(POINTER_JS)
@@ -256,9 +266,13 @@ def walkthrough(browser, base: str, out: Path) -> list[Path]:
     page.mouse.move(*v.pointer)
     v.shot()
     v.hold(1.8)
-    v.scroll(500); v.hold(1.6)                       # the brief, then the theme cards
-    v.scroll(600); v.hold(1.6)
-    v.scroll(-1100, 1.0); v.hold(0.4)
+    v.scroll(450); v.hold(1.6)                       # the ranked list
+    v.scroll(450); v.hold(1.4)
+    v.scroll(-900, 1.0); v.hold(0.4)
+    v.click(".protoB-brief-button")                  # the brief opens only when asked for
+    v.hold(3.2)
+    v.click(".protoB-close")
+    v.hold(0.5)
 
     v.click('.nav-themes a[href="#/theme/memory-storage"]')
     v.hold(1.8)

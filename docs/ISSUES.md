@@ -10,10 +10,10 @@
 |---|---|---|---|---|
 | A1 | brief 把新评分的 "1.6x usual"（平时波动的 1.6 倍）读成成交量："on nearly twice their typical volume"。倍数检查的改写还把正确的 "1.6x its usual pace" 改成了 "volume 60% above usual" | [新闻句检查记录](../evals/tuning/batch2-news-check-2026-11.md)，"Found on the way" 一节 | 给 brief 的数据里把这项写清楚，比如 "-16.8%，平时一天大约动 3.8%"，不用倍数 | 要，改了 brief 的输入 |
 | A2 | 倍数检查漏掉 "six times harder"、"three to five times harder" 这类说法 | 同上 | `guards.py` 的倍数规则补上，加离线测试 | 改规则本身不用；最好顺带重跑一次倍数评估 |
-| A3 | 因果说法："AMZN jumped 6.4% following its earnings report"（线上首页 brief）；Discover 的 "strong Q3 results, driving their shares higher"；VRT 分析里的 "appears linked to the broader sector rotation" | 11 月初的线上 brief；11-05 demo 快照 | brief 和 Discover 的提示词，或者补一条因果检查 | 要 |
+| A3 | 因果说法："AMZN jumped 6.4% following its earnings report"（线上首页 brief）；Discover 的 "strong Q3 results, driving their shares higher" 和 "likely driven by its AI-powered advertising platform"（数据里没有这个理由）；VRT 分析里的 "appears linked to the broader sector rotation" | 11 月初的线上 brief；11-05 demo 快照 | brief 和 Discover 的提示词，或者补一条因果检查 | 要 |
 | A4 | 已经过去的财报日期：Yahoo 的"下一次财报日期"没更新时，传给 brief 的天数是负的（-3、-7、-8），brief 写出"三天前刚发过财报"，但没有可靠来源支撑 | 线上 brief；11-05 的前向记录里有 4 家 | 天数为负时不当作"下一次"，改传上一次财报日期 | 要 |
 | A5 | 给没有发布时间的新闻标上时间："reported this morning"、"A headline this morning"。数据里根本没有新闻时间，而 brief 提示词自己的示例就写着 "reported this morning" | [评估场景记录](../evals/tuning/scenarios-2026-11.md)；新闻句检查记录 | 改提示词里的示例；或者把新闻时间传进去 | 要 |
-| A6 | 日历范围算错：把 12 天后的 NVDA 算进"未来一周"；"the only name reporting within the week" 说的是 9 天后的财报 | 11-05 demo 快照；新闻句检查记录 | 在数据里直接给出"本周内"的名单，不让模型自己判断 | 要 |
+| A6 | 日历范围和计数算错：把 12 天后的 NVDA 算进"未来一周"；"the only name reporting within the week" 说的是 9 天后的财报；说 1 月 26 到 28 日有"六家"发财报，其实是七家；说"下一批在 1 月下旬"，漏掉了之前的 AVGO、MU、TSM | 11-05 demo 快照（两次构建）；新闻句检查记录 | 在数据里直接给出"本周内"的名单，不让模型自己判断 | 要 |
 | A7 | 比较说错：说 AAPL "跑赢的幅度差不多"，实际 AAPL 是 +1.6 个点，TSLA 是 -7.2 个点 | 11-05 demo 快照 | 先观察会不会反复出现；可以考虑加一条检查 | 先观察 |
 | A8 | 某家公司的新闻没加载出来时，约 8% 的 brief 仍会说它（或它所在的一组）"没有新闻"（6/72）。模型检查器能把这个比例降到约 2%，但误报太多、改写会伤到正确内容，所以没合并 | [新闻句检查记录](../evals/tuning/batch2-news-check-2026-11.md) | 检查器只处理点名这家公司、或说到包含它的一组的句子；只删被标的那一句，不整篇重写 | 要，先写计划 |
 | A9 | 日期未知时，"the calendar is quiet until CRM in 18 days" 这种没写 "known" 的说法，两道检查都没拦住 | 新闻句检查记录 | 补日历规则 | 要 |
