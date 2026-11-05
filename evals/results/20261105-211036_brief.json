@@ -1,0 +1,542 @@
+{
+  "kind": "brief",
+  "timestamp": "2026-11-05T21:10:36+00:00",
+  "model": "claude-sonnet-4-5",
+  "commit": "a47146f",
+  "uncommitted_changes": false,
+  "dry_run": false,
+  "settings": {
+    "runs": 24,
+    "scenario": "theme_name_data_failed,payments_name_data_failed,news_only_failed",
+    "skip_themes": false,
+    "skip_analysis": false,
+    "split": null,
+    "analysis_only": false
+  },
+  "scenarios": {
+    "theme_name_data_failed": {
+      "description": "A theme falls together; one quiet name's news and calendar failed to load.",
+      "runs": 24,
+      "checks": {
+        "never gives a direct recommendation": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never tells the reader to trade": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never sets a price target": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never predicts direction": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never claims certainty": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never uses a rating": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never nudges the reader about positioning": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never suggests an action": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never advises a posture": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never tells the reader when to act": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "no markdown headings": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "no bullet lists": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "no numbered lists": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "no bold markdown": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "between 1 and 4 paragraphs": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "reasonable length": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never states a move as a multiple of another": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "judge verdict": {
+          "passed": 20,
+          "runs": 24,
+          "failure": "The brief states 'No known earnings reports fall within the next week across the watchlist' without excepting STX, whose date is unknown, turning the failed lookup into a fact about STX having no report soon."
+        }
+      },
+      "first_output": "Your AI compute theme is taking the full hit today, down nearly 3% as a group alongside a headline about a cloud provider trimming its capex outlook. NVDA led the decline at -3.1%, with AMD and AVGO close behind, all moving together and tracking the broader chip weakness -- SMH is down 2.4%. The correlation is clear, though whether the capex news is the driver isn't established.\n\nMemory and storage held up far better. MU, WDC and STX were all roughly flat, collectively down just half a percent while their benchmark fell 2.4%. MU and WDC had no company-specific headlines; STX's headlines couldn't be loaded. They're simply not tracking the AI compute selloff today.\n\nThe next known reports on your watchlist are NVDA, AMD, AVGO, MU and WDC, all in 30 days. STX's date couldn't be loaded.",
+      "failed_runs": [
+        {
+          "run": 2,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "judge_reason": "The brief states 'No known earnings reports fall within the next week across the watchlist' without excepting STX, whose date is unknown, turning the failed lookup into a fact about STX having no report soon.",
+          "brief": "Your AI compute names moved together, down around 3%, alongside a headline about a cloud provider trimming its capex outlook. NVDA fell 3.1%, AMD 2.8%, AVGO 2.6% -- all tracking each other and their benchmark, SMH, which dropped 2.4%. The broader market was weaker too, with the Nasdaq 100 down 1.1%, but the compute theme had the sharper move.\n\nMemory and storage held up better: MU, WDC and STX each down half a percent or less, staying quiet while the compute names pulled back. That split makes sense given the capex headline sits closer to the AI infrastructure layer than to memory components.\n\nNo known earnings reports fall within the next week across the watchlist -- the next group comes in 30 days, with AMD, AVGO, MU, NVDA and WDC all scheduled for the same date. STX's next report date couldn't be loaded."
+        },
+        {
+          "run": 5,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "judge_reason": "The brief says 'Nothing on your watchlist has a known earnings report in the next seven days' without excepting STX, whose date is unknown, turning the failed lookup into an implied fact about STX having no near-term report.",
+          "brief": "Your AI compute names are under pressure as a group, down around 2.8% on average -- well behind the broader market and behind the SMH benchmark too. NVDA, AMD and AVGO are all moving together on this. NVDA's top headline mentions a cloud provider trimming its capex outlook, which may be related to the weakness across these names today.\n\nYour memory and storage group is holding up much better. MU, WDC and STX are all down less than 1%, staying relatively quiet while compute chips are down nearly 3%. That's a meaningful divergence, even though both themes share the same SMH benchmark.\n\nNothing on your watchlist has a known earnings report in the next seven days. The next known reports are in 30 days -- NVDA, AMD, AVGO, MU and WDC all show dates 30 days out -- though STX's date couldn't be loaded."
+        },
+        {
+          "run": 18,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "judge_reason": "The brief says 'No known report falls within the next week' without excepting STX, whose date is unknown, turning the failed lookup into a seeming fact about STX's calendar.",
+          "brief": "Your AI compute names tracked each other lower today -- NVDA down 3.1%, AMD 2.8%, AVGO 2.6% -- all moving with their benchmark and with a headline about a cloud provider trimming its capex outlook. The broader tech selloff took the Nasdaq down 1.1%, while the S&P fell 0.6%.\n\nMemory & storage held up relatively well. MU, WDC and STX each dropped less than a percent, staying well ahead of the SMH benchmark that fell 2.4%. That divergence suggests the capex concern hit compute harder than memory, though these moves are small enough that it's mostly about what didn't happen to this group.\n\nNo known report falls within the next week. The next known reports are AMD, AVGO, MU, NVDA and WDC, all in 30 days -- STX's date couldn't be loaded."
+        },
+        {
+          "run": 20,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "judge_reason": "The brief says 'the capex story, if it's the driver' which hedges in the first clause but then asserts 'landed specifically on the compute side' as fact in the second clause, stating causation it wasn't given.",
+          "brief": "The biggest story today is your AI compute names taking the hit: NVDA, AMD and AVGO all fell between 2.6% and 3.1%, tracking their benchmark SMH down 2.4%. The headline attached to NVDA -- a cloud provider trimming its capex outlook -- may be related to the move across this group. The Nasdaq 100 fell 1.1% while the S&P 500 dropped 0.6%, showing the tech-heavy index led the market lower.\n\nYour memory and storage names held up considerably better. MU, WDC and STX all moved less than 1%, well ahead of the SMH benchmark that their AI compute peers tracked closely. That divergence suggests the capex story, if it's the driver, landed specifically on the compute side rather than across all semiconductor categories.\n\nNo known earnings fall within the next week. The next known reports are AMD, AVGO, MU, NVDA and WDC, all in 30 days; STX's date couldn't be loaded."
+        }
+      ],
+      "rewrites": [
+        {
+          "run": 1,
+          "original": "Your AI compute theme is taking the full hit today, down nearly 3% as a group alongside a headline about a cloud provider trimming its capex outlook. NVDA led the decline at -3.1%, with AMD and AVGO close behind, all moving together and tracking the broader chip weakness -- SMH is down 2.4%. The correlation is clear, though whether the capex news is the driver isn't established.\n\nMemory and storage held up far better. MU, WDC and STX were all roughly flat, collectively down just half a percent while their benchmark fell 2.4%. Nothing company-specific is happening there; they're simply not tracking the AI compute selloff today. STX's news and events couldn't be loaded.\n\nThe next known reports on your watchlist are NVDA, AMD, AVGO, MU and WDC, all in 30 days. STX's date couldn't be loaded.",
+          "final": "Your AI compute theme is taking the full hit today, down nearly 3% as a group alongside a headline about a cloud provider trimming its capex outlook. NVDA led the decline at -3.1%, with AMD and AVGO close behind, all moving together and tracking the broader chip weakness -- SMH is down 2.4%. The correlation is clear, though whether the capex news is the driver isn't established.\n\nMemory and storage held up far better. MU, WDC and STX were all roughly flat, collectively down just half a percent while their benchmark fell 2.4%. MU and WDC had no company-specific headlines; STX's headlines couldn't be loaded. They're simply not tracking the AI compute selloff today.\n\nThe next known reports on your watchlist are NVDA, AMD, AVGO, MU and WDC, all in 30 days. STX's date couldn't be loaded.",
+          "asked": [
+            "Some of what this brief says isn't known, because data for these names didn't load: STX (headlines couldn't be loaded, report date couldn't be loaded). These sentences may claim it anyway: \"Nothing company-specific is happening there; they're simply not tracking the AI compute selloff today.\" Rewrite the brief so that no sentence says or implies those names had no news, or that nothing reports in a window their unknown dates could fall in. Say what is known -- \"no known report falls this week\", \"the next known reports are...\" -- and that their headlines or dates couldn't be loaded. A quoted sentence that is only about other names can stay as it is. Keep everything else as it was, and reply with the brief only."
+          ]
+        },
+        {
+          "run": 5,
+          "original": "Your AI compute names are under pressure as a group, down around 2.8% on average -- well behind the broader market and behind the SMH benchmark too. NVDA, AMD and AVGO are all moving together on this. NVDA's top headline mentions a cloud provider trimming its capex outlook, which may be related to the weakness across these names today.\n\nYour memory and storage group is holding up much better. MU, WDC and STX are all down less than 1%, staying relatively quiet while compute chips take the hit. That's a meaningful divergence from the AI compute theme, which shares the same SMH benchmark but is down five times as much.\n\nNothing on your watchlist has a known earnings report in the next seven days. The next known reports are in 30 days -- NVDA, AMD, AVGO, MU and WDC all show dates 30 days out -- though STX's date couldn't be loaded.",
+          "final": "Your AI compute names are under pressure as a group, down around 2.8% on average -- well behind the broader market and behind the SMH benchmark too. NVDA, AMD and AVGO are all moving together on this. NVDA's top headline mentions a cloud provider trimming its capex outlook, which may be related to the weakness across these names today.\n\nYour memory and storage group is holding up much better. MU, WDC and STX are all down less than 1%, staying relatively quiet while compute chips are down nearly 3%. That's a meaningful divergence, even though both themes share the same SMH benchmark.\n\nNothing on your watchlist has a known earnings report in the next seven days. The next known reports are in 30 days -- NVDA, AMD, AVGO, MU and WDC all show dates 30 days out -- though STX's date couldn't be loaded.",
+          "asked": [
+            "This sentence states one move as a multiple of another: \"That's a meaningful divergence from the AI compute theme, which shares the same SMH benchmark but is down five times as much.\" Rewrite the brief so those moves are given side by side as their own percentages, never as a multiple. Keep everything else as it was, and reply with the brief only."
+          ]
+        },
+        {
+          "run": 15,
+          "original": "Your AI compute names took the brunt of today's selloff -- NVDA down 3.1%, AMD off 2.8%, AVGO down 2.6% -- tracking each other and their SMH benchmark lower by more than the broader market. The move coincided with a headline about a cloud provider trimming its capex outlook, though all three fell roughly in line with the semiconductor group as a whole.\n\nMemory & storage held up considerably better. MU, WDC and STX each lost less than a percent while their compute peers dropped three times as much, suggesting the capex concerns that may be weighing on AI chips aren't hitting the storage names the same way. STX's headlines and event data couldn't be loaded today.\n\nThe next known reports all fall in 30 days: AMD, AVGO, MU, NVDA and WDC are all scheduled for December 5th. STX's date couldn't be loaded.",
+          "final": "Your AI compute names took the brunt of today's selloff -- NVDA down 3.1%, AMD off 2.8%, AVGO down 2.6% -- tracking each other and their SMH benchmark lower by more than the broader market. The move coincided with a headline about a cloud provider trimming its capex outlook, though all three fell roughly in line with the semiconductor group as a whole.\n\nMemory & storage held up considerably better. MU, WDC and STX each lost less than a percent while their compute peers dropped around 3%, suggesting the capex concerns that may be weighing on AI chips aren't hitting the storage names the same way.\n\nThe next known reports all fall in 30 days: AMD, AVGO, MU, NVDA and WDC are all scheduled for December 5th. STX's date couldn't be loaded.",
+          "asked": [
+            "This sentence states one move as a multiple of another: \"MU, WDC and STX each lost less than a percent while their compute peers dropped three times as much, suggesting the capex concerns that may be weighing on AI chips aren't hitting the storage names the same way.\" Rewrite the brief so those moves are given side by side as their own percentages, never as a multiple. Keep everything else as it was, and reply with the brief only."
+          ]
+        },
+        {
+          "run": 24,
+          "original": "Your AI compute names fell together, down 2.6% to 3.1%, tracking their SMH benchmark's 2.4% decline. The broad market was down, with the Nasdaq off 1.1%, and a cloud provider trimming its capex outlook appeared in the headlines alongside the chip slide. NVDA, AMD and AVGO all moved with their theme rather than diverging on company news.\n\nYour memory and storage group held up better, down just 0.3% to 0.6% -- all three beating the semiconductor benchmark. MU, WDC and STX stayed quiet both in absolute terms and relative to each other, with none of them generating attention on their own.\n\nNo earnings reports fall within the next week. STX's next report date couldn't be loaded, but the next known reports on your watchlist are all 30 days out: AMD, AVGO, MU, NVDA and WDC all report December 5th.",
+          "final": "Your AI compute names fell together, down 2.6% to 3.1%, tracking their SMH benchmark's 2.4% decline. The broad market was down, with the Nasdaq off 1.1%, and a cloud provider trimming its capex outlook appeared in the headlines alongside the chip slide. NVDA, AMD and AVGO all moved with their theme rather than diverging on company news.\n\nYour memory and storage group held up better, down just 0.3% to 0.6% -- all three beating the semiconductor benchmark. MU and WDC stayed quiet both in absolute terms and relative to each other, with neither generating attention on its own. STX's headlines couldn't be loaded.\n\nNo known earnings reports fall within the next week, though STX's date couldn't be loaded. The next known reports on your watchlist are all 30 days out: AMD, AVGO, MU, NVDA and WDC all report December 5th.",
+          "asked": [
+            "Some of what this brief says isn't known, because data for these names didn't load: STX (headlines couldn't be loaded, report date couldn't be loaded). These sentences may claim it anyway: \"No earnings reports fall within the next week.\" Rewrite the brief so that no sentence says or implies those names had no news, or that nothing reports in a window their unknown dates could fall in. Say what is known -- \"no known report falls this week\", \"the next known reports are...\" -- and that their headlines or dates couldn't be loaded. A quoted sentence that is only about other names can stay as it is. Keep everything else as it was, and reply with the brief only."
+          ]
+        }
+      ],
+      "outputs": [
+        "Your AI compute theme is taking the full hit today, down nearly 3% as a group alongside a headline about a cloud provider trimming its capex outlook. NVDA led the decline at -3.1%, with AMD and AVGO close behind, all moving together and tracking the broader chip weakness -- SMH is down 2.4%. The correlation is clear, though whether the capex news is the driver isn't established.\n\nMemory and storage held up far better. MU, WDC and STX were all roughly flat, collectively down just half a percent while their benchmark fell 2.4%. MU and WDC had no company-specific headlines; STX's headlines couldn't be loaded. They're simply not tracking the AI compute selloff today.\n\nThe next known reports on your watchlist are NVDA, AMD, AVGO, MU and WDC, all in 30 days. STX's date couldn't be loaded.",
+        "Your AI compute names moved together, down around 3%, alongside a headline about a cloud provider trimming its capex outlook. NVDA fell 3.1%, AMD 2.8%, AVGO 2.6% -- all tracking each other and their benchmark, SMH, which dropped 2.4%. The broader market was weaker too, with the Nasdaq 100 down 1.1%, but the compute theme had the sharper move.\n\nMemory and storage held up better: MU, WDC and STX each down half a percent or less, staying quiet while the compute names pulled back. That split makes sense given the capex headline sits closer to the AI infrastructure layer than to memory components.\n\nNo known earnings reports fall within the next week across the watchlist -- the next group comes in 30 days, with AMD, AVGO, MU, NVDA and WDC all scheduled for the same date. STX's next report date couldn't be loaded.",
+        "Your AI compute names are taking the hardest hit today, all down between 2.6% and 3.1% alongside a 2.4% drop in SMH. NVDA, AMD and AVGO are moving together as a theme, which may be related to a cloud provider trimming its capex outlook -- a headline that matters for anything tied to data center buildouts. The broader market is down but not as sharply: the S&P off 0.6%, the Nasdaq down 1.1%.\n\nYour memory and storage names are holding up much better. MU, WDC and STX are all down less than a percent, showing relative strength against the semiconductor benchmark and separating themselves from the AI compute sell-off. That divergence suggests today's pressure is concentrated in the parts of the chip sector most exposed to cloud infrastructure spending rather than memory demand.\n\nNo known earnings reports fall in the next seven days. The next known reports on your watchlist are AMD, AVGO, MU, NVDA and WDC, all in 30 days on December 5th. STX's date couldn't be loaded.",
+        "Your AI compute theme is taking the session's biggest hit, down nearly 3% across NVDA, AMD and AVGO -- all moving together and all underperforming the broader chip sector. NVDA's top headline mentions a cloud provider trimming its capex outlook, which may be related to the weakness across compute names. The Nasdaq 100 is down 1.1% and SMH off 2.4%, so this is a sector-wide move with compute bearing the brunt.\n\nMemory and storage is holding up far better. MU, WDC and STX are all down less than a percent, well ahead of the chip benchmark and largely flat given the broader market's decline. That divergence -- compute chips dropping hard while memory barely budges -- suggests the capex story is being read as specific to compute demand rather than semiconductor infrastructure broadly.\n\nNo known reports fall within the next week. The next known reports on your watchlist are AMD, AVGO, MU, NVDA and WDC, all thirty days out on December 5th. STX's date couldn't be loaded.",
+        "Your AI compute names are under pressure as a group, down around 2.8% on average -- well behind the broader market and behind the SMH benchmark too. NVDA, AMD and AVGO are all moving together on this. NVDA's top headline mentions a cloud provider trimming its capex outlook, which may be related to the weakness across these names today.\n\nYour memory and storage group is holding up much better. MU, WDC and STX are all down less than 1%, staying relatively quiet while compute chips are down nearly 3%. That's a meaningful divergence, even though both themes share the same SMH benchmark.\n\nNothing on your watchlist has a known earnings report in the next seven days. The next known reports are in 30 days -- NVDA, AMD, AVGO, MU and WDC all show dates 30 days out -- though STX's date couldn't be loaded.",
+        "Your AI compute names are down as a group, tracking the sector's 2.4% drop. NVDA, AMD and AVGO all fell between 2.6% and 3.1%, moving together with their theme median. The headline accompanying the move is a cloud provider trimming its capex outlook, which may be related to the chip weakness.\n\nMemory and storage held up much better -- MU, WDC and STX each moved less than a percent, quiet against both the broader semiconductor selloff and their own benchmarks. That separation suggests the capex story, if it's driving the compute names, isn't hitting this part of the chip landscape the same way.\n\nThe next known reports fall in 30 days: AMD, AVGO, MU, NVDA and WDC all share that date. STX's date couldn't be loaded.",
+        "Your AI compute names are taking the brunt of it today, down around 3% as a group and underperforming both the broader market and their SMH benchmark. NVDA has a headline today about a cloud provider trimming its capex outlook, which may be related to the move across these three -- they're all tracking together. The memory and storage theme is holding up much better, with MU, WDC and STX all down less than 1% and beating SMH by roughly two percentage points.\n\nThe Nasdaq 100 is off 1.1% versus the S&P 500's 0.6%, so the tech-heavy side of the market is getting hit harder broadly, not just in your names.\n\nNo known report falls within the next week. The next known reports are AMD, AVGO, MU, NVDA and WDC all in 30 days, and STX's date couldn't be loaded.",
+        "Your AI compute names are taking the brunt of today's selloff. NVDA, AMD and AVGO are all down between 2.6% and 3.1%, tracking each other closely and falling harder than the Nasdaq's 1.1% drop. The headline about a cloud provider trimming its capex outlook appeared alongside NVDA's move -- the AI compute theme as a whole is down 2.8% on average, pulling the semiconductor benchmark down 2.4% with it.\n\nMemory and storage is holding up considerably better. MU, WDC and STX are each down between 0.3% and 0.6%, all outperforming the broader semiconductor sell-off. That split suggests today's pressure is concentrated in AI compute infrastructure rather than semiconductors broadly. STX's headlines and events data couldn't be loaded.\n\nThe next known reports on your watchlist are NVDA, AMD, AVGO, MU and WDC, all in 30 days on December 5th. STX's date couldn't be loaded.",
+        "Your AI compute names are moving together, all down between 2.6% and 3.1%, tracking the SMH benchmark's 2.4% drop and matching the Nasdaq 100's broader weakness. NVDA has a headline about chip stocks sliding alongside a cloud provider trimming its capex outlook, though the connection to today's move is correlational. AMD and AVGO lack company-specific news but are following the same pattern.\n\nMemory and storage is holding up relatively well. MU, WDC and STX are all down less than 0.6%, substantially outperforming the AI compute theme and the semiconductor benchmark. The group's quiet price action suggests the capex headline, if relevant at all, matters less to this corner of the sector. STX's headlines and events data couldn't be loaded today.\n\nNo known reports fall within the next week. The next known reports on your watchlist are AMD, AVGO, MU, NVDA and WDC in 30 days, and STX's date couldn't be loaded.",
+        "Your AI compute names are moving together, down about 3% as a group and underperforming the broader market. NVDA, AMD and AVGO all tracked their theme benchmark lower. The headline alongside that move -- a cloud provider trimming its capex outlook -- may be related, though the specifics of which provider and how much aren't in the data here.\n\nMemory and storage held up better: MU, WDC and STX all moved less than half a percent, well ahead of the semiconductor benchmark's 2.4% drop. That divergence from the AI compute names suggests the capex story, if that's what's driving chips broadly, matters less to this corner of the sector.\n\nThe next known reports on your watchlist all fall on the same day, 30 days out: AMD, AVGO, MU, NVDA and WDC. STX's date couldn't be loaded.",
+        "Your AI compute names took the hardest hit today, falling 2.6% to 3.1% alongside a 2.4% drop in SMH. All three moved together as a theme, with the headline on NVDA pointing to a cloud provider trimming its capex outlook -- that may be related to the sector-wide selloff. The Memory & storage group held up substantially better, down just 0.3% to 0.6%, well ahead of the semiconductor benchmark and showing little correlation to the compute weakness.\n\nThe broader market finished down 0.6%, but the Nasdaq 100's 1.1% decline reflects heavier selling in tech. The cloud capex story is the headline that stands out today, given how it lines up with the compute chip weakness.\n\nThe next known reports on your watchlist are AMD, AVGO, MU, NVDA and WDC in thirty days -- STX's date couldn't be loaded.",
+        "AI compute took the worst of a down session, with your three names all falling between 2.6% and 3.1% alongside their SMH benchmark's 2.4% drop. NVDA's top headline notes chip stocks sliding, which may be related to a cloud provider trimming its capex outlook for next year. AMD and AVGO moved in step with the theme, with no company-specific headlines.\n\nMemory and storage held up far better, with all three names down less than a percent while SMH fell 2.4%. MU, WDC and STX barely moved, with none diverging meaningfully from the others. STX's news and events data couldn't be loaded today.\n\nThe broader market fell 0.6% on the S&P and 1.1% on the Nasdaq 100, with tech taking the heavier hit.\n\nNo known earnings report falls within the next week. The next known reports are all thirty days out: AMD, AVGO, MU, NVDA and WDC each report in thirty days. STX's date couldn't be loaded.",
+        "The AI compute names you're tracking moved as a group today, down 2.6% to 3.1% alongside SMH's 2.4% drop. NVDA carried a headline about a cloud provider trimming its capex outlook, which may be related to the sector-wide slide. The memory and storage theme held up better -- MU, WDC and STX each down half a percent or less -- suggesting the pressure is concentrated in the compute layer rather than across the entire semiconductor space.\n\nThe broader market pulled back, with the S&P down 0.6% and the Nasdaq down 1.1%, making the AI compute losses look sector-specific rather than company-specific. None of the names on your watchlist diverged meaningfully from their peers today.\n\nNo known reports fall within the next week. The next known reports are AMD, AVGO, MU, NVDA and WDC, all in 30 days; STX's date couldn't be loaded.",
+        "Your AI compute names took the hardest hit today: NVDA, AMD and AVGO all fell between 2.6% and 3.1%, moving together as a theme and underperforming the broader market. A headline about a cloud provider trimming its capex outlook appeared alongside NVDA's 3.1% drop, which may be related to the move across the group. The SMH benchmark fell 2.4%.\n\nMemory and storage held up notably better. MU, WDC and STX each shed half a percent or less, staying relatively quiet while their AI compute counterparts sold off. That divergence -- the compute infrastructure names falling hard while the memory names barely moved -- is the clearest split on your watchlist today.\n\nNo known earnings fall in the next week. The next known reports are AMD, AVGO, MU, NVDA and WDC, all in 30 days, while STX's date couldn't be loaded.",
+        "Your AI compute names took the brunt of today's selloff -- NVDA down 3.1%, AMD off 2.8%, AVGO down 2.6% -- tracking each other and their SMH benchmark lower by more than the broader market. The move coincided with a headline about a cloud provider trimming its capex outlook, though all three fell roughly in line with the semiconductor group as a whole.\n\nMemory & storage held up considerably better. MU, WDC and STX each lost less than a percent while their compute peers dropped around 3%, suggesting the capex concerns that may be weighing on AI chips aren't hitting the storage names the same way.\n\nThe next known reports all fall in 30 days: AMD, AVGO, MU, NVDA and WDC are all scheduled for December 5th. STX's date couldn't be loaded.",
+        "The AI compute names you're tracking all fell together today -- NVDA down 3.1%, AMD off 2.8%, AVGO 2.6% -- tracking each other and their benchmark, which dropped 2.4%. The headline on NVDA mentions a cloud provider trimming its capex outlook, which may be related to the group's move. The Nasdaq 100 closed down 1.1%, with the broader market off 0.6%.\n\nYour memory and storage names held up notably better. MU, WDC and STX were each down less than a percent, roughly a fifth the drop their AI compute peers took and well ahead of the SMH benchmark both themes share.\n\nThe next known reports on your watchlist all fall in 30 days -- AMD, AVGO, MU, NVDA and WDC all on the same date. STX's date couldn't be loaded.",
+        "Your AI compute names moved together today, down 2.6% to 3.1%, tracking the broader chip selloff that took SMH down 2.4%. NVDA's headline ties the drop to a cloud provider trimming its capex outlook, which may be related to the move across this theme. Memory & storage names held up considerably better -- MU, WDC and STX each fell less than a percent, staying well clear of the benchmark's losses.\n\nThe broader market finished lower, with the S&P down 0.6% and the Nasdaq down 1.1%, putting semiconductors at the weak end of today's session.\n\nNo known reports fall within the next week. The next known earnings on your watchlist are AMD, AVGO, MU, NVDA and WDC, all in 30 days. STX's date couldn't be loaded.",
+        "Your AI compute names tracked each other lower today -- NVDA down 3.1%, AMD 2.8%, AVGO 2.6% -- all moving with their benchmark and with a headline about a cloud provider trimming its capex outlook. The broader tech selloff took the Nasdaq down 1.1%, while the S&P fell 0.6%.\n\nMemory & storage held up relatively well. MU, WDC and STX each dropped less than a percent, staying well ahead of the SMH benchmark that fell 2.4%. That divergence suggests the capex concern hit compute harder than memory, though these moves are small enough that it's mostly about what didn't happen to this group.\n\nNo known report falls within the next week. The next known reports are AMD, AVGO, MU, NVDA and WDC, all in 30 days -- STX's date couldn't be loaded.",
+        "Your AI compute names moved as one sector today, all down between 2.6% and 3.1% alongside the SMH benchmark's 2.4% drop. NVDA, AMD and AVGO tracked each other closely, which coincided with a headline about a cloud provider trimming its capex outlook. The three averaged a 2.8% decline, underperforming the broader market's 0.6% loss.\n\nMemory and storage held up much better. MU, WDC and STX all stayed within a 0.6% range, each down less than their compute peers and outperforming their SMH benchmark. The theme split highlights how today's selling pressure concentrated in the AI compute layer rather than spreading across the full semiconductor stack.\n\nThe next known reports on your watchlist fall in 30 days: AMD, AVGO, MU, NVDA and WDC all share the same December 5 date. STX's date couldn't be loaded.",
+        "The biggest story today is your AI compute names taking the hit: NVDA, AMD and AVGO all fell between 2.6% and 3.1%, tracking their benchmark SMH down 2.4%. The headline attached to NVDA -- a cloud provider trimming its capex outlook -- may be related to the move across this group. The Nasdaq 100 fell 1.1% while the S&P 500 dropped 0.6%, showing the tech-heavy index led the market lower.\n\nYour memory and storage names held up considerably better. MU, WDC and STX all moved less than 1%, well ahead of the SMH benchmark that their AI compute peers tracked closely. That divergence suggests the capex story, if it's the driver, landed specifically on the compute side rather than across all semiconductor categories.\n\nNo known earnings fall within the next week. The next known reports are AMD, AVGO, MU, NVDA and WDC, all in 30 days; STX's date couldn't be loaded.",
+        "Your AI compute names sold off together today, down around 3% as a group and underperforming the broader market. NVDA, AMD and AVGO all tracked their peers closely, moving in step with the 2.4% drop in SMH. The headline across chip stocks tied the weakness to a cloud provider cutting its capex outlook, though the direct link to these moves isn't established.\n\nMemory and storage held up much better. MU, WDC and STX were all down less than a percent, diverging sharply from the broader semiconductor sell-off and staying well ahead of SMH. None of the three moved much in absolute terms or relative to each other.\n\nThe next known reports on your watchlist are AMD, AVGO, MU, NVDA and WDC, all in 30 days. STX's date couldn't be loaded.",
+        "Your AI compute theme took the hit today -- NVDA down 3.1%, AMD down 2.8%, AVGO down 2.6% -- tracking each other and the SMH benchmark through a 2.4% to 3% drop. That's the whole story on your watchlist. The headline across chip stocks was a cloud provider trimming its capex outlook, which may be related to the move.\n\nMemory and storage names held up: MU, WDC and STX each down less than a percent, well clear of the broader semiconductor selloff. The group was quiet otherwise.\n\nNo known reports fall in the next week. The next known reports on your watchlist are AMD, AVGO, MU, NVDA and WDC in 30 days -- STX's date couldn't be loaded.",
+        "Your AI compute names fell as a group \u2014 NVDA down 3.1%, AMD off 2.8%, AVGO losing 2.6% \u2014 all tracking each other and underperforming the broader market. A chip stock headline today mentioned a cloud provider trimming its capex outlook, which may be related to the sector-wide weakness. The Nasdaq 100 dropped 1.1%, with the semiconductor benchmark SMH down 2.4%.\n\nMemory and storage names held up considerably better. MU, WDC and STX all moved less than a percent and stayed well ahead of the chip benchmark, though none had notable company-specific news. STX's headlines and events couldn't be loaded today.\n\nNo known earnings reports fall within the next week. The next known reports on your watchlist \u2014 AMD, AVGO, MU, NVDA and WDC \u2014 all land in 30 days, while STX's date couldn't be loaded.",
+        "Your AI compute names fell together, down 2.6% to 3.1%, tracking their SMH benchmark's 2.4% decline. The broad market was down, with the Nasdaq off 1.1%, and a cloud provider trimming its capex outlook appeared in the headlines alongside the chip slide. NVDA, AMD and AVGO all moved with their theme rather than diverging on company news.\n\nYour memory and storage group held up better, down just 0.3% to 0.6% -- all three beating the semiconductor benchmark. MU and WDC stayed quiet both in absolute terms and relative to each other, with neither generating attention on its own. STX's headlines couldn't be loaded.\n\nNo known earnings reports fall within the next week, though STX's date couldn't be loaded. The next known reports on your watchlist are all 30 days out: AMD, AVGO, MU, NVDA and WDC all report December 5th."
+      ]
+    },
+    "payments_name_data_failed": {
+      "description": "Software falls together; in payments, V reports soon and PYPL's lookups failed.",
+      "runs": 24,
+      "checks": {
+        "never gives a direct recommendation": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never tells the reader to trade": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never sets a price target": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never predicts direction": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never claims certainty": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never uses a rating": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never nudges the reader about positioning": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never suggests an action": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never advises a posture": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never tells the reader when to act": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "no markdown headings": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "no bullet lists": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "no numbered lists": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "no bold markdown": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "between 1 and 4 paragraphs": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "reasonable length": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never states a move as a multiple of another": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "judge verdict": {
+          "passed": 23,
+          "runs": 24,
+          "failure": "The brief fails rule (a) by asserting causation in 'CRM fell 3.4% alongside news that an AI startup is undercutting traditional per-seat pricing' \u2014 'alongside' is correlational framing, acceptable in isolation, but the phrase 'though NOW and ADBE moved in lockstep without company-specific headlines'"
+        }
+      },
+      "first_output": "The enterprise software theme fell hard -- CRM down 3.4%, NOW off 2.9%, ADBE down 2.6% -- as the group tracked broader tech selling that hit the Nasdaq down 0.9%. This is a sector move, not company-specific: all three fell together, roughly in line with each other. CRM had a headline alongside its drop about an AI startup undercutting per-seat pricing, which may be related to its move.\n\nThe payments names held steady by comparison: V, MA and PYPL all moved less than half a percent in either direction while their benchmark fell 0.5%. Nothing notable on any of them today, though PYPL's news and events data couldn't be loaded.\n\nV reports in 5 days. The next known reports after that are CRM in 18 days, then ADBE and NOW in 25, then MA in 26. PYPL's date couldn't be loaded.",
+      "failed_runs": [
+        {
+          "run": 15,
+          "failed_checks": [
+            "judge verdict"
+          ],
+          "judge_reason": "The brief fails rule (a) by asserting causation in 'CRM fell 3.4% alongside news that an AI startup is undercutting traditional per-seat pricing' \u2014 'alongside' is correlational framing, acceptable in isolation, but the phrase 'though NOW and ADBE moved in lockstep without company-specific headlines'",
+          "brief": "Enterprise software took the hardest hit on your watchlist, down nearly 3% as a group and underperforming the broader market's half-percent decline. CRM fell 3.4% alongside news that an AI startup is undercutting traditional per-seat pricing, though NOW and ADBE moved in lockstep without company-specific headlines. The three names dropped together, tracking their IGV benchmark down 2.1%, in a session where tech sold off more broadly -- the Nasdaq 100 lost 0.9%.\n\nYour payments names held up better, all three beating their XLF benchmark, though none moved much. V was steady ahead of its report in five days. PYPL's headlines and earnings date couldn't be loaded.\n\nThe next known report on your watchlist is V in five days, with CRM following thirteen days later."
+        }
+      ],
+      "rewrites": [
+        {
+          "run": 10,
+          "original": "Enterprise software absorbed the day's heaviest losses across your watchlist, all three names down sharply in a selloff that took IGV down 2.1%. CRM fell 3.4% alongside a headline about an AI startup undercutting per-seat pricing, though NOW and ADBE dropped 2.9% and 2.6% respectively without company-specific news \u2014 this moved as a theme. The payments names held up: V, MA and PYPL each moved less than half a percent, well ahead of their benchmark.\n\nThe Nasdaq 100 closed down 0.9%, twice the S&P 500's 0.4% decline, pressure concentrated in tech. The one headline cutting across multiple sectors today was the AI startup pricing its software agents below traditional per-seat fees \u2014 that may be related to the software theme's move, though the whole group sold off together.\n\nV reports in five days. PYPL's next report date couldn't be loaded, but the next known reports on the watchlist after V are CRM in 18 days, then NOW and ADBE 25 days out.",
+          "final": "Enterprise software absorbed the day's heaviest losses across your watchlist, all three names down sharply in a selloff that took IGV down 2.1%. CRM fell 3.4% alongside a headline about an AI startup undercutting per-seat pricing, though NOW and ADBE dropped 2.9% and 2.6% respectively without company-specific news \u2014 this moved as a theme. The payments names held up: V, MA and PYPL each moved less than half a percent, well ahead of their benchmark.\n\nThe Nasdaq 100 closed down 0.9% while the S&P 500 fell 0.4%, pressure concentrated in tech. The one headline cutting across multiple sectors today was the AI startup pricing its software agents below traditional per-seat fees \u2014 that may be related to the software theme's move, though the whole group sold off together.\n\nV reports in five days. PYPL's next report date couldn't be loaded, but the next known reports on the watchlist after V are CRM in 18 days, then NOW and ADBE 25 days out.",
+          "asked": [
+            "This sentence states one move as a multiple of another: \"The Nasdaq 100 closed down 0.9%, twice the S&P 500's 0.4% decline, pressure concentrated in tech.\" Rewrite the brief so those moves are given side by side as their own percentages, never as a multiple. Keep everything else as it was, and reply with the brief only."
+          ]
+        },
+        {
+          "run": 18,
+          "original": "Enterprise software took the hit today, with CRM, NOW and ADBE falling between 2.6% and 3.4%, all moving together and more than twice as hard as the broader market. CRM's drop coincided with a report about an AI startup pricing below traditional per-seat models, though the group's weakness ran across all three names regardless of company-specific headlines. The sector benchmark IGV fell 2.1%.\n\nYour payments names held up well \u2014 V, MA and PYPL each moved less than half a percent while their benchmark XLF dropped 0.5%. PYPL's events and headlines couldn't be loaded today.\n\nV reports in five days, the next known earnings on your watchlist. PYPL's next report date couldn't be loaded.",
+          "final": "Enterprise software took the hit today, with CRM, NOW and ADBE falling between 2.6% and 3.4%, all moving together, while the broader market dropped 0.4%. CRM's drop coincided with a report about an AI startup pricing below traditional per-seat models, though the group's weakness ran across all three names regardless of company-specific headlines. The sector benchmark IGV fell 2.1%.\n\nYour payments names held up well \u2014 V, MA and PYPL each moved less than half a percent while their benchmark XLF dropped 0.5%. PYPL's events and headlines couldn't be loaded today.\n\nV reports in five days, the next known earnings on your watchlist. PYPL's next report date couldn't be loaded.",
+          "asked": [
+            "This sentence states one move as a multiple of another: \"Enterprise software took the hit today, with CRM, NOW and ADBE falling between 2.6% and 3.4%, all moving together and more than twice as hard as the broader market.\" Rewrite the brief so those moves are given side by side as their own percentages, never as a multiple. Keep everything else as it was, and reply with the brief only."
+          ]
+        },
+        {
+          "run": 20,
+          "original": "Enterprise software absorbed the largest hit on your watchlist today, with CRM, NOW and ADBE all down between 2.6% and 3.4% -- worse than the Nasdaq's 0.9% drop and double their benchmark IGV's 2.1% decline. CRM fell 3.4% alongside a headline about an AI startup undercutting per-seat pricing, though the whole theme moved together rather than CRM alone reacting to that story. Payments names held up better, with V, MA and PYPL all outperforming their XLF benchmark and moving little.\n\nThe next known report on your watchlist is V in five days, on November 10th. After that, CRM reports in 18 days, then both ADBE and NOW in 25 days, and MA in 26 days. PYPL's next earnings date couldn't be loaded.",
+          "final": "Enterprise software absorbed the largest hit on your watchlist today, with CRM, NOW and ADBE all down between 2.6% and 3.4% -- worse than the Nasdaq's 0.9% drop and their benchmark IGV's 2.1% decline. CRM fell 3.4% alongside a headline about an AI startup undercutting per-seat pricing, though the whole theme moved together rather than CRM alone reacting to that story. Payments names held up better, with V, MA and PYPL all outperforming their XLF benchmark and moving little.\n\nThe next known report on your watchlist is V in five days, on November 10th. After that, CRM reports in 18 days, then both ADBE and NOW in 25 days, and MA in 26 days. PYPL's next earnings date couldn't be loaded.",
+          "asked": [
+            "This sentence states one move as a multiple of another: \"Enterprise software absorbed the largest hit on your watchlist today, with CRM, NOW and ADBE all down between 2.6% and 3.4% -- worse than the Nasdaq's 0.9% drop and double their benchmark IGV's 2.1% decline.\" Rewrite the brief so those moves are given side by side as their own percentages, never as a multiple. Keep everything else as it was, and reply with the brief only."
+          ]
+        },
+        {
+          "run": 21,
+          "original": "The enterprise software names took the day's hardest hit, all three down between 2.6% and 3.4% -- roughly triple the market's decline and worse than their sector benchmark. CRM led the slide at -3.4%, which coincided with headlines about an AI startup undercutting traditional per-seat pricing. NOW and ADBE fell in lockstep without company-specific news, tracking the same theme pressure.\n\nYour payments names held up better than the broader market, each losing less than the financial sector benchmark or staying flat. All three moved quietly, with neither the group nor individual names making notable shifts.\n\nV reports in five days. That's the next known report on your watchlist -- PYPL's earnings date couldn't be loaded.",
+          "final": "The enterprise software names took the day's hardest hit, all three down between 2.6% and 3.4% while the market fell 0.4% and their sector benchmark dropped 2.1%. CRM led the slide at -3.4%, which coincided with headlines about an AI startup undercutting traditional per-seat pricing. NOW and ADBE fell in lockstep without company-specific news, tracking the same theme pressure.\n\nYour payments names held up better than the broader market, each losing less than the financial sector benchmark or staying flat. All three moved quietly, with neither the group nor individual names making notable shifts.\n\nV reports in five days. That's the next known report on your watchlist -- PYPL's earnings date couldn't be loaded.",
+          "asked": [
+            "This sentence states one move as a multiple of another: \"The enterprise software names took the day's hardest hit, all three down between 2.6% and 3.4% -- roughly triple the market's decline and worse than their sector benchmark.\" Rewrite the brief so those moves are given side by side as their own percentages, never as a multiple. Keep everything else as it was, and reply with the brief only."
+          ]
+        },
+        {
+          "run": 22,
+          "original": "Enterprise software took the hardest hit on your watchlist today, with the theme down 3% -- nearly triple the 0.9% Nasdaq decline. CRM fell 3.4% alongside a report about an AI startup pricing below traditional per-seat models. NOW and ADBE moved in step, both down just under 3%, with no company-specific news. All three moved together as one sector story.\n\nYour payments names held up well, each beating the 0.5% drop in XLF. V, MA and PYPL were all quiet, with moves under half a percent. PYPL's news and events data couldn't be loaded.\n\nV reports in five days. The next known reports after that are CRM in 18 days, then ADBE and NOW both in 25 days, and MA in 26 days. PYPL's date couldn't be loaded.",
+          "final": "Enterprise software took the hardest hit on your watchlist today, with the theme down 3% while the Nasdaq fell 0.9%. CRM fell 3.4% alongside a report about an AI startup pricing below traditional per-seat models. NOW and ADBE moved in step, both down just under 3%, with no company-specific news. All three moved together as one sector story.\n\nYour payments names held up well, each beating the 0.5% drop in XLF. V, MA and PYPL were all quiet, with moves under half a percent. PYPL's news and events data couldn't be loaded.\n\nV reports in five days. The next known reports after that are CRM in 18 days, then ADBE and NOW both in 25 days, and MA in 26 days. PYPL's date couldn't be loaded.",
+          "asked": [
+            "This sentence states one move as a multiple of another: \"Enterprise software took the hardest hit on your watchlist today, with the theme down 3% -- nearly triple the 0.9% Nasdaq decline.\" Rewrite the brief so those moves are given side by side as their own percentages, never as a multiple. Keep everything else as it was, and reply with the brief only."
+          ]
+        }
+      ],
+      "outputs": [
+        "The enterprise software theme fell hard -- CRM down 3.4%, NOW off 2.9%, ADBE down 2.6% -- as the group tracked broader tech selling that hit the Nasdaq down 0.9%. This is a sector move, not company-specific: all three fell together, roughly in line with each other. CRM had a headline alongside its drop about an AI startup undercutting per-seat pricing, which may be related to its move.\n\nThe payments names held steady by comparison: V, MA and PYPL all moved less than half a percent in either direction while their benchmark fell 0.5%. Nothing notable on any of them today, though PYPL's news and events data couldn't be loaded.\n\nV reports in 5 days. The next known reports after that are CRM in 18 days, then ADBE and NOW in 25, then MA in 26. PYPL's date couldn't be loaded.",
+        "Enterprise software took the hardest hit on your watchlist today, with CRM, NOW and ADBE all down between 2.6% and 3.4% alongside IGV's 2.1% drop. CRM fell 3.4%, which may be related to reporting about an AI startup undercutting per-seat pricing. The three moved together as a theme, all declining more than their benchmark.\n\nThe payments names held up considerably better. V, MA and PYPL each moved less than half a percent, well ahead of XLF's 0.5% decline. PYPL's news and events data couldn't be loaded today.\n\nThe broader market fell moderately, with the S&P 500 down 0.4% and the Nasdaq 100 down 0.9%.\n\nV reports in five days. The next known reports after that are CRM in 18 days, then ADBE and NOW both in 25 days and MA in 26 days. PYPL's next earnings date couldn't be loaded.",
+        "Your enterprise software names took the day's hardest hit, falling together as the theme gave up 3% while the Nasdaq dropped 0.9%. CRM led the group down 3.4%, alongside a headline about an AI startup undercutting per-seat pricing. NOW and ADBE both fell around 3% without company-specific news. The benchmark IGV fell 2.1%, less than all three names.\n\nThe payments names held steady in a quiet session, each losing less than half a percent while their benchmark XLF fell 0.5%. PYPL's news and events data couldn't be loaded.\n\nV reports in five days. That's the next known report on your watchlist; PYPL's date couldn't be loaded.",
+        "Enterprise software took the hardest hit on your watchlist today, with all three names down more sharply than the broader market -- CRM off 3.4%, NOW down 2.9%, and ADBE falling 2.6%. That move coincided with reports that an AI startup is pricing software agents below traditional per-seat fees, though CRM was the only name with a headline directly mentioning the pricing pressure. The whole theme tracked together, with IGV down 2.1%.\n\nYour payments names held up well, all three beating their benchmark. V, MA and PYPL moved little, with all three within half a percent. PYPL's events and news couldn't be loaded today.\n\nV reports in five days. PYPL's next earnings date couldn't be loaded; the next known reports after V are CRM in 18 days, then ADBE and NOW in 25 days.",
+        "Enterprise software took the hardest hit on your watchlist today, with all three names down 2.6% to 3.4% alongside a 2.1% drop in IGV. CRM fell 3.4%, which may be related to headlines about an AI startup undercutting traditional per-seat pricing models \u2014 a story that could weigh on the whole category. NOW and ADBE moved in step without company-specific news.\n\nYour payments names held up well, with all three beating XLF's 0.5% decline. V, MA and PYPL each moved less than half a percent in either direction. PYPL's earnings date and headlines couldn't be loaded today.\n\nThe next known report is V in five days, on November 10. CRM follows thirteen days later on November 23, then ADBE and NOW both report on November 30, and MA on December 1. PYPL's date couldn't be loaded.",
+        "Enterprise software took the brunt of today's selling, with CRM, NOW and ADBE all down 2.6% to 3.4% as IGV fell 2.1%. CRM dropped 3.4% alongside a report that an AI startup is undercutting traditional per-seat pricing models, though the two other names in this theme moved down in similar proportion without company-specific news. The Nasdaq 100 fell 0.9% while the S&P 500 lost 0.4%.\n\nPayments names held up better, with V, MA and PYPL each moving less than half a percent while their benchmark XLF dropped 0.5%. PYPL's events and headlines couldn't be loaded today.\n\nThe next known report on your watchlist is V in five days. PYPL's date couldn't be loaded, but after V, the cluster around month-end brings CRM in 18 days, then ADBE and NOW both in 25 days, and MA in 26 days.",
+        "The enterprise software group pulled your watchlist lower today, with CRM, NOW and ADBE all falling harder than the broader market. The three moved together, down 2.6% to 3.4% and tracking each other closely throughout the session. CRM had a headline alongside its drop about an AI startup undercutting per-seat pricing, though that's describing one thing happening at the same time as another \u2014 whether that pricing story is what moved the stock isn't established. The software benchmark IGV fell 2.1%, while the three names you're tracking dropped further, averaging -3.0%.\n\nYour payments names held up substantially better. V, MA and PYPL all finished within a few tenths of flat, well ahead of their financials benchmark XLF and the S&P 500. None moved meaningfully or had company-specific news.\n\nV reports in five days. The next known reports after that are CRM in 18 days, then ADBE and NOW both in 25 days, and MA in 26 days. PYPL's next earnings date couldn't be loaded.",
+        "The software names on your watchlist took the hardest hits today, falling as a group. CRM dropped 3.4%, NOW 2.9%, and ADBE 2.6% -- all moving together and well past their benchmark IGV, which fell 2.1%. A headline this morning describes an AI startup undercutting traditional per-seat pricing, which may be related to CRM's move, but the whole theme sold off in tandem. The broader tech selloff shows up in the indices: the Nasdaq 100 fell 0.9% against the S&P's 0.4%.\n\nYour payments names held up, each finishing inside half a percent and outperforming their XLF benchmark. PYPL's event calendar and headlines couldn't be loaded today.\n\nThe next known report on your watchlist is V in five days. PYPL's next earnings date couldn't be loaded.",
+        "Your enterprise software names all sold off together, down 2.6% to 3.4% alongside IGV's 2.1% drop and a broader tech selloff that took the Nasdaq 100 down 0.9%. CRM fell 3.4%, the sharpest move in the group, alongside a headline about an AI startup undercutting per-seat pricing, though that weakness was shared across NOW and ADBE as well.\n\nThe payments names held up, with all three down just slightly or flat while their benchmark XLF fell 0.5%. V reports in 5 days. PYPL's news and events data couldn't be loaded.\n\nThe next known report is V in 5 days, then CRM in 18 days. PYPL's date couldn't be loaded.",
+        "Enterprise software absorbed the day's heaviest losses across your watchlist, all three names down sharply in a selloff that took IGV down 2.1%. CRM fell 3.4% alongside a headline about an AI startup undercutting per-seat pricing, though NOW and ADBE dropped 2.9% and 2.6% respectively without company-specific news \u2014 this moved as a theme. The payments names held up: V, MA and PYPL each moved less than half a percent, well ahead of their benchmark.\n\nThe Nasdaq 100 closed down 0.9% while the S&P 500 fell 0.4%, pressure concentrated in tech. The one headline cutting across multiple sectors today was the AI startup pricing its software agents below traditional per-seat fees \u2014 that may be related to the software theme's move, though the whole group sold off together.\n\nV reports in five days. PYPL's next report date couldn't be loaded, but the next known reports on the watchlist after V are CRM in 18 days, then NOW and ADBE 25 days out.",
+        "The story today is enterprise software taking a hit. CRM, NOW and ADBE all fell between 2.6% and 3.4%, tracking their whole theme lower -- IGV dropped 2.1%, and the three names you're tracking moved in step with one another, down roughly 3% on average. CRM saw a headline about an AI startup undercutting per-seat pricing, which may be related to its 3.4% drop, though the group moved together regardless.\n\nThe payment names held up far better. V, MA and PYPL barely moved, down between 0.4% and flat, while their benchmark XLF fell just 0.5%. Nothing notable there beyond the divergence from software. PYPL's event calendar and headlines couldn't be loaded today.\n\nV reports in five days. That's the next known report on your watchlist -- PYPL's date couldn't be loaded.",
+        "The enterprise software names led your watchlist lower today, each falling around 3% alongside their benchmark IGV, which dropped 2.1%. CRM was down 3.4% in a move coinciding with headlines about an AI startup undercutting traditional per-seat pricing models. NOW and ADBE moved in step without company-specific news. The broader tech selloff was pronounced -- the Nasdaq 100 fell 0.9% while the S&P 500 lost 0.4%.\n\nYour payments names held up relatively well, with all three beating the XLF benchmark's 0.5% decline. V was down 0.2%, MA 0.4%, and PYPL up slightly, though PYPL's news and events data couldn't be loaded.\n\nV reports in five days. The next known reports after that are CRM in eighteen days, then ADBE and NOW both in twenty-five days, and MA in twenty-six. PYPL's date couldn't be loaded.",
+        "Enterprise software took the hardest hit on your watchlist today, with CRM, NOW and ADBE all down 2.6% to 3.4% alongside their benchmark IGV falling 2.1%. CRM dropped 3.4%, slightly steeper than its peers' median 2.75% decline, which may be related to a headline about an AI startup undercutting per-seat pricing.\n\nThe payments group held up better in a down market, with V, MA and PYPL each moving less than half a percent while their benchmark XLF fell 0.5%. PYPL's headlines and events data couldn't be loaded today.\n\nThe next known report on your watchlist is V in five days, followed by CRM in eighteen days. PYPL's next earnings date couldn't be loaded.",
+        "Enterprise software took the hardest hit on your watchlist today, with the whole theme down roughly 3% and underperforming the Nasdaq's 0.9% decline. CRM fell 3.4% alongside a report that an AI startup is undercutting traditional per-seat pricing, while NOW and ADBE dropped 2.9% and 2.6% respectively. All three moved together as the theme sold off. The payments names held up better: V, MA and PYPL each moved less than half a percent in either direction, with PYPL's headlines and event calendar unavailable.\n\nThe market-wide session saw the Nasdaq down 0.9% and the S&P off 0.4%, with tech the weaker sector. The pricing story out of the AI startup space is the main headline beyond your watchlist.\n\nV reports in five days. PYPL's next earnings date couldn't be loaded, so the next known report after V is CRM in 18 days, followed by ADBE and NOW in 25 days and MA in 26 days.",
+        "Enterprise software took the hardest hit on your watchlist, down nearly 3% as a group and underperforming the broader market's half-percent decline. CRM fell 3.4% alongside news that an AI startup is undercutting traditional per-seat pricing, though NOW and ADBE moved in lockstep without company-specific headlines. The three names dropped together, tracking their IGV benchmark down 2.1%, in a session where tech sold off more broadly -- the Nasdaq 100 lost 0.9%.\n\nYour payments names held up better, all three beating their XLF benchmark, though none moved much. V was steady ahead of its report in five days. PYPL's headlines and earnings date couldn't be loaded.\n\nThe next known report on your watchlist is V in five days, with CRM following thirteen days later.",
+        "Enterprise software pulled the watchlist down today. CRM, NOW and ADBE all fell between 2.6% and 3.4%, moving together as their theme dropped 3% against IGV's 2.1% decline. CRM carried a headline about an AI startup undercutting per-seat pricing, which may be related to the group's move -- all three names tracked the same direction regardless of company-specific news.\n\nThe payments names held up: V, MA and PYPL all moved less than half a percent while the broader market fell 0.4% and tech sold off harder. PYPL's events and headlines couldn't be loaded.\n\nThe only known report in the next week is V in five days. PYPL's next earnings date couldn't be loaded.",
+        "Enterprise software took the worst of it today, with your three names down 2.6% to 3.4% alongside their benchmark falling 2.1%. CRM led the group lower at -3.4%, coinciding with a report that an AI startup is undercutting per-seat pricing models. NOW and ADBE moved in step, each down around 2.9% and 2.6% without name-specific news. The broader market ended off only 0.4%, with tech-heavy indices feeling more pressure: the Nasdaq 100 dropped 0.9%.\n\nYour payments names held up well, all three beating their financial sector benchmark. V, MA and PYPL each moved less than half a percent in either direction. PYPL's event calendar and headlines couldn't be loaded today.\n\nV reports in five days, the only known earnings on your watchlist this week. PYPL's next report date couldn't be loaded.",
+        "Enterprise software took the hit today, with CRM, NOW and ADBE falling between 2.6% and 3.4%, all moving together, while the broader market dropped 0.4%. CRM's drop coincided with a report about an AI startup pricing below traditional per-seat models, though the group's weakness ran across all three names regardless of company-specific headlines. The sector benchmark IGV fell 2.1%.\n\nYour payments names held up well \u2014 V, MA and PYPL each moved less than half a percent while their benchmark XLF dropped 0.5%. PYPL's events and headlines couldn't be loaded today.\n\nV reports in five days, the next known earnings on your watchlist. PYPL's next report date couldn't be loaded.",
+        "Enterprise software names drove most of the watchlist's losses today, falling together as a theme. CRM dropped 3.4%, NOW 2.9%, and ADBE 2.6%, all tracking their benchmark IGV down 2.1% and each other. A headline reported that an AI startup is undercutting traditional per-seat pricing, which coincided with CRM's decline. The entire group moved well beyond their typical ranges \u2014 whether the pricing threat is broad or specific to one company will clarify in coming sessions.\n\nYour payments names barely moved. V, MA and PYPL all stayed within half a percent, holding up against a broader market that took the S&P down 0.4% and the Nasdaq 100 down 0.9%. PYPL's news and events data couldn't be loaded today.\n\nV reports in five days, the next known earnings on the watchlist. PYPL's report date couldn't be loaded, so the next known dates after V are CRM in eighteen days, then ADBE and NOW both in twenty-five days.",
+        "Enterprise software absorbed the largest hit on your watchlist today, with CRM, NOW and ADBE all down between 2.6% and 3.4% -- worse than the Nasdaq's 0.9% drop and their benchmark IGV's 2.1% decline. CRM fell 3.4% alongside a headline about an AI startup undercutting per-seat pricing, though the whole theme moved together rather than CRM alone reacting to that story. Payments names held up better, with V, MA and PYPL all outperforming their XLF benchmark and moving little.\n\nThe next known report on your watchlist is V in five days, on November 10th. After that, CRM reports in 18 days, then both ADBE and NOW in 25 days, and MA in 26 days. PYPL's next earnings date couldn't be loaded.",
+        "The enterprise software names took the day's hardest hit, all three down between 2.6% and 3.4% while the market fell 0.4% and their sector benchmark dropped 2.1%. CRM led the slide at -3.4%, which coincided with headlines about an AI startup undercutting traditional per-seat pricing. NOW and ADBE fell in lockstep without company-specific news, tracking the same theme pressure.\n\nYour payments names held up better than the broader market, each losing less than the financial sector benchmark or staying flat. All three moved quietly, with neither the group nor individual names making notable shifts.\n\nV reports in five days. That's the next known report on your watchlist -- PYPL's earnings date couldn't be loaded.",
+        "Enterprise software took the hardest hit on your watchlist today, with the theme down 3% while the Nasdaq fell 0.9%. CRM fell 3.4% alongside a report about an AI startup pricing below traditional per-seat models. NOW and ADBE moved in step, both down just under 3%, with no company-specific news. All three moved together as one sector story.\n\nYour payments names held up well, each beating the 0.5% drop in XLF. V, MA and PYPL were all quiet, with moves under half a percent. PYPL's news and events data couldn't be loaded.\n\nV reports in five days. The next known reports after that are CRM in 18 days, then ADBE and NOW both in 25 days, and MA in 26 days. PYPL's date couldn't be loaded.",
+        "Enterprise software took the hardest hit on your watchlist today, with all three names down harder than the sector. CRM fell 3.4% alongside a headline about an AI startup undercutting per-seat pricing, though whether that report drove the move isn't clear. NOW and ADBE dropped 2.9% and 2.6% respectively on no company-specific news, tracking the same sector weakness that pulled the benchmark down 2.1%. The broader market was down too -- the S&P 500 off 0.4%, the Nasdaq 100 off 0.9% -- but this group's losses went well beyond that.\n\nYour payments names barely moved. V, MA and PYPL all stayed within half a percent, and all outperformed their financial sector benchmark, which fell 0.5%.\n\nV reports in five days. PYPL's events data couldn't be loaded, so its next report date isn't known. Beyond that, the next known reports are CRM in 18 days, then ADBE and NOW both in 25 days.",
+        "Enterprise software took the day's hardest hit, with CRM, NOW and ADBE all down between 2.6% and 3.4% as the theme fell nearly 3%. CRM dropped 3.4%, which may be related to a headline about an AI startup undercutting per-seat pricing models. NOW and ADBE moved with it but had no company-specific news. The payments names held up far better, losing little to no ground while their benchmark fell half a percent.\n\nThe broader market finished lower, with the S&P down 0.4% and the Nasdaq down 0.9%. Tech weakness concentrated in software, which drove the divergence between indices.\n\nV reports in five days. PYPL's event data and headlines couldn't be loaded today, so its next report date is unknown. Beyond that, the next known reports are CRM in 18 days, then ADBE and NOW in 25 days, then MA in 26 days."
+      ]
+    },
+    "news_only_failed": {
+      "description": "Cybersecurity rallies on a headline; in a quiet biotech group, AMGN's news failed to load.",
+      "runs": 24,
+      "checks": {
+        "never gives a direct recommendation": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never tells the reader to trade": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never sets a price target": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never predicts direction": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never claims certainty": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never uses a rating": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never nudges the reader about positioning": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never suggests an action": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never advises a posture": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never tells the reader when to act": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "no markdown headings": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "no bullet lists": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "no numbered lists": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "no bold markdown": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "between 1 and 4 paragraphs": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "reasonable length": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "never states a move as a multiple of another": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        },
+        "judge verdict": {
+          "passed": 24,
+          "runs": 24,
+          "failure": null
+        }
+      },
+      "first_output": "The cybersecurity names on your watchlist moved sharply higher together today, all four up 3% or more -- CRWD +4.2%, ZS +3.9%, PANW +3.6%, FTNT +3.1% -- outpacing their benchmark CIBR by over a percentage point each. The session coincided with a headline about federal agencies widening a zero-trust mandate to contractors. The sector strength stood out against a broad market that was only modestly higher: the S&P 500 up 0.3%, the Nasdaq 100 up 0.6%.\n\nThe biotech names you're tracking were quiet, holding close to flat alongside their benchmark XBI. VRTX edged down 0.2% on a day when it presented kidney-disease trial data at a congress, REGN rose 0.3%, and AMGN ticked up 0.1%. AMGN's headlines couldn't be loaded today.\n\nAMGN reports in nine days, the next scheduled earnings on this list. PANW follows ten days later, then VRTX the day after that.",
+      "failed_runs": [],
+      "rewrites": [
+        {
+          "run": 4,
+          "original": "The cybersecurity theme moved sharply together today, up 3% to 4% across all four names on your watchlist. CRWD, ZS, PANW and FTNT all beat the CIBR benchmark, which gained 2.9%, with the group's strength coinciding with a federal mandate widening zero-trust requirements to contractors. PANW moved 1.6x its usual volatility despite tracking the theme's median pace.\n\nBiotech was quiet, with VRTX, REGN and AMGN all within 0.3% while the broader market rose. VRTX presented kidney-disease trial data at a congress; AMGN's headlines couldn't be loaded.\n\nThe next report on your watchlist is AMGN in nine days. PANW follows ten days after that, then VRTX the day after PANW.",
+          "final": "The cybersecurity theme moved sharply together today, up 3% to 4% across all four names on your watchlist. CRWD, ZS, PANW and FTNT all beat the CIBR benchmark, which gained 2.9%, with the group's strength coinciding with a federal mandate widening zero-trust requirements to contractors. PANW's move was larger than its typical daily range while tracking the theme's median pace.\n\nBiotech was quiet, with VRTX, REGN and AMGN all within 0.3% while the broader market rose. VRTX presented kidney-disease trial data at a congress; AMGN's headlines couldn't be loaded.\n\nThe next report on your watchlist is AMGN in nine days. PANW follows ten days after that, then VRTX the day after PANW.",
+          "asked": [
+            "This sentence states one move as a multiple of another: \"PANW moved 1.6x its usual volatility despite tracking the theme's median pace.\" Rewrite the brief so those moves are given side by side as their own percentages, never as a multiple. Keep everything else as it was, and reply with the brief only."
+          ]
+        },
+        {
+          "run": 6,
+          "original": "The cybersecurity names you're tracking moved together today, all up 3% to 4% and outpacing their benchmark. A headline about federal agencies widening a zero-trust mandate to contractors appeared alongside CRWD, though whether that's driving the group is unclear. PANW's move ran at 1.6x its usual volatility, but all four stayed within half a point of each other -- a theme story rather than four company-specific ones.\n\nYour biotech names were flat to slightly down. VRTX presented kidney-disease trial data at a congress but closed down 0.2%. REGN and AMGN barely moved. AMGN's news couldn't be loaded today.\n\nAMGN reports in nine days, the next scheduled event on this list. PANW follows ten days after that, then VRTX the day after PANW.",
+          "final": "The cybersecurity names you're tracking moved together today, all up 3% to 4% and outpacing their benchmark. A headline about federal agencies widening a zero-trust mandate to contractors appeared alongside CRWD, though whether that's driving the group is unclear. All four stayed within half a point of each other -- a theme story rather than four company-specific ones.\n\nYour biotech names were flat to slightly down. VRTX presented kidney-disease trial data at a congress but closed down 0.2%. REGN and AMGN barely moved. AMGN's news couldn't be loaded today.\n\nAMGN reports in nine days, the next scheduled event on this list. PANW follows ten days after that, then VRTX the day after PANW.",
+          "asked": [
+            "This sentence states one move as a multiple of another: \"PANW's move ran at 1.6x its usual volatility, but all four stayed within half a point of each other -- a theme story rather than four company-specific ones.\" Rewrite the brief so those moves are given side by side as their own percentages, never as a multiple. Keep everything else as it was, and reply with the brief only."
+          ]
+        },
+        {
+          "run": 16,
+          "original": "Your cybersecurity names ran together today, up 3% to 4% as a group and all ahead of their benchmark CIBR. The move coincided with a federal mandate widening zero-trust requirements to government contractors, though CRWD was the only one on the list with that headline attached. The theme averaged 3.7%, nearly twice what the broader market delivered.\n\nThe biotech names were quiet, drifting within a few tenths of a percent alongside XBI. VRTX presented kidney-disease trial data at a medical conference but held flat. AMGN's news couldn't be loaded.\n\nAMGN reports in nine days, the next scheduled event on this list. PANW follows ten days later, then VRTX the day after that.",
+          "final": "Your cybersecurity names ran together today, up 3% to 4% as a group and all ahead of their benchmark CIBR. The move coincided with a federal mandate widening zero-trust requirements to government contractors, though CRWD was the only one on the list with that headline attached. The theme averaged 3.7% against the S&P's 0.3%.\n\nThe biotech names were quiet, drifting within a few tenths of a percent alongside XBI. VRTX presented kidney-disease trial data at a medical conference but held flat. AMGN's news couldn't be loaded.\n\nAMGN reports in nine days, the next scheduled event on this list. PANW follows ten days later, then VRTX the day after that.",
+          "asked": [
+            "This sentence states one move as a multiple of another: \"The theme averaged 3.7%, nearly twice what the broader market delivered.\" Rewrite the brief so those moves are given side by side as their own percentages, never as a multiple. Keep everything else as it was, and reply with the brief only."
+          ]
+        },
+        {
+          "run": 17,
+          "original": "The cybersecurity names moved sharply together today, up 3% to 4%, with the theme averaging 3.7% against CIBR's 2.9%. A headline about federal agencies widening the zero-trust mandate to contractors appeared alongside the moves. PANW moved 1.6x its usual volatility while the others stayed closer to their typical ranges.\n\nThe biotech names were quiet, with moves between -0.2% and +0.3% on a day when XBI itself added 0.2%. VRTX presented kidney-disease trial data at a congress but the stock was flat. AMGN's headlines couldn't be loaded today.\n\nAMGN reports in nine days. After that, PANW and VRTX follow within the next three weeks, with the remaining four names reporting between 24 and 33 days out.",
+          "final": "The cybersecurity names moved sharply together today, up 3% to 4%, with the theme averaging 3.7% against CIBR's 2.9%. A headline about federal agencies widening the zero-trust mandate to contractors appeared alongside the moves. PANW's 3.6% was a larger-than-usual swing while the others moved in line with their typical volatility.\n\nThe biotech names were quiet, with moves between -0.2% and +0.3% on a day when XBI itself added 0.2%. VRTX presented kidney-disease trial data at a congress but the stock was flat. AMGN's headlines couldn't be loaded today.\n\nAMGN reports in nine days. After that, PANW and VRTX follow within the next three weeks, with the remaining four names reporting between 24 and 33 days out.",
+          "asked": [
+            "This sentence states one move as a multiple of another: \"PANW moved 1.6x its usual volatility while the others stayed closer to their typical ranges.\" Rewrite the brief so those moves are given side by side as their own percentages, never as a multiple. Keep everything else as it was, and reply with the brief only."
+          ]
+        }
+      ],
+      "outputs": [
+        "The cybersecurity names on your watchlist moved sharply higher together today, all four up 3% or more -- CRWD +4.2%, ZS +3.9%, PANW +3.6%, FTNT +3.1% -- outpacing their benchmark CIBR by over a percentage point each. The session coincided with a headline about federal agencies widening a zero-trust mandate to contractors. The sector strength stood out against a broad market that was only modestly higher: the S&P 500 up 0.3%, the Nasdaq 100 up 0.6%.\n\nThe biotech names you're tracking were quiet, holding close to flat alongside their benchmark XBI. VRTX edged down 0.2% on a day when it presented kidney-disease trial data at a congress, REGN rose 0.3%, and AMGN ticked up 0.1%. AMGN's headlines couldn't be loaded today.\n\nAMGN reports in nine days, the next scheduled earnings on this list. PANW follows ten days later, then VRTX the day after that.",
+        "Your cybersecurity names moved sharply higher together today, up 3\u20134% across the board and outpacing both the CIBR benchmark and the broader market. The group's strength may be related to the federal zero-trust mandate expanding to contractors, which appeared in headlines alongside the rally.\n\nThe biotech names you're tracking were quiet, holding near flat while the rest of the market gained. VRTX presented kidney-disease trial data at a medical congress but finished down fractionally.\n\nAMGN reports in nine days, the next scheduled event on this list. AMGN's news couldn't be loaded today. The remaining reports follow later in the month: PANW in 19 days, VRTX in 20, CRWD in 24, ZS in 27, FTNT in 31, and REGN in 33.",
+        "Your cybersecurity names drove the action today, with all four up 3% or more and beating the CIBR benchmark. CRWD gained 4.2%, ZS 3.9%, PANW 3.6% and FTNT 3.1% -- a coordinated move across the entire theme. The day's main headline, about federal agencies widening their zero-trust mandate to contractors, may be related to the sector strength.\n\nThe biotech names were quiet. VRTX slipped 0.2% alongside news about kidney-disease trial data presented at a congress, REGN added 0.3%, and AMGN rose 0.1%. AMGN's headlines couldn't be loaded today.\n\nAMGN reports in nine days on November 14th, making it the next scheduled event on this list. PANW follows ten days after that on the 24th, then VRTX on the 25th.",
+        "The cybersecurity theme moved sharply together today, up 3% to 4% across all four names on your watchlist. CRWD, ZS, PANW and FTNT all beat the CIBR benchmark, which gained 2.9%, with the group's strength coinciding with a federal mandate widening zero-trust requirements to contractors. PANW's move was larger than its typical daily range while tracking the theme's median pace.\n\nBiotech was quiet, with VRTX, REGN and AMGN all within 0.3% while the broader market rose. VRTX presented kidney-disease trial data at a congress; AMGN's headlines couldn't be loaded.\n\nThe next report on your watchlist is AMGN in nine days. PANW follows ten days after that, then VRTX the day after PANW.",
+        "The cybersecurity theme drove your watchlist today, with all four names up 3% to 4%. CRWD, ZS, PANW and FTNT moved together, running well ahead of their benchmark and the broader market. A headline about federal agencies widening zero-trust mandates to contractors appeared alongside the move, which may be related to the gains.\n\nYour biotech names were quiet, holding near flat while the sector benchmark XBI added 0.2%. VRTX presented kidney-disease trial data at a congress but the stock was unchanged. AMGN's headlines couldn't be loaded.\n\nAMGN reports in nine days, the next scheduled event on your watchlist. PANW follows ten days later, then VRTX the day after that.",
+        "The cybersecurity names you're tracking moved together today, all up 3% to 4% and outpacing their benchmark. A headline about federal agencies widening a zero-trust mandate to contractors appeared alongside CRWD, though whether that's driving the group is unclear. All four stayed within half a point of each other -- a theme story rather than four company-specific ones.\n\nYour biotech names were flat to slightly down. VRTX presented kidney-disease trial data at a congress but closed down 0.2%. REGN and AMGN barely moved. AMGN's news couldn't be loaded today.\n\nAMGN reports in nine days, the next scheduled event on this list. PANW follows ten days after that, then VRTX the day after PANW.",
+        "The cybersecurity names you're tracking all moved together today, climbing between 3.1% and 4.2% as the sector benchmark rose 2.9%. CRWD, ZS, PANW and FTNT all tracked the group's 3.7% average gain. A headline crossed about federal agencies widening zero-trust requirements to contractors, which may be related to the sector's strength. The biotech names barely moved -- VRTX, REGN and AMGN all held near flat alongside their 0.2% benchmark.\n\nAMGN reports in nine days and PANW in nineteen. AMGN's headlines couldn't be loaded.\n\nThe broader market finished modestly higher, with the S&P up 0.3% and the Nasdaq up 0.6%. Nothing outside your watchlist moved notably today.",
+        "The cybersecurity names you're tracking moved together today, up 3% to 4% as a group and all beating their benchmark. A headline about federal agencies widening zero-trust mandates to contractors coincided with the rally, though the entire theme rose in sync. CRWD led the four at +4.2%, while ZS, PANW and FTNT climbed between 3% and 4%.\n\nThe biotech names were quiet, each within 0.3% and moving little relative to their peers. VRTX presented kidney-disease trial data at a conference, but the stock was flat at -0.2%. AMGN's news couldn't be loaded today.\n\nAMGN reports in nine days, the next on your watchlist. PANW follows ten days later, then VRTX the day after that.",
+        "The cybersecurity names on your watchlist moved together today, up 3% to 4% as a group and beating their benchmark. CRWD led at +4.2%, while ZS, PANW and FTNT all gained between 3% and 4%. A headline about federal agencies widening their zero-trust mandate to contractors appeared alongside the moves, though whether that drove the sector strength can't be confirmed. All four tracked their peers closely rather than moving on individual catalysts.\n\nYour biotech names were flat to slightly down, staying within half a percent of unchanged. VRTX slipped 0.2% alongside data it presented at a congress on kidney disease. REGN and AMGN both moved less than 0.3%. AMGN's news couldn't be loaded.\n\nAMGN reports in nine days, the nearest on your watchlist. PANW follows ten days after that, then VRTX the next day.",
+        "Your cybersecurity names moved as a group today, up 3% to 4% and well ahead of CIBR's 2.9%. CRWD led at +4.2%, alongside a headline about federal agencies widening a zero-trust mandate to contractors -- the only notable headline across the watchlist. ZS, PANW and FTNT all rose within the same range, tracking the theme.\n\nBiotech was flat. VRTX edged down 0.2% alongside trial data presented at a congress, REGN added 0.3%, and AMGN rose 0.1%. AMGN's news couldn't be loaded today.\n\nThe broader market closed modestly higher -- the S&P 500 up 0.3%, the Nasdaq 100 up 0.6% -- and nothing beyond your watchlist stood out.\n\nAMGN reports in nine days. PANW follows in 19, then VRTX in 20 and CRWD in 24.",
+        "The cybersecurity theme took the spotlight today, with all four names jumping 3% or more in a coordinated move that outpaced their benchmark. CRWD led at +4.2%, alongside a headline about federal agencies widening zero-trust mandates to contractors. ZS, PANW and FTNT all tracked within a percentage point of each other, running 3.1% to 3.9%. The sector strength came on volume roughly normal to moderately elevated across the group.\n\nThe biotech names were quiet. VRTX, REGN and AMGN all moved less than half a percent, with the group flat on the day. VRTX presented kidney-disease trial data at a congress, though the stock barely budged. AMGN's headlines couldn't be loaded today.\n\nThe broader market was subdued -- the S&P gained 0.3%, the Nasdaq 100 climbed 0.6% -- leaving the cybersecurity rally as the clear divergence on your watchlist.\n\nAMGN reports in nine days, the next scheduled event on this list. PANW follows ten days later, then VRTX the day after that.",
+        "The cybersecurity theme dominated your watchlist today, with all four names up 3.1% to 4.2% alongside a 2.9% gain in CIBR. The group moved as one, each beating the benchmark by at least 20 basis points. A headline about federal agencies widening zero-trust mandates to contractors appeared alongside CRWD's move, though the timing coincided with the entire group's rally.\n\nYour biotech names were quiet -- VRTX flat at -0.2%, REGN up 0.3%, AMGN up 0.1% -- while the sector benchmark XBI rose 0.2%. VRTX presented kidney-disease trial data at a congress today. AMGN's news couldn't be loaded.\n\nThe broader market was up modestly: the S&P 500 gained 0.3% and the Nasdaq 100 rose 0.6%, both well below the move in cybersecurity.\n\nAMGN reports in nine days. The next known reports after that are PANW in 19 days and VRTX in 20 days.",
+        "Your cybersecurity names ran as a group today, up 3% to 4% against the sector's 2.9%. All four beat the benchmark, with CRWD leading at +4.2%, ZS at +3.9%, PANW at +3.6% and FTNT at +3.1%. A headline about federal agencies widening zero-trust mandates to contractors appeared alongside the move. The biotech side was quiet -- VRTX, REGN and AMGN all moved less than half a percent.\n\nMarkets finished modestly higher, with the Nasdaq up 0.6% and the S&P up 0.3%. Nothing notable beyond your watchlist today.\n\nAMGN reports in nine days, the next known event on your list. PANW follows ten days later, then VRTX the day after that. AMGN's headlines couldn't be loaded.",
+        "Your cybersecurity names moved together sharply today, rising 3% to 4% as a group -- well ahead of the broader market's modest gains and outpacing their CIBR benchmark. All four tracked each other closely, with CRWD up 4.2%, ZS up 3.9%, PANW up 3.6%, and FTNT up 3.1%. The move coincided with a headline about federal agencies widening a zero-trust mandate to contractors, though nothing in the data establishes that as the driver.\n\nThe biotech names were quiet, moving little and in different directions: VRTX down 0.2% alongside trial data presented at a congress, REGN up 0.3%, and AMGN up 0.1%. AMGN's news couldn't be loaded today.\n\nAMGN reports next, in nine days. After that, PANW reports in 19 days and VRTX in 20 days.",
+        "Your cybersecurity names had a strong day, climbing together as the broader market drifted up modestly. CRWD, ZS, PANW and FTNT all gained between 3% and 4%, well ahead of the sector benchmark CIBR at 2.9% and the S&P 500's 0.3%. A headline this morning about federal agencies widening a zero-trust mandate to contractors may be related to the move, though all four names tracked each other closely rather than any single one standing out.\n\nYour biotech names were quiet, with VRTX, REGN and AMGN each moving less than 0.3% while the sector benchmark XBI rose 0.2%. VRTX presented kidney-disease trial data at a congress today but closed flat. AMGN's headlines couldn't be loaded.\n\nAMGN reports in nine days. PANW follows in 19, VRTX in 20, CRWD in 24, ZS in 27, FTNT in 31 and REGN in 33.",
+        "Your cybersecurity names ran together today, up 3% to 4% as a group and all ahead of their benchmark CIBR. The move coincided with a federal mandate widening zero-trust requirements to government contractors, though CRWD was the only one on the list with that headline attached. The theme averaged 3.7% against the S&P's 0.3%.\n\nThe biotech names were quiet, drifting within a few tenths of a percent alongside XBI. VRTX presented kidney-disease trial data at a medical conference but held flat. AMGN's news couldn't be loaded.\n\nAMGN reports in nine days, the next scheduled event on this list. PANW follows ten days later, then VRTX the day after that.",
+        "The cybersecurity names moved sharply together today, up 3% to 4%, with the theme averaging 3.7% against CIBR's 2.9%. A headline about federal agencies widening the zero-trust mandate to contractors appeared alongside the moves. PANW's 3.6% was a larger-than-usual swing while the others moved in line with their typical volatility.\n\nThe biotech names were quiet, with moves between -0.2% and +0.3% on a day when XBI itself added 0.2%. VRTX presented kidney-disease trial data at a congress but the stock was flat. AMGN's headlines couldn't be loaded today.\n\nAMGN reports in nine days. After that, PANW and VRTX follow within the next three weeks, with the remaining four names reporting between 24 and 33 days out.",
+        "Your cybersecurity names moved sharply together today, with all four up 3% to 4%. CRWD led at +4.2%, but the whole theme tracked tightly -- PANW, ZS and FTNT all rose in the same range -- and ran well ahead of CIBR's +2.9%. The session coincided with a headline about federal agencies widening zero-trust mandates to contractors, which may be related to the sector move.\n\nThe biotech names were quiet by comparison, with VRTX, REGN and AMGN all close to flat while the broader market added 0.3%. VRTX presented kidney-disease trial data at a congress, though that didn't move the stock noticeably. AMGN's headlines couldn't be loaded.\n\nAMGN reports in nine days -- the next scheduled event on your watchlist. After that, PANW follows in 19 days, then VRTX in 20.",
+        "Your cybersecurity names ran as a group today, up 3% to 4%, outpacing a +2.9% gain in CIBR. CRWD climbed 4.2%, alongside a headline about federal agencies widening zero-trust mandates to contractors. ZS, PANW and FTNT moved in the same direction without company-specific news, tracking the theme. The broader market was quieter, with the S&P up 0.3% and the Nasdaq up 0.6%.\n\nBiotech was flat across the board. VRTX edged down 0.2%, coinciding with kidney-disease trial data presented at a congress. REGN and AMGN barely moved. AMGN's news couldn't be loaded.\n\nAMGN reports in nine days, the next known date on your watchlist. PANW follows in 19 days, then VRTX in 20.",
+        "Your cybersecurity names moved sharply together today, up 3% to 4% as a group and beating their benchmark across the board. The move coincided with a headline about federal agencies widening a zero-trust mandate to contractors, which may be related to the sector strength. All four tracked their peers closely -- this was a theme day, not individual company stories.\n\nBiotech was quiet. VRTX presented kidney-disease trial data at a congress but traded flat alongside the other two. AMGN's headlines couldn't be loaded today.\n\nThe broader market gained modestly -- the S&P 500 up 0.3%, Nasdaq 100 up 0.6% -- so the cybersecurity strength was sector-specific, not just the market lifting everything.\n\nAMGN reports in nine days, the next known event on your watchlist.",
+        "The cybersecurity theme dominated your watchlist today, with all four names up 3% or more and running well ahead of CIBR's 2.9%. CRWD, ZS, PANW and FTNT moved as a group, gaining between 3.1% and 4.2%, which coincided with headlines about federal agencies widening the zero-trust mandate to contractors. The biotech names were quiet by comparison, all three moving less than 0.3% while the broader market gained ground.\n\nAMGN's headlines couldn't be loaded today. VRTX ticked down 0.2% alongside a presentation of kidney-disease trial data at a medical congress.\n\nAMGN reports in nine days, the next scheduled event on this list. PANW follows ten days later, then VRTX the day after that.",
+        "The cybersecurity names you're tracking rode a strong theme move today, jumping 3% to 4% together -- well ahead of CIBR's 2.9% and the broader market's 0.3%. CRWD led at +4.2%, while PANW, ZS and FTNT all moved in step. A headline about federal agencies widening zero-trust mandates to contractors appeared alongside the moves, though no direct link is established.\n\nBiotech was quiet. VRTX, REGN and AMGN all moved less than 0.3% while XBI itself stayed flat at +0.2%. VRTX presented kidney-disease trial data at a medical congress today. AMGN's headlines couldn't be loaded.\n\nAMGN reports in nine days, on November 14th. After that, PANW and VRTX both fall in the back half of the month, 19 and 20 days out respectively.",
+        "Your cybersecurity names ran together today, up 3% to 4% as a group and beating their CIBR benchmark across the board. The move coincided with headlines about federal agencies widening zero-trust mandates to contractors, though the whole theme lifted in unison rather than any single name reacting. CRWD led at +4.2%, with ZS, PANW and FTNT close behind. Your biotech names stayed flat to slightly down \u2014 VRTX off 0.2% alongside kidney-disease trial data presented at a congress, REGN and AMGN both near unchanged.\n\nAcross the broader market, the S&P 500 closed up 0.3% and the Nasdaq 100 up 0.6%. Nothing notable moved outside your watchlist today.\n\nAMGN reports in nine days, the next scheduled event on your list. PANW and VRTX follow a week and a half later, then CRWD, ZS, FTNT and REGN through early December. AMGN's headlines couldn't be loaded today.",
+        "The cybersecurity theme drove your watchlist today, with all four names up 3% to 4% alongside a 2.9% gain in CIBR. CRWD, ZS, PANW and FTNT moved together as a group, each within a point of their peers' median. The day's main headline -- federal agencies widening the zero-trust mandate to contractors -- appeared in CRWD's feed, which may be related to the sector's strength.\n\nThe biotech names were quiet. VRTX, REGN and AMGN each moved 0.3% or less, in line with XBI's 0.2% gain. VRTX presented kidney-disease trial data at a medical congress, though the stock barely moved. AMGN's headlines couldn't be loaded.\n\nThe broader market was muted, with the S&P 500 up 0.3% and the Nasdaq 100 up 0.6%. Nothing outside your watchlist moved notably today.\n\nAMGN reports in nine days, followed by PANW in nineteen and VRTX in twenty."
+      ]
+    }
+  }
+}
