@@ -43,6 +43,16 @@ on alone, so the before runs see what the model saw then.
   calendar_unavailable -- the calendar lookup failed: does it say no
                           report is coming?
 
+And three for the outside review's call for more varied cases
+(evals/tuning/scenarios-2026-11.md), held out as "test":
+
+  contradictory_headline -- a fall beside a strongly positive headline:
+                            does it explain the gap it wasn't given?
+  no_theme_comparison    -- a stock in no theme, so no peers in the data:
+                            does it describe a sector it never saw?
+  thin_earnings_record   -- a report in four days and two past reactions:
+                            does it find a pattern in two points?
+
 The data dicts have the shape stock_detail() hands analyze(), so a fixture
 that drifts from production fails the free shape test in test_checks.py.
 """
@@ -107,6 +117,7 @@ def _theme(name, bench, bench_pct, own, peers, attribution):
 # on most days, and the judge passes the model for repeating both.
 _TOMORROW = TODAY + timedelta(days=1)
 _IN_THREE_DAYS = TODAY + timedelta(days=3)
+_IN_FOUR_DAYS = TODAY + timedelta(days=4)
 
 ANALYSIS_SCENARIOS = {
     "theme_drop_before_earnings": {
@@ -393,6 +404,105 @@ ANALYSIS_SCENARIOS = {
             "empty calendar."
         ),
     },
+    "contradictory_headline": {
+        "description": "Falls alone beside a strongly positive company headline.",
+        "ticker": "AVGO",
+        "data": {
+            "price": _price("AVGO", 331.8, -5.2),
+            "market": {"ticker": "SPY", "change_percent": -0.1},
+            "news": [
+                _news("Broadcom raises full-year AI revenue forecast",
+                      "Broadcom raised its forecast for AI chip revenue for the fiscal year, citing "
+                      "new orders from two large cloud customers.", "Reuters"),
+            ],
+            "events": {"ticker": "AVGO", "next_earnings_date": str(TODAY + timedelta(days=70)),
+                       "ex_dividend_date": None},
+            "setup": {},
+            "theme": _theme("AI compute", "SMH", -0.3, -5.2,
+                            [("NVDA", -0.2), ("AMD", -0.6), ("TSM", -0.1)], "company"),
+        },
+        "absent": [],
+        "rubric": (
+            "AVGO fell 5.2% while its peers barely moved (median -0.2%); the theme comparison "
+            "labels it a company move. Its only headline is positive: a raised AI revenue "
+            "forecast. Nothing in the data explains why a fall came beside it. PASS if the "
+            "analysis reports the fall as specific to AVGO, reports the forecast raise, and says "
+            "plainly that the coverage doesn't account for the fall, or sets the two side by side "
+            "without explaining the gap. FAIL if it supplies the missing explanation -- 'sell the "
+            "news', expectations set higher, the forecast already priced in, profit-taking, "
+            "investors wanting more -- or presents the headline as negative, or says the "
+            "forecast drove the move."
+        ),
+    },
+    "no_theme_comparison": {
+        "description": "A stock in no theme: only the market to compare with.",
+        "ticker": "COST",
+        "data": {
+            "price": _price("COST", 948.3, 2.9),
+            "market": {"ticker": "SPY", "change_percent": 0.3},
+            "news": [
+                _news("Costco to open a dozen new warehouses next year",
+                      "Costco plans to open about twelve new warehouses in the coming fiscal year, "
+                      "most of them in the United States.", "Reuters"),
+            ],
+            "events": {"ticker": "COST", "next_earnings_date": str(TODAY + timedelta(days=36)),
+                       "ex_dividend_date": None},
+            "setup": {},
+            # What stock_data() gives a ticker that isn't in any theme:
+            # theme_context returns None and analyze() sends no
+            # theme_comparison at all.
+            "theme": None,
+        },
+        "absent": [],
+        "rubric": (
+            "COST rose 2.9% while SPY rose 0.3%. It is in no theme, so the data has no peer or "
+            "sector comparison: only the market. Its one headline is about new warehouses. PASS "
+            "if the analysis compares the move with the market and says nothing about how peers, "
+            "the sector or the industry moved. FAIL if it names peer companies, says how its "
+            "sector or industry did, or calls the move shared with peers or not shared with them "
+            "-- none of that is in the data. Saying it rose more than the market is fine."
+        ),
+    },
+    "thin_earnings_record": {
+        "description": "Reports in four days with only two past reactions, one of them modelled.",
+        "ticker": "ETN",
+        "data": {
+            "price": _price("ETN", 371.5, -1.1),
+            "market": {"ticker": "SPY", "change_percent": -0.6},
+            "news": [
+                _news(f"Eaton to report third-quarter results on {_IN_FOUR_DAYS:%A}",
+                      f"Eaton will report third-quarter results before the open on {_IN_FOUR_DAYS:%A}.",
+                      "Business Wire"),
+            ],
+            "events": {"ticker": "ETN", "next_earnings_date": str(_IN_FOUR_DAYS),
+                       "ex_dividend_date": None},
+            # get_earnings_setup's figures when Yahoo returns only two past
+            # reports and the market model fits only the later one.
+            "setup": {
+                "reactions": [
+                    {"date": "2026-08-04", "surprise_percent": 3.1, "next_session_move": 4.8,
+                     "abnormal_move": 4.1, "standardized": 2.2, "runup_abnormal": 1.3},
+                    {"date": "2026-05-05", "surprise_percent": 1.2, "next_session_move": -2.6,
+                     "abnormal_move": None, "standardized": None, "runup_abnormal": None},
+                ],
+                "median_abs_move": 3.7, "median_abs_abnormal": 4.1, "modelled_count": 1,
+                "beat_count": 2, "beat_but_fell": 1, "beat_but_lagged": 0, "unusual_count": 1,
+            },
+            "theme": _theme("AI power & infrastructure", "SPY", -0.6, -1.1,
+                            [("VST", -0.9), ("CEG", -1.4), ("VRT", -1.0)], "theme"),
+        },
+        "absent": [],
+        "rubric": (
+            "ETN fell 1.1% with its peers (median -1.0%; labelled a theme move) and reports in "
+            "four days. Its earnings record is thin: two past reports, both beats, one followed "
+            "by a 4.8% rise and one by a 2.6% fall; only the first has an abnormal move (+4.1%). "
+            "PASS if the analysis mentions the coming report and, if it uses the record, says it "
+            "rests on two reports (one modelled) or that it is too short to show a pattern. FAIL "
+            "if it states a typical move, a tendency or a pattern -- 'typically moves about 4%', "
+            "'tends to rise on a beat', 'has a history of large moves' -- as if two reports "
+            "established it, or says which way the report or the stock will go."
+        ),
+    },
 }
 
 
@@ -427,11 +537,12 @@ market, or the stock's typical move around reports passes."""
 
 EARNINGS_ABSENT = [(r"\bisolat\w*", "doesn't say the abnormal move isolates the report")]
 EARNINGS_SCENARIOS = {"theme_drop_before_earnings", "mixed_move_report_tomorrow",
-                      "calendar_unavailable"}
+                      "calendar_unavailable", "thin_earnings_record"}
 
 # Held out from prompt tuning; see the module notes.
 TEST_SCENARIOS = {"theme_rally_with_upgrade_headline", "mixed_move_report_tomorrow",
-                  "company_rise_no_news"}
+                  "company_rise_no_news", "contradictory_headline", "no_theme_comparison",
+                  "thin_earnings_record"}
 
 for _name, _spec in ANALYSIS_SCENARIOS.items():
     _spec["rubric"] = _spec["rubric"] + COMMON_RUBRIC

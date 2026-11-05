@@ -47,6 +47,18 @@ the news failed and the report date is known:
                                 biotech group: does the brief call the group
                                 newsless?
 
+And four for the outside review's call for more varied cases
+(evals/tuning/scenarios-2026-11.md), all in the test split:
+
+  broad_rally_one_falls       -- everything rises but META: is META folded
+                                 into the rally?
+  market_moved_watchlist_flat -- the market falls 2.3%, the watchlist
+                                 doesn't: "a quiet day", or a reason why?
+  two_reports_this_week       -- CRM reports in two days, ADBE in five and
+                                 ADBE moved more: is ADBE named as next?
+  stale_headline              -- MU's headline says it sank 9%; today it rose
+                                 0.4%: is the old fall reported as today's?
+
 Each scenario is either "train" or "test". Prompt tuning reads the train
 scenarios' failures and changes the prompt against them; the test
 scenarios are held out -- their outputs aren't read until tuning is done --
@@ -87,6 +99,7 @@ TYPICAL_MOVE = {
     "TSLA": 2.9, "TSM": 2.5, "VRT": 4.1, "VST": 3.1, "WDC": 5.1,
     "KO": 1.0, "V": 1.3, "MA": 1.4, "PYPL": 2.4, "CRM": 2.3, "NOW": 2.6, "ADBE": 2.3,  # est.
     "CRWD": 3.2, "PANW": 2.2, "ZS": 3.4, "FTNT": 2.6, "VRTX": 1.6, "REGN": 1.9, "AMGN": 1.4,  # est.
+    "INTU": 2.2,  # est.
 }
 
 
@@ -625,12 +638,148 @@ SCENARIOS["news_only_failed"] = {
     ),
 }
 
+SCENARIOS["broad_rally_one_falls"] = {
+    "description": "A broad up day; one mega-cap falls while its peers rise.",
+    "market_pct": 1.2,
+    "indices": [_index("S&P 500", 1.2), _index("Nasdaq 100", 1.6)],
+    "themes": [
+        _theme("Mega-cap tech", "QQQ", 1.6, [
+            _row("AAPL", 1.8, "quiet", [], None),
+            _row("MSFT", 1.5, "quiet", [], None),
+            _row("GOOGL", 1.9, "quiet", [], None),
+            _row("AMZN", 1.4, "quiet", [], None),
+            _row("META", -4.6, "high", [], "Meta to face EU hearing on ad-targeting rules"),
+        ]),
+        _theme("AI compute", "SMH", 2.1, [
+            _row("NVDA", 2.4, "quiet", [], None),
+            _row("AMD", 2.8, "quiet", [], None),
+            _row("AVGO", 2.2, "quiet", [], None),
+            _row("TSM", 1.9, "quiet", [], None),
+        ]),
+    ],
+    "movers": [],
+    "headlines": [_headline("Stocks climb as Treasury yields ease")],
+    "must_mention": ["META"],
+    "rubric": (
+        "The market rose (S&P 500 +1.2%, Nasdaq 100 +1.6%) and both themes rose with it, except "
+        "META, which fell 4.6% while its mega-cap peers rose 1.4-1.9%; it is labelled a "
+        "company-specific move. PASS if the brief tells the rise once, at the market or theme "
+        "level, and names META as the name that fell against it. FAIL if it says the whole "
+        "watchlist or every mega-cap rose, folds META into the rally, leaves META out, or "
+        "walks through the risers one by one as separate stories."
+    ),
+}
+
+SCENARIOS["market_moved_watchlist_flat"] = {
+    "description": "The market falls hard; the watchlist barely moves.",
+    "market_pct": -2.3,
+    "indices": [_index("S&P 500", -2.3), _index("Nasdaq 100", -2.9), _index("Russell 2000", -3.1)],
+    "themes": [
+        _theme("Payments", "XLF", -1.9, [
+            _row("V", -0.3, "quiet", [], None),
+            _row("MA", -0.5, "quiet", [], None),
+            _row("PYPL", -0.2, "quiet", [], None),
+        ]),
+        _theme("Biotech", "XBI", -1.2, [
+            _row("VRTX", 0.2, "quiet", [], None),
+            _row("REGN", -0.4, "quiet", [], None),
+            _row("AMGN", 0.1, "quiet", [], None),
+        ]),
+    ],
+    "movers": [],
+    "headlines": [_headline("Treasury yields jump after a hotter-than-expected jobs report")],
+    "must_mention": [],
+    "rubric": (
+        "The market fell hard (S&P 500 -2.3%, Nasdaq 100 -2.9%, Russell 2000 -3.1%; XLF -1.9%, "
+        "XBI -1.2%), but every name on the watchlist moved less than 0.6% either way. PASS if "
+        "the brief says the market fell sharply and that the watchlist barely moved against it. "
+        "FAIL if it calls the day quiet without the market's fall, describes the watchlist as "
+        "falling with the market, or gives a reason the watchlist held up -- a rotation into "
+        "defensive names, investors seeking safety -- since the data gives none."
+    ),
+}
+
+_REPORTS_FIRST = TODAY + timedelta(days=2)
+_REPORTS_SECOND = TODAY + timedelta(days=5)
+
+SCENARIOS["two_reports_this_week"] = {
+    "description": "Two names report this week on different days; the later one moved more today.",
+    "market_pct": 0.2,
+    "indices": [_index("S&P 500", 0.2), _index("Nasdaq 100", 0.1)],
+    "themes": [
+        _theme("Enterprise software", "IGV", -0.6, [
+            _row("CRM", 0.3, "quiet", [], None, earnings_in=2),
+            _row("NOW", 0.1, "quiet", [], None, earnings_in=19),
+            _row("INTU", 0.2, "quiet", [], None, earnings_in=27),
+            _row("ADBE", -4.1, "high", [], None, earnings_in=5),
+        ]),
+        _theme("Payments", "XLF", 0.3, [
+            _row("V", 0.2, "quiet", [], None, earnings_in=23),
+            _row("MA", 0.0, "quiet", [], None, earnings_in=24),
+            _row("PYPL", -0.1, "quiet", [], None, earnings_in=30),
+        ]),
+    ],
+    "movers": [],
+    "headlines": [],
+    "must_mention": ["CRM", "ADBE"],
+    "rubric": (
+        f"Two names report this week: CRM in two days ({_REPORTS_FIRST:%A}, "
+        f"{_REPORTS_FIRST.isoformat()}) and then ADBE in five ({_REPORTS_SECOND:%A}, "
+        f"{_REPORTS_SECOND.isoformat()}). ADBE fell 4.1% today, against flat peers; CRM barely "
+        "moved. The rest report in 19 days or more. PASS if every statement about upcoming "
+        "reports agrees with this calendar and the brief gives both of this week's reports. "
+        "FAIL if it names ADBE as the next to report, says the two report on the same day, "
+        "gives a day count, weekday or date that contradicts the calendar, or says only one "
+        "name reports this week."
+    ),
+}
+
+SCENARIOS["stale_headline"] = {
+    "description": "A name's top headline describes a fall from days ago; today it rose with its peers.",
+    "market_pct": 0.5,
+    "indices": [_index("S&P 500", 0.5), _index("Nasdaq 100", 0.7)],
+    # Production passes a headline's title alone: fetch_row keeps the
+    # first item's title as top_headline and get_market_news carries no
+    # time at all. So the brief can't tell this headline is old, and the
+    # fixture gives it nothing more than that.
+    "themes": [
+        _theme("Memory & storage", "SMH", 0.6, [
+            _row("MU", 0.4, "quiet", [], "Micron shares sink 9% after a weak quarterly outlook",
+                 earnings_in=80),
+            _row("WDC", 0.7, "quiet", [], None),
+            _row("STX", 0.5, "quiet", [], None),
+            _row("SNDK", 0.9, "quiet", [], None),
+        ]),
+        _theme("AI compute", "SMH", 0.6, [
+            _row("NVDA", 0.8, "quiet", [], None),
+            _row("AMD", 0.5, "quiet", [], None),
+            _row("AVGO", 0.6, "quiet", [], None),
+            _row("TSM", 0.4, "quiet", [], None),
+        ]),
+    ],
+    "movers": [],
+    "headlines": [_headline("Stocks edge higher ahead of inflation data")],
+    "must_mention": [],
+    "rubric": (
+        "MU's top headline, 'Micron shares sink 9% after a weak quarterly outlook', is several "
+        "days old: today MU rose 0.4%, in line with its peers, on a quiet up day. The data gives "
+        "no publication time for any headline. PASS if the brief gives MU's move today as the "
+        "data does (or leaves MU out) and, if it mentions the headline, reports it as a headline "
+        "without dating it. FAIL if it says MU fell or sank today, gives the 9% fall as today's "
+        "move, dates the headline to today, this morning or overnight, or calls it new."
+    ),
+}
+
 # Held out from prompt tuning; see the module notes. payments_name_data_failed
 # is held out from the failed-data guard, whose patterns came from
-# theme_name_data_failed's failures.
+# theme_name_data_failed's failures. The last four were written for the
+# outside review's call for more varied cases (evals/tuning/scenarios-2026-11.md)
+# and are held out from everything so far.
 TEST_SCENARIOS = {"single_crash", "quiet_themes_one_mover", "quiet_themes_no_events",
                   "single_mover_with_headline", "theme_rally_policy_headline",
-                  "payments_name_data_failed", "news_only_failed"}
+                  "payments_name_data_failed", "news_only_failed",
+                  "broad_rally_one_falls", "market_moved_watchlist_flat",
+                  "two_reports_this_week", "stale_headline"}
 
 def _score_by_app(spec):
     """Every row's attention as the app under test computes it, so the

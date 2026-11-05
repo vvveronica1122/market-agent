@@ -13,6 +13,7 @@ be exact). Costs money.
     python3 evals/run_agent_evals.py
     python3 evals/run_agent_evals.py --runs 3
     python3 evals/run_agent_evals.py --scenario needs_math
+    python3 evals/run_agent_evals.py --scenario tool_fails_midway,unanswerable_question
     python3 evals/run_agent_evals.py --dry-run
     python3 evals/run_agent_evals.py --runs 5 --save   # keep the result in evals/results/
 """
@@ -20,6 +21,7 @@ be exact). Costs money.
 from __future__ import annotations
 
 import argparse
+import contextlib
 import json
 import os
 import re
@@ -31,7 +33,7 @@ sys.path.insert(0, str(PROJECT_ROOT))
 sys.path.insert(0, str(PROJECT_ROOT / "evals"))
 
 import agent  # noqa: E402
-from agent_scenarios import SCENARIOS, WATCHLIST, MOVERS, build_handlers  # noqa: E402
+from agent_scenarios import SCENARIOS, WATCHLIST, MOVERS, build_handlers, failing_handlers  # noqa: E402
 from checks import (  # noqa: E402
     check_call_counts,
     check_forbidden,
@@ -63,6 +65,21 @@ def _recording(name, handler):
         RESULTS_SEEN.append({"tool": name, "input": kwargs, "result": out})
         return out
     return wrapped
+
+
+@contextlib.contextmanager
+def tools_failing(failing: dict | None):
+    """A scenario's tools failing for some names (see failing_handlers),
+    recorded like the rest; the plain fixtures are put back afterwards so
+    the next scenario never sees the failure."""
+    saved = dict(agent.HANDLERS)
+    for tool, handler in failing_handlers(failing).items():
+        agent.HANDLERS[tool] = _recording(tool, handler)
+    try:
+        yield
+    finally:
+        agent.HANDLERS.clear()
+        agent.HANDLERS.update(saved)
 
 
 class _Block:
@@ -179,14 +196,16 @@ def run_scenario(name: str, spec: dict, runs: int) -> dict:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--runs", type=int, default=1)
-    parser.add_argument("--scenario")
+    parser.add_argument("--scenario", help="run only this scenario, or these, comma-separated")
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--save", action="store_true",
                         help="write the result, with model and commit, to evals/results/")
     args = parser.parse_args()
 
-    if args.scenario and args.scenario not in SCENARIOS:
-        print(f"Unknown scenario. Available: {', '.join(SCENARIOS)}")
+    wanted = [n.strip() for n in args.scenario.split(",")] if args.scenario else []
+    unknown = [n for n in wanted if n not in SCENARIOS]
+    if unknown:
+        print(f"Unknown scenario {', '.join(unknown)}. Available: {', '.join(SCENARIOS)}")
         return 1
 
     # Swap the data, keep the brain: fixture handlers, real model.
@@ -208,11 +227,12 @@ def main() -> int:
             return 1
         agent._eval_client = agent.Anthropic(api_key=key)
 
-    chosen = {args.scenario: SCENARIOS[args.scenario]} if args.scenario else SCENARIOS
+    chosen = {n: SCENARIOS[n] for n in wanted} if wanted else SCENARIOS
     checks = failed = 0
     records = {}
     for name, spec in chosen.items():
-        outcome = run_scenario(name, spec, args.runs)
+        with tools_failing(spec.get("failing")):
+            outcome = run_scenario(name, spec, args.runs)
         checks += outcome["checks"]
         failed += outcome["failed"]
         records[name] = outcome["record"]
