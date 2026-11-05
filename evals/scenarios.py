@@ -39,6 +39,14 @@ the week:
                                 five days: does the brief say PYPL had no
                                 news, or that V is the only report coming?
 
+And one held out from the model news check of the second batch
+(evals/tuning/batch2-news-check-2026-11.md), in the test split, where only
+the news failed and the report date is known:
+
+  news_only_failed           -- AMGN's headlines failed to load in a quiet
+                                biotech group: does the brief call the group
+                                newsless?
+
 Each scenario is either "train" or "test". Prompt tuning reads the train
 scenarios' failures and changes the prompt against them; the test
 scenarios are held out -- their outputs aren't read until tuning is done --
@@ -78,6 +86,7 @@ TYPICAL_MOVE = {
     "GOOGL": 2.0, "META": 2.6, "MSFT": 2.1, "MU": 5.1, "NVDA": 2.4, "SNDK": 7.3, "STX": 4.8,
     "TSLA": 2.9, "TSM": 2.5, "VRT": 4.1, "VST": 3.1, "WDC": 5.1,
     "KO": 1.0, "V": 1.3, "MA": 1.4, "PYPL": 2.4, "CRM": 2.3, "NOW": 2.6, "ADBE": 2.3,  # est.
+    "CRWD": 3.2, "PANW": 2.2, "ZS": 3.4, "FTNT": 2.6, "VRTX": 1.6, "REGN": 1.9, "AMGN": 1.4,  # est.
 }
 
 
@@ -581,12 +590,47 @@ SCENARIOS["payments_name_data_failed"] = {
     ),
 }
 
+SCENARIOS["news_only_failed"] = {
+    "description": "Cybersecurity rallies on a headline; in a quiet biotech group, AMGN's news failed to load.",
+    "market_pct": 0.3,
+    "indices": [_index("S&P 500", 0.3), _index("Nasdaq 100", 0.6)],
+    "themes": [
+        _theme("Cybersecurity", "CIBR", 2.9, [
+            _row("CRWD", 4.2, "medium", [], "Federal agencies widen zero-trust mandate to contractors",
+                 earnings_in=24),
+            _row("ZS", 3.9, "medium", [], None, earnings_in=27),
+            _row("PANW", 3.6, "medium", [], None, earnings_in=19),
+            _row("FTNT", 3.1, "medium", [], None, earnings_in=31),
+        ]),
+        _score_failed(_theme("Biotech", "XBI", 0.2, [
+            _row("VRTX", -0.2, "quiet", [], "Vertex presents kidney-disease trial data at congress",
+                 earnings_in=20),
+            _row("REGN", 0.3, "quiet", [], None, earnings_in=33),
+            _failed_row("AMGN", 0.1, missing=("news",), earnings_in=9),
+        ]), "AMGN", 0.3),
+    ],
+    "movers": [],
+    "headlines": [_headline("Federal agencies widen zero-trust mandate to contractors")],
+    "must_mention": [],
+    "rubric": (
+        "The cybersecurity names (CRWD, ZS, PANW, FTNT) rose 3.1-4.2% together beside a headline "
+        "about a federal zero-trust mandate; biotech barely moved. AMGN's news lookup FAILED: its "
+        "row has no headline because its headlines couldn't be loaded, not because there were "
+        "none. Its report date, in nine days, is known. PASS if the brief tells the cybersecurity "
+        "rise once, as one theme story, and says nothing about AMGN that turns the failed news "
+        "lookup into a fact: it may leave AMGN out, say its price barely moved, or say its headlines "
+        "couldn't be loaded. FAIL if it says AMGN had no news or headlines, alone or as part of a "
+        "group (\"the biotech names had no news\", \"nothing company-specific there\", \"quiet on "
+        "news\")."
+    ),
+}
+
 # Held out from prompt tuning; see the module notes. payments_name_data_failed
 # is held out from the failed-data guard, whose patterns came from
 # theme_name_data_failed's failures.
 TEST_SCENARIOS = {"single_crash", "quiet_themes_one_mover", "quiet_themes_no_events",
                   "single_mover_with_headline", "theme_rally_policy_headline",
-                  "payments_name_data_failed"}
+                  "payments_name_data_failed", "news_only_failed"}
 
 def _score_by_app(spec):
     """Every row's attention as the app under test computes it, so the
