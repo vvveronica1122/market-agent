@@ -139,6 +139,49 @@ def main() -> int:
         else:
             sys.modules.pop("app", None)
 
+    print("\nWhen Yahoo fails for a ticker")
+    tz_closes, tz_volumes = closes.copy(), volumes.copy()
+    tz_closes.index = tz_volumes.index = closes.index.tz_localize("America/New_York")
+
+    def yahoo(broken=(), empty=()):
+        def history(ticker):
+            if ticker in broken:
+                raise TypeError("'NoneType' object is not subscriptable")
+            if ticker in empty:
+                return pd.DataFrame()
+            return pd.DataFrame({"Close": tz_closes[ticker], "Volume": tz_volumes[ticker]})
+        return history
+
+    with contextlib.redirect_stdout(io.StringIO()) as said:
+        got_closes, _, failed = fl.fetch_histories(["AAA", "BBB", "CCC", "DDD"], yahoo(broken={"BBB"}, empty={"CCC"}))
+    failures += not check("a ticker that raises or comes back empty is reported, not fatal",
+                          failed == ["BBB", "CCC"] and list(got_closes.columns) == ["AAA", "DDD"]
+                          and "BBB: TypeError" in said.getvalue(), str(failed))
+    failures += not check("and the rest come back on the session dates the log uses",
+                          got_closes.index.tz is None and got_closes.index[75] == closes.index[75])
+
+    waiting = fl.rank_rows(blocks_for({t: returns.at[day, t] for t in themes[0]["tickers"]},
+                                      {t: want.at[t, "sigma"] for t in themes[0]["tickers"]}),
+                           day.date().isoformat(), "x")
+    fl.write_log(waiting, tmp)
+    fl.LOG = tmp
+    try:
+        with contextlib.redirect_stdout(io.StringIO()) as said:
+            stopped = fl.outcomes(yahoo(broken={"BBB"}))
+        after_failure = fl.read_log()
+        failures += not check("one failed ticker leaves every outcome waiting, so no peer median "
+                              "is taken without it", stopped == 1 and all(r[k] == "" for r in after_failure
+                                                                         for k in fl.OUTCOME_FIELDS),
+                              said.getvalue())
+        with contextlib.redirect_stdout(io.StringIO()):
+            retried = fl.outcomes(yahoo())
+        filled = {r["ticker"]: r for r in fl.read_log()}
+        failures += not check("and the next run fills them as if nothing had failed",
+                              retried == 0 and all(abs(float(filled[t]["next_gap_z"]) - want.at[t, "next_gap_z"]) < 1e-4
+                                                   for t in themes[0]["tickers"]))
+    finally:
+        fl.LOG = real_log
+
     print("\nThe report")
     failures += not check("says nothing about the measures before 20 sessions",
                           "none are reported yet" in fl.report(log), fl.report(log))

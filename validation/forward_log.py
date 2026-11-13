@@ -166,23 +166,44 @@ def fill_outcomes(rows: list[dict], closes: pd.DataFrame, volumes: pd.DataFrame)
     return changed
 
 
-def outcomes() -> int:
-    import yfinance as yf
+def fetch_histories(tickers, history) -> tuple[pd.DataFrame, pd.DataFrame, list[str]]:
+    """Closes and volumes for each ticker from `history(ticker)`, and the
+    tickers it failed for. Yahoo now and then answers with nothing, and
+    yfinance raises on that instead of returning an empty frame (12 November:
+    a TypeError that stopped the whole run), so one failure is caught and
+    reported, not fatal."""
+    closes, volumes, failed = {}, {}, []
+    for ticker in tickers:
+        try:
+            frame = history(ticker)
+        except Exception as e:  # noqa: BLE001 -- whatever the source raised, the ticker just failed
+            print(f"  {ticker}: {type(e).__name__}: {e}")
+            frame = None
+        if frame is None or frame.empty:
+            failed.append(ticker)
+            continue
+        frame.index = frame.index.tz_localize(None).normalize()
+        closes[ticker], volumes[ticker] = frame["Close"], frame["Volume"]
+    return pd.DataFrame(closes), pd.DataFrame(volumes), failed
 
+
+def outcomes(history=None) -> int:
     rows = read_log()
     pending = [r for r in rows if any(r[k] == "" for k in OUTCOME_FIELDS)]
     if not pending:
         print("Nothing waiting for outcomes.")
         return 0
-    closes, volumes = {}, {}
-    for ticker in sorted({r["ticker"] for r in pending}):
-        history = yf.Ticker(ticker).history(period="1y")
-        if history is None or history.empty:
-            print(f"  {ticker}: no history; its outcomes wait for the next run")
-            continue
-        history.index = history.index.tz_localize(None).normalize()
-        closes[ticker], volumes[ticker] = history["Close"], history["Volume"]
-    changed = fill_outcomes(rows, pd.DataFrame(closes), pd.DataFrame(volumes))
+    if history is None:
+        import yfinance as yf
+        history = lambda ticker: yf.Ticker(ticker).history(period="1y")  # noqa: E731
+    closes, volumes, failed = fetch_histories(sorted({r["ticker"] for r in pending}), history)
+    if failed:
+        # Filling the rest would take each peer median without these names,
+        # and a filled value is never revisited; so everything waits, and
+        # the next run, whose year of history covers these sessions, retries.
+        print(f"No history for {', '.join(failed)}: every outcome waits for the next run.")
+        return 1
+    changed = fill_outcomes(rows, closes, volumes)
     write_log(rows)
     print(f"Filled {changed} outcome values; "
           f"{sum(1 for r in rows if any(r[k] == '' for k in OUTCOME_FIELDS))} rows still wait.")
